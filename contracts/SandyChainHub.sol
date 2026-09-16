@@ -2,9 +2,15 @@
 pragma solidity ^0.8.24;
 
 /// @title SandyChainHub
-/// @notice Lightweight testnet-only builder registry and community proposal hub.
-/// @dev No token, custody, payment, or investment functionality is included.
+/// @notice Testnet-only builder registry, community proposals and membership hub.
+/// @dev Membership fee is restricted to SYSFI testnet (chain 76081) and is forwarded
+///      to the deploying founder address. No mainnet, investment or token-issuance logic.
 contract SandyChainHub {
+    uint256 public constant SYSFI_TESTNET_CHAIN_ID = 76081;
+    uint256 public constant MEMBERSHIP_FEE = 0.01 ether;
+
+    address public immutable founder;
+
     struct Project {
         uint256 id;
         address builder;
@@ -26,15 +32,42 @@ contract SandyChainHub {
 
     uint256 public projectCount;
     uint256 public proposalCount;
+    uint256 public memberCount;
 
     mapping(uint256 => Project) public projects;
     mapping(uint256 => Proposal) public proposals;
     mapping(address => uint256) public projectsByBuilder;
     mapping(uint256 => mapping(address => bool)) public proposalVoted;
+    mapping(address => bool) public isMember;
+    mapping(address => uint256) public joinedAt;
 
     event ProjectRegistered(uint256 indexed projectId, address indexed builder, string name);
     event ProposalCreated(uint256 indexed proposalId, address indexed creator, string title);
     event ProposalVoted(uint256 indexed proposalId, address indexed voter, bool support);
+    event CommunityJoined(address indexed member, uint256 fee, uint256 joinedAt);
+
+    constructor() {
+        founder = msg.sender;
+    }
+
+    modifier testnetOnly() {
+        require(block.chainid == SYSFI_TESTNET_CHAIN_ID, "SYSFI testnet only");
+        _;
+    }
+
+    function joinCommunity() external payable testnetOnly {
+        require(msg.value == MEMBERSHIP_FEE, "Exact membership fee required");
+        require(!isMember[msg.sender], "Already a member");
+
+        isMember[msg.sender] = true;
+        joinedAt[msg.sender] = block.timestamp;
+        memberCount++;
+
+        (bool sent, ) = payable(founder).call{value: msg.value}("");
+        require(sent, "Fee transfer failed");
+
+        emit CommunityJoined(msg.sender, msg.value, block.timestamp);
+    }
 
     function registerProject(
         string calldata name,
