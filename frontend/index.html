@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SandyChainHub</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <div class="brand">SandyChainHub</div>
+      <div class="muted">Builder & community dashboard</div>
+    </div>
+    <button id="connectBtn">Connect Test Wallet</button>
+  </header>
+
+  <main class="container">
+    <section class="hero card">
+      <span class="eyebrow">TESTNET MVP</span>
+      <h1>Build. Register. Collaborate.</h1>
+      <p>Register Web3 projects and create transparent community proposals from a simple browser dashboard.</p>
+      <div id="status" class="status">Wallet not connected.</div>
+    </section>
+
+    <section class="stats grid-3">
+      <div class="card stat"><span>Projects</span><strong id="projectCount">0</strong></div>
+      <div class="card stat"><span>Proposals</span><strong id="proposalCount">0</strong></div>
+      <div class="card stat"><span>Your Projects</span><strong id="yourProjects">0</strong></div>
+    </section>
+
+    <section class="grid-2">
+      <div class="card">
+        <h2>Register Project</h2>
+        <form id="projectForm">
+          <input id="projectName" maxlength="80" placeholder="Project name" required />
+          <textarea id="projectDescription" maxlength="500" placeholder="Short description" required></textarea>
+          <input id="projectLink" maxlength="300" placeholder="Project/GitHub URL (optional)" />
+          <button type="submit">Register Project</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>Create Proposal</h2>
+        <form id="proposalForm">
+          <input id="proposalTitle" maxlength="120" placeholder="Proposal title" required />
+          <textarea id="proposalDescription" maxlength="800" placeholder="Proposal description" required></textarea>
+          <button type="submit">Create Proposal</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-title"><h2>Projects</h2><button class="secondary" id="refreshBtn">Refresh</button></div>
+      <div id="projects" class="list"></div>
+    </section>
+
+    <section class="card">
+      <h2>Community Proposals</h2>
+      <div id="proposals" class="list"></div>
+    </section>
+
+    <div class="notice">
+      <strong>Testnet only:</strong> This MVP has no token, payment, custody, or investment-return functionality.
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.15.0/dist/ethers.umd.min.js"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
