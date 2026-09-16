@@ -1,0 +1,77 @@
+.wallet-status {
+  margin: 18px 0;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--muted);
+  background: rgba(13, 27, 42, 0.72);
+  font-size: 14px;
+}
+
+.founder-card,
+.membership-card {
+  margin: 24px 0;
+}
+
+.founder-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.founder-grid > div {
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.founder-grid small,
+.founder-grid strong {
+  display: block;
+}
+
+.founder-grid small {
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.membership-price {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(56, 189, 248, 0.06);
+}
+
+.membership-price span {
+  color: var(--muted);
+}
+
+.membership-price strong {
+  font-size: 20px;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (max-width: 700px) {
+  .founder-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .membership-price {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
