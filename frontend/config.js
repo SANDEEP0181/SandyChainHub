@@ -1,7 +1,7 @@
-// Fill these values only after a testnet deployment.
+// SYSFI testnet configuration.
 // Never put a private key or seed phrase in this file.
 window.APP_CONFIG = {
   contractAddress: "",
-  chainId: "",
-  explorerBaseUrl: ""
+  chainId: "76081",
+  explorerBaseUrl: "https://explorer.sysfi.network"
 };
