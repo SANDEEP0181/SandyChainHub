@@ -5,7 +5,8 @@
   "description": "Testnet-only builder registry and community proposal hub.",
   "scripts": {
     "compile": "hardhat compile",
-    "test": "hardhat test"
+    "test": "hardhat test",
+    "deploy:sysfi": "hardhat run scripts/deploy-sysfi.js --network sysfi"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^6.0.0",
