@@ -3,8 +3,8 @@ pragma solidity ^0.8.24;
 
 /// @title SandyChainHub
 /// @notice Testnet-only builder registry, community proposals and membership hub.
-/// @dev Membership fee is restricted to SYSFI testnet (chain 76081) and is forwarded
-///      to the deploying founder address. No mainnet, investment or token-issuance logic.
+/// @dev Membership is restricted to SYSFI testnet (chain 76081). No mainnet,
+///      investment, token-issuance, custody or withdrawal functionality.
 contract SandyChainHub {
     uint256 public constant SYSFI_TESTNET_CHAIN_ID = 76081;
     uint256 public constant MEMBERSHIP_FEE = 0.01 ether;
@@ -55,6 +55,11 @@ contract SandyChainHub {
         _;
     }
 
+    modifier memberOnly() {
+        require(isMember[msg.sender], "Join community first");
+        _;
+    }
+
     function joinCommunity() external payable testnetOnly {
         require(msg.value == MEMBERSHIP_FEE, "Exact membership fee required");
         require(!isMember[msg.sender], "Already a member");
@@ -93,7 +98,7 @@ contract SandyChainHub {
     function createProposal(
         string calldata title,
         string calldata description
-    ) external {
+    ) external memberOnly {
         require(bytes(title).length > 0, "Title required");
 
         proposalCount++;
@@ -110,7 +115,7 @@ contract SandyChainHub {
         emit ProposalCreated(proposalCount, msg.sender, title);
     }
 
-    function vote(uint256 proposalId, bool support) external {
+    function vote(uint256 proposalId, bool support) external memberOnly {
         require(proposalId > 0 && proposalId <= proposalCount, "Invalid proposal");
         require(!proposalVoted[proposalId][msg.sender], "Already voted");
 
