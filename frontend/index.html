@@ -1,72 +1,213 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SandyChainHub</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SandyChainHub | Web3 Builder Hub</title>
+  <meta name="description" content="SandyChainHub is a testnet Web3 builder and community hub for project registration and proposals.">
+  <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-  <header class="topbar">
-    <div>
-      <div class="brand">SandyChainHub</div>
-      <div class="muted">Builder & community dashboard</div>
+
+  <header>
+    <div class="container">
+      <div>
+        <h1>SandyChainHub</h1>
+        <p>Web3 Builder & Community Hub</p>
+      </div>
+
+      <button id="connectBtn" type="button" onclick="connect()">
+        Connect Test Wallet
+      </button>
     </div>
-    <button id="connectBtn">Connect Test Wallet</button>
   </header>
 
   <main class="container">
-    <section class="hero card">
-      <span class="eyebrow">TESTNET MVP</span>
-      <h1>Build. Register. Collaborate.</h1>
-      <p>Register Web3 projects and create transparent community proposals from a simple browser dashboard.</p>
-      <div id="status" class="status">Wallet not connected.</div>
+
+    <section class="hero">
+      <span class="badge">● TESTNET MVP</span>
+
+      <h2>Build. Register. Collaborate.</h2>
+
+      <p>
+        A simple Web3 hub for builders to register projects,
+        discover community ideas and participate in transparent
+        on-chain proposals.
+      </p>
     </section>
 
-    <section class="stats grid-3">
-      <div class="card stat"><span>Projects</span><strong id="projectCount">0</strong></div>
-      <div class="card stat"><span>Proposals</span><strong id="proposalCount">0</strong></div>
-      <div class="card stat"><span>Your Projects</span><strong id="yourProjects">0</strong></div>
-    </section>
+    <section class="stats">
 
-    <section class="grid-2">
-      <div class="card">
-        <h2>Register Project</h2>
-        <form id="projectForm">
-          <input id="projectName" maxlength="80" placeholder="Project name" required />
-          <textarea id="projectDescription" maxlength="500" placeholder="Short description" required></textarea>
-          <input id="projectLink" maxlength="300" placeholder="Project/GitHub URL (optional)" />
-          <button type="submit">Register Project</button>
-        </form>
+      <div class="stat">
+        <small>Total Projects</small>
+        <strong id="projectCount">0</strong>
       </div>
 
-      <div class="card">
-        <h2>Create Proposal</h2>
-        <form id="proposalForm">
-          <input id="proposalTitle" maxlength="120" placeholder="Proposal title" required />
-          <textarea id="proposalDescription" maxlength="800" placeholder="Proposal description" required></textarea>
-          <button type="submit">Create Proposal</button>
-        </form>
+      <div class="stat">
+        <small>Community Proposals</small>
+        <strong id="proposalCount">0</strong>
       </div>
+
+      <div class="stat">
+        <small>Your Projects</small>
+        <strong id="yourProjectCount">0</strong>
+      </div>
+
     </section>
 
+    <section class="notice">
+      <strong>TESTNET ONLY</strong><br>
+      SandyChainHub is an educational/testnet MVP.
+      It does not provide token issuance, custody, payments,
+      withdrawals or investment-return functionality.
+    </section>
+
+    <section class="grid">
+
+      <!-- Register Project -->
+      <div class="card">
+
+        <div class="card-header">
+          <h3>Register a Project</h3>
+          <p>Add your Web3 builder project to the hub.</p>
+        </div>
+
+        <div class="card-body">
+
+          <form id="projectForm">
+
+            <label>
+              Project Name
+              <input
+                id="projectName"
+                type="text"
+                placeholder="Enter project name"
+                maxlength="80"
+                required
+              >
+            </label>
+
+            <label>
+              Description
+              <textarea
+                id="projectDescription"
+                placeholder="Describe your project"
+                maxlength="500"
+                required
+              ></textarea>
+            </label>
+
+            <label>
+              Project Link
+              <input
+                id="projectLink"
+                type="url"
+                placeholder="https://github.com/..."
+                required
+              >
+            </label>
+
+            <button type="submit">
+              Register Project
+            </button>
+
+          </form>
+
+        </div>
+      </div>
+
+      <!-- Create Proposal -->
+      <div class="card">
+
+        <div class="card-header">
+          <h3>Create Community Proposal</h3>
+          <p>Share an idea for the builder community.</p>
+        </div>
+
+        <div class="card-body">
+
+          <form id="proposalForm">
+
+            <label>
+              Proposal Title
+              <input
+                id="proposalTitle"
+                type="text"
+                placeholder="Enter proposal title"
+                maxlength="100"
+                required
+              >
+            </label>
+
+            <label>
+              Proposal Description
+              <textarea
+                id="proposalDescription"
+                placeholder="Explain your proposal"
+                maxlength="600"
+                required
+              ></textarea>
+            </label>
+
+            <button type="submit">
+              Create Proposal
+            </button>
+
+          </form>
+
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Projects -->
     <section class="card">
-      <div class="section-title"><h2>Projects</h2><button class="secondary" id="refreshBtn">Refresh</button></div>
-      <div id="projects" class="list"></div>
+
+      <div class="card-header">
+        <h3>Builder Projects</h3>
+        <p>Projects registered on SandyChainHub.</p>
+      </div>
+
+      <div class="card-body">
+        <div id="projectsList" class="list">
+          <div class="empty">
+            No projects registered yet.
+          </div>
+        </div>
+      </div>
+
     </section>
 
+    <br>
+
+    <!-- Proposals -->
     <section class="card">
-      <h2>Community Proposals</h2>
-      <div id="proposals" class="list"></div>
+
+      <div class="card-header">
+        <h3>Community Proposals</h3>
+        <p>Review proposals and cast your testnet vote.</p>
+      </div>
+
+      <div class="card-body">
+        <div id="proposalsList" class="list">
+          <div class="empty">
+            No proposals created yet.
+          </div>
+        </div>
+      </div>
+
     </section>
 
-    <div class="notice">
-      <strong>Testnet only:</strong> This MVP has no token, payment, custody, or investment-return functionality.
-    </div>
+    <footer>
+      SandyChainHub · Testnet Builder MVP
+    </footer>
+
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/ethers@6.15.0/dist/ethers.umd.min.js"></script>
   <script src="config.js"></script>
   <script src="app.js"></script>
+
 </body>
 </html>
