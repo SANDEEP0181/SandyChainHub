@@ -3,111 +3,36 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SandyChainHub | Web3 Community Hub</title>
-  <meta name="description" content="SandyChainHub — Founder-led Web3 builder and community hub on SYSFI Testnet.">
+  <title>SandyChainHub</title>
   <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="membership.css">
 </head>
 <body>
-  <header>
-    <div class="container">
-      <div>
-        <h1>SandyChainHub</h1>
-        <p>Web3 Builder & Community Hub</p>
-      </div>
-      <button id="connectBtn" type="button" onclick="connect()">Connect Test Wallet</button>
-    </div>
-  </header>
-
   <main class="container">
-    <div id="walletStatus" class="wallet-status">Wallet connected नहीं है</div>
+    <h1>SandyChainHub</h1>
+    <p>SYSFI Testnet Community Hub</p>
 
-    <section class="hero">
-      <span class="badge">● SYSFI TESTNET MVP</span>
-      <h2>Founder → Community → Membership → Testnet Fee → Member Access</h2>
-      <p>एक founder-led Web3 community जहाँ builders projects register कर सकते हैं और members community proposals में भाग ले सकते हैं।</p>
+    <button id="connectButton" onclick="connect()">Connect Wallet</button>
+    <p id="walletStatus">Wallet not connected</p>
+
+    <section class="info-card">
+      <h2>Network & Contract</h2>
+      <p><strong>Network:</strong> SYSFI Testnet</p>
+      <p><strong>Chain ID:</strong> 76081</p>
+      <p><strong>Contract Address:</strong><br>
+        <a id="contractAddress" href="#" target="_blank" rel="noopener">Loading...</a>
+      </p>
+      <p><strong>Founder Wallet:</strong><br>
+        <strong id="founderAddress">Deployment के बाद दिखेगा</strong>
+      </p>
     </section>
 
-    <section class="stats">
-      <div class="stat"><small>Total Projects</small><strong id="projectCount">0</strong></div>
-      <div class="stat"><small>Community Members</small><strong id="memberCount">0</strong></div>
-      <div class="stat"><small>Proposals</small><strong id="proposalCount">0</strong></div>
-      <div class="stat"><small>Your Projects</small><strong id="yourProjectCount">0</strong></div>
+    <section id="appContent">
+      <!-- Existing app content -->
     </section>
-
-    <section class="notice">
-      <strong>TESTNET ONLY</strong><br>
-      Membership fee केवल SYSFI Testnet के लिए है। यह MVP real-money investment, token issuance, custody या withdrawal service नहीं है।
-    </section>
-
-    <section class="card founder-card">
-      <div class="card-header">
-        <span class="badge">FOUNDER</span>
-        <h3>Sandeep Yadav</h3>
-        <p>Founder & Builder · SandyChainHub</p>
-      </div>
-      <div class="card-body founder-grid">
-        <div><small>Network</small><strong>SYSFI Testnet</strong></div>
-        <div><small>Role</small><strong>Founder & Builder</strong></div>
-        <div><small>Founder Wallet</small><strong id="founderAddress">Deployment के बाद दिखेगा</strong></div>
-      </div>
-    </section>
-
-    <section class="card membership-card">
-      <div class="card-header">
-        <span class="badge">COMMUNITY MEMBERSHIP</span>
-        <h3>Community में Join करें</h3>
-        <p>Membership के बाद proposal create और vote करने का testnet access मिलेगा।</p>
-      </div>
-      <div class="card-body">
-        <div class="membership-price"><span>Testnet Membership Fee</span><strong id="membershipFee">0.01 SYSFI</strong></div>
-        <p id="membershipStatus" class="muted">Wallet connect करें और membership status देखें।</p>
-        <button id="joinBtn" type="button" onclick="joinCommunity()">Join Community — Testnet</button>
-      </div>
-    </section>
-
-    <section class="grid">
-      <div class="card">
-        <div class="card-header"><h3>Register a Project</h3><p>अपना Web3 builder project hub में जोड़ें।</p></div>
-        <div class="card-body">
-          <form id="projectForm">
-            <label>Project Name<input id="projectName" type="text" placeholder="Project name" maxlength="80" required></label>
-            <label>Description<textarea id="projectDescription" placeholder="Project description" maxlength="500" required></textarea></label>
-            <label>Project Link<input id="projectLink" type="url" placeholder="https://github.com/..." required></label>
-            <button type="submit">Register Project</button>
-          </form>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-header"><h3>Create Community Proposal</h3><p>यह सुविधा verified members के लिए है।</p></div>
-        <div class="card-body">
-          <form id="proposalForm">
-            <label>Proposal Title<input id="proposalTitle" type="text" placeholder="Proposal title" maxlength="100" required></label>
-            <label>Proposal Description<textarea id="proposalDescription" placeholder="Explain your proposal" maxlength="600" required></textarea></label>
-            <button type="submit">Create Proposal</button>
-          </form>
-        </div>
-      </div>
-    </section>
-
-    <section class="card">
-      <div class="card-header"><h3>Builder Projects</h3><p>SandyChainHub पर registered projects.</p></div>
-      <div class="card-body"><div id="projectsList" class="list"><div class="empty">No projects registered yet.</div></div></div>
-    </section>
-
-    <br>
-
-    <section class="card">
-      <div class="card-header"><h3>Community Proposals</h3><p>Members proposals review करके testnet vote कर सकते हैं।</p></div>
-      <div class="card-body"><div id="proposalsList" class="list"><div class="empty">No proposals created yet.</div></div></div>
-    </section>
-
-    <footer>SandyChainHub · Founder-led · SYSFI Testnet Builder MVP</footer>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/ethers@6.15.0/dist/ethers.umd.min.js"></script>
-  <script src="config.js"></script>
-  <script src="app.js"></script>
+  <script src="config.js?v=4"></script>
+  <script src="app.js?v=4"></script>
 </body>
 </html>
