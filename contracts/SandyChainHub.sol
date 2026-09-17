@@ -9,6 +9,7 @@ contract SandyChainHub {
     uint256 public constant SYSFI_TESTNET_CHAIN_ID = 76081;
     uint256 public constant MEMBERSHIP_FEE = 0.01 ether;
 
+    // Founder/fee recipient is the user's public MetaMask address.
     address public immutable founder;
 
     struct Project {
@@ -47,7 +48,7 @@ contract SandyChainHub {
     event CommunityJoined(address indexed member, uint256 fee, uint256 joinedAt);
 
     constructor() {
-        founder = msg.sender;
+        founder = 0x47a0af486cB6A6844A2E5ba8C644089123539005;
     }
 
     modifier testnetOnly() {
