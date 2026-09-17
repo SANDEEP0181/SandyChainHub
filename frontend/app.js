@@ -38,6 +38,13 @@ function setMembershipStatus(message) {
   if (el) el.textContent = message;
 }
 
+function getInjectedProvider() {
+  if (window.ethereum) return window.ethereum;
+  if (window.parent && window.parent.ethereum) return window.parent.ethereum;
+  if (window.top && window.top.ethereum) return window.top.ethereum;
+  return null;
+}
+
 function requireWallet() {
   if (!signer || !contract || !currentAccount) {
     alert("पहले Test Wallet connect करें और SYSFI Testnet पर जाएँ।");
@@ -48,18 +55,20 @@ function requireWallet() {
 
 async function connect() {
   try {
-    if (!window.ethereum) {
-      alert("Compatible Web3 test wallet नहीं मिला।");
+    const ethereum = getInjectedProvider();
+
+    if (!ethereum) {
+      alert("Compatible Web3 test wallet नहीं मिला। MetaMask के Explore browser में page खोलें।");
       return false;
     }
 
-    if (!window.APP_CONFIG.contractAddress) {
+    if (!window.APP_CONFIG || !window.APP_CONFIG.contractAddress) {
       setStatus("Contract deployment pending — wallet actions अभी बंद हैं।");
       alert("SYSFI testnet contract अभी configure नहीं हुआ है।");
       return false;
     }
 
-    provider = new ethers.BrowserProvider(window.ethereum);
+    provider = new ethers.BrowserProvider(ethereum);
     await provider.send("eth_requestAccounts", []);
     signer = await provider.getSigner();
     currentAccount = await signer.getAddress();
