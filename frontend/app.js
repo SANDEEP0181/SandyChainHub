@@ -118,6 +118,11 @@ async function refresh() {
     $("yourProjectCount").textContent = mine.toString();
     $("membershipFee").textContent = `${ethers.formatEther(fee)} SYSFI Testnet`;
     $("founderAddress").textContent = shortAddress(founder);
+    const contractAddressEl = $("contractAddress");
+    if (contractAddressEl) {
+      contractAddressEl.textContent = shortAddress(window.APP_CONFIG.contractAddress);
+      contractAddressEl.href = `${window.APP_CONFIG.explorerBaseUrl}/address/${window.APP_CONFIG.contractAddress}`;
+    }
 
     const joinBtn = $("joinBtn");
     if (member) {
@@ -282,6 +287,14 @@ window.joinCommunity = joinCommunity;
 window.voteProposal = voteProposal;
 
 window.addEventListener("DOMContentLoaded", () => {
+  if (window.APP_CONFIG?.contractAddress) {
+    const contractAddressEl = $("contractAddress");
+    if (contractAddressEl) {
+      contractAddressEl.textContent = shortAddress(window.APP_CONFIG.contractAddress);
+      contractAddressEl.href = `${window.APP_CONFIG.explorerBaseUrl}/address/${window.APP_CONFIG.contractAddress}`;
+    }
+  }
+
   $("projectForm")?.addEventListener("submit", async (event) => {
     event.preventDefault();
     const button = event.target.querySelector("button[type='submit']");
