@@ -1,7 +1,7 @@
 // SYSFI testnet configuration.
 // Never put a private key or seed phrase in this file.
 window.APP_CONFIG = {
-  contractAddress:"0x266bE5d51Fe3B161Ad2062f663d9a3dcAA275453",
+  contractAddress:"0x972cA391114dE0B0e6E60fabc122C8F4E26a84D5",
   chainId: "76081",
   explorerBaseUrl: "https://explorer.sysfi.network"
 };
