@@ -23,8 +23,15 @@ async function main() {
   await contract.waitForDeployment();
 
   const address = await contract.getAddress();
+  const founder = await contract.founder();
+
   console.log(`SandyChainHub deployed to: ${address}`);
+  console.log(`Founder / fee recipient: ${founder}`);
   console.log(`Explorer: https://explorer.sysfi.network/address/${address}`);
+
+  if (founder.toLowerCase() !== "0x47a0af486cb6a6844a2e5ba8c644089123539005".toLowerCase()) {
+    throw new Error(`Founder mismatch. Expected MetaMask wallet, got ${founder}`);
+  }
 }
 
 main().catch((error) => {
