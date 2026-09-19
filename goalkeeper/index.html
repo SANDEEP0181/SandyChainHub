@@ -21,7 +21,7 @@
           <small>TON • TELEGRAM</small>
         </div>
       </a>
-      <button id="connectBtn" class="primary compact" type="button">Connect TON Wallet</button>
+      <div id="connectedWalletChip" class="connected-wallet-chip" hidden><span class="wallet-live-dot"></span><span><small>TON WALLET</small><strong id="connectedWalletAddress">—</strong></span></div><button id="connectBtn" class="primary compact" type="button">Connect TON Wallet</button>
     </header>
 
     <section class="hero" id="home">
@@ -116,7 +116,7 @@
         <div class="card-top"><span>REWARDS</span><span class="star">✦</span></div>
         <div class="reward-number" id="rewardPoints">0 Points</div>
         <p id="pointsMessage">Testnet-only activity points. No real-money reward is issued.</p>
-        <button id="dailyCheckinBtn" class="primary full" type="button">Daily Check-in</button>
+        <button id="dailyCheckinBtn" class="primary full" type="button">Daily Check-in</button><div id="checkinTimer" class="checkin-timer" hidden>Next check-in in <strong id="checkinCountdown">—</strong></div>
         <div class="mini-status"><span>Telegram <b id="missionTelegram">Pending</b></span><span>Wallet <b id="missionWallet">Pending</b></span><span>Identity <b id="missionIdentity">Pending</b></span><span>Check-in <b id="missionCheckin">Available</b></span></div>
       </article>
     </section>
