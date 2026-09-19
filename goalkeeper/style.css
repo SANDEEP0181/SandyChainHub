@@ -9,3 +9,9 @@
 .profile-grid strong{display:block;margin-top:6px;font-size:14px;overflow-wrap:anywhere}
 .activity{font-size:13px!important;margin-top:14px!important}
 @media(max-width:700px){.profile-card{grid-column:span 1}.profile-grid{grid-template-columns:1fr}}
+
+.rewards-card{grid-column:span 1}
+.rewards-card .primary{margin-top:12px}
+.mission-list{display:grid;gap:8px;margin-top:14px}
+.mission-list div{display:flex;justify-content:space-between;gap:12px;padding:9px 11px;border:1px solid #28314a;border-radius:10px;background:#0d1425;font-size:12px}
+.mission-list span{color:#aeb7cc}
