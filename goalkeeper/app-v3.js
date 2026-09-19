@@ -448,9 +448,35 @@ async function disconnectWallet(){
   try{
     const ui=await ensureTonConnect();
     if(ui)await ui.disconnect();
+
     connectedWalletAddress="";
+    telegramInitData="";
+    telegramVerified=false;
+
+    localStorage.removeItem("goalkeeperIdentityLink");
+    localStorage.removeItem(CHECKIN_KEY);
+    localStorage.removeItem(STREAK_KEY);
+    localStorage.removeItem(BEST_STREAK_KEY);
+    localStorage.removeItem(STREAK_DATE_KEY);
+
+    const missions=getMissions();
+    delete missions.telegram;
+    delete missions.connect;
+    delete missions.link;
+    saveMissions(missions);
+
+    setText(telegramStatus,"Logged out");
+    setText(telegramUser,"Telegram session cleared. Open Goalkeeper from Telegram to login again.");
+    setText(profileStatus,"Profile pending");
+    setText(profileIdentity,"Telegram verification के बाद secure profile तैयार होगा।");
+    setText(goalkeeperUserId,"—");
+    setText(profileTelegram,"—");
+    setText(profileWallet,"Not connected");
+    setText(profileLinkStatus,"—");
+    setText(profileActivity,"Session activity: Wallet disconnected.");
+    updateAuthButtons();
     updateWalletUI();
-    setText(profileActivity,"Session activity: TON wallet disconnected.");
+    updateRewards();
   }catch(error){
     console.error("Wallet disconnect:",error);
     setText(walletStatus,"Wallet disconnect failed. Try again.");
