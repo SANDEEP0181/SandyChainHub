@@ -17,3 +17,5 @@
 .mission-list span{color:#aeb7cc}
 
 .missions-card{grid-column:span 1}
+
+.achievements-card{grid-column:span 1}.share-btn{margin-top:14px;width:100%}
