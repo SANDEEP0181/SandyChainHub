@@ -633,7 +633,7 @@ async function loadTonConnectLibrary() {
   }
   return new Promise(resolve => {
     const script = document.createElement("script");
-    script.src = "https://cdn.jsdelivr.net/npm/@tonconnect/ui@4.0.2/dist/tonconnect-ui.min.js";
+    script.src = "https://unpkg.com/@tonconnect/ui@4.0.2/dist/tonconnect-ui.min.js";
     script.async = true;
     script.dataset.tonconnectFallback = "1";
     script.onload = () => resolve(Boolean(window.TON_CONNECT_UI?.TonConnectUI));
@@ -679,7 +679,8 @@ async function initTonConnect() {
 
     tonConnectUI = new window.TON_CONNECT_UI.TonConnectUI({
       manifestUrl: new URL("tonconnect-manifest.json", window.location.href).toString(),
-      uiPreferences: { theme: "DARK" }
+      uiPreferences: { theme: "DARK" },
+      actionsConfiguration: { twaReturnUrl: "https://t.me/GoalkeeperSandyBot" }
     });
 
     if (connectBtn) connectBtn.disabled = false;
