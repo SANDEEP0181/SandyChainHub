@@ -25,7 +25,7 @@
     </header>
 
     <section class="hero" id="home">
-      <div class="hero-copy">
+      <div class="hero-copy">\n        <div class="player-chip"><span class="avatar-mini">GK</span><span><b>GOALKEEPER</b><small>LEVEL <strong id="levelNumber">1</strong></small></span></div>
         <div class="eyebrow"><i></i> LIVE TESTNET EXPERIENCE</div>
         <h1>Defend your<br><em>Web3 journey.</em></h1>
         <p>Connect. Complete missions. Build your Goalkeeper profile.</p>
@@ -40,7 +40,7 @@
       </div>
     </section>
 
-    <section class="stats">
+    <section class="level-card card"><div class="level-top"><div><small>KEEPER LEVEL</small><h3>Level <span id="levelDisplay">1</span></h3></div><div class="level-points"><b id="levelProgress">0 / 50</b><small>XP TO NEXT</small></div></div><div class="progress-track"><i id="levelBar"></i></div><p id="levelMessage">Complete missions to unlock your next level.</p></section>\n\n    <section class="stats">
       <div><small>POINTS</small><strong id="pointsTotal">0 Points</strong></div>
       <div><small>NETWORK</small><strong>TON Testnet</strong></div>
       <div><small>STATUS</small><strong class="status-dot"><i></i> Active</strong></div>
@@ -49,7 +49,7 @@
     <section class="section" id="profile">
       <div class="section-head"><div><span>YOUR HUB</span><h2>Profile</h2></div><span class="live-label">SECURE SESSION</span></div>
       <article class="profile-main card">
-        <div class="profile-avatar">GK</div>
+        <div class="profile-avatar"><span>GK</span><i class="online-ring"></i></div>
         <div class="profile-info">
           <small>GOALKEEPER ID</small>
           <h3 id="goalkeeperUserId">—</h3>
@@ -109,7 +109,7 @@
 
       <article class="card reward-card" id="rewards">
         <div class="card-top"><span>REWARDS</span><span class="star">✦</span></div>
-        <div class="reward-number" id="pointsTotal">0 Points</div>
+        <div class="reward-number" id="rewardPoints">0 Points</div>
         <p id="pointsMessage">Testnet-only activity points. No real-money reward is issued.</p>
         <button id="dailyCheckinBtn" class="primary full" type="button">Daily Check-in</button>
         <div class="mini-status"><span>Telegram <b id="missionTelegram">Pending</b></span><span>Wallet <b id="missionWallet">Pending</b></span><span>Identity <b id="missionIdentity">Pending</b></span><span>Check-in <b id="missionCheckin">Available</b></span></div>
