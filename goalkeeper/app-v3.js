@@ -165,6 +165,19 @@ function awardMission(id, points) {
   return true;
 }
 
+function updateLevel(points) {
+  const level = Math.floor(points / 50) + 1;
+  const progress = points % 50;
+  if (levelNumber) levelNumber.textContent = level;
+  if (levelDisplay) levelDisplay.textContent = level;
+  if (levelProgress) levelProgress.textContent = progress + " / 50";
+  if (levelBar) levelBar.style.width = (progress * 2) + "%";
+  if (levelMessage) levelMessage.textContent = level > 1
+    ? "Level " + level + " unlocked. Keep defending your streak."
+    : "Complete missions to unlock your next level.";
+  updateRankUI(level);
+}
+
 function updateMissionUI() {
   const missions = getMissions();
   missionOpen.textContent = missions.open ? "Completed" : "+5";
