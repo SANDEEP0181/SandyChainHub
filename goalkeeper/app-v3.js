@@ -268,12 +268,22 @@ function returnToDashboard() {
   }, 250);
 }
 
-function handleWalletReturn() {
+async function handleWalletReturn() {
+  if (document.visibilityState === "hidden") return;
+  try {
+    if (tonConnectUI) {
+      try { await tonConnectUI.connectionRestored; } catch {}
+      connectedWalletAddress = tonConnectUI.account?.address || tonConnectUI.wallet?.account?.address || connectedWalletAddress || "";
+    }
+  } catch {}
   if (getWalletAddress()) returnToDashboard();
 }
 
-window.addEventListener("pageshow", handleWalletReturn);
-window.addEventListener("focus", handleWalletReturn);
+window.addEventListener("pageshow", () => { void handleWalletReturn(); });
+window.addEventListener("focus", () => { void handleWalletReturn(); });
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") void handleWalletReturn();
+});
 
 function updateWalletUI() {
   const address = getWalletAddress();
@@ -394,7 +404,7 @@ async function openWalletSelector() {
     if (!ui) throw new Error("TON Connect SDK unavailable.");
     if (typeof ui.openModal !== "function") throw new Error("TON Connect UI modal is unavailable.");
     await ui.openModal();
-    handleWalletReturn();
+    void handleWalletReturn();
   } catch (error) {
     console.error("TON wallet selector error:", error);
     setText(walletStatus, "Wallet selector could not open. Tap again.");
