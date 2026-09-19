@@ -8,6 +8,10 @@ const identityMessage = document.getElementById("identityMessage");
 const linkWalletBtn = document.getElementById("linkWalletBtn");
 const copyAddressBtn = document.getElementById("copyAddressBtn");
 const explorerBtn = document.getElementById("explorerBtn");
+const connectedWalletChip = document.getElementById("connectedWalletChip");
+const connectedWalletAddress = document.getElementById("connectedWalletAddress");
+const checkinTimer = document.getElementById("checkinTimer");
+const checkinCountdown = document.getElementById("checkinCountdown");
 
 const TELEGRAM_VALIDATE_URL = "https://sandy-chain-hub.vercel.app/api/telegram/validate";
 const IDENTITY_LINK_URL = "https://sandy-chain-hub.vercel.app/api/identity/link";
@@ -66,6 +70,12 @@ const TON_TESTNET_EXPLORER = "https://testnet.tonscan.org";
 
 function updateWalletTools() {
   const address = getWalletAddress();
+  if (connectedWalletChip && connectedWalletAddress && connectBtn) {
+    const connected = Boolean(address);
+    connectedWalletChip.hidden = !connected;
+    connectedWalletAddress.textContent = connected ? shortAddress(address) : "—";
+    connectBtn.hidden = connected;
+  }
   const enabled = Boolean(address);
   copyAddressBtn.disabled = !enabled;
   explorerBtn.disabled = !enabled;
@@ -224,6 +234,40 @@ function updateAchievements() {
   achievementCheckin.textContent = checkinDone ? "Unlocked" : "Locked";
 }
 
+function nextCheckinTimestamp() {
+  const now = new Date();
+  const next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
+  return next.getTime();
+}
+
+function formatCountdown(ms) {
+  const total = Math.max(0, Math.floor(ms / 1000));
+  const hours = Math.floor(total / 3600);
+  const minutes = Math.floor((total % 3600) / 60);
+  const seconds = total % 60;
+  return String(hours).padStart(2,"0") + ":" + String(minutes).padStart(2,"0") + ":" + String(seconds).padStart(2,"0");
+}
+
+function updateCheckinTimer() {
+  if (!dailyCheckinBtn || !checkinTimer || !checkinCountdown) return;
+  const checked = localStorage.getItem(CHECKIN_KEY) === todayKey();
+  if (!checked) {
+    checkinTimer.hidden = true;
+    return;
+  }
+  const remaining = nextCheckinTimestamp() - Date.now();
+  if (remaining <= 0) {
+    checkinTimer.hidden = true;
+    dailyCheckinBtn.disabled = !telegramVerified;
+    updateRewards();
+    return;
+  }
+  checkinTimer.hidden = false;
+  checkinCountdown.textContent = formatCountdown(remaining);
+}
+
+setInterval(updateCheckinTimer, 1000);
+
 function updateRewards() {
   awardMission("open", 5);
   const points = Number(localStorage.getItem(POINTS_KEY) || "0");
@@ -237,6 +281,8 @@ function updateRewards() {
   missionIdentity.textContent = localStorage.getItem("goalkeeperIdentityLink") ? "Linked" : "Pending";
   missionCheckin.textContent = checked ? "Completed today" : "Available";
   dailyCheckinBtn.disabled = checked || !telegramVerified;
+  dailyCheckinBtn.textContent = checked ? "Check-in Complete" : "Daily Check-in";
+  updateCheckinTimer();
   updateMissionUI();
   updateAchievements();
   pointsMessage.textContent = checked
@@ -446,6 +492,7 @@ async function initTonConnect() {
       walletAddress.textContent = "Testnet wallet connect करने के बाद address यहाँ दिखेगा।";
       connectBtn.textContent = "Connect TON Wallet";
     }
+    updateWalletTools();
     updateIdentityState();
     updateProfileWallet();
     updateWalletTools();
@@ -462,6 +509,7 @@ async function initTonConnect() {
         walletAddress.textContent = shortAddress(address);
         connectBtn.textContent = "Wallet Connected";
       }
+      updateWalletTools();
       updateIdentityState();
       updateProfileWallet();
       updateWalletTools();
