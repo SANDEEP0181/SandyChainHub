@@ -149,6 +149,10 @@
   <nav class="bottom-nav">
     <a href="#home">⌂<small>Home</small></a><a href="#missions">◈<small>Missions</small></a><a href="#rewards">✦<small>Rewards</small></a><a href="#profile">◎<small>Profile</small></a>
   </nav>
-  <script defer src="app-v3.js?v=20260919-clean-stable1"></script>
+  <!-- Telegram Mini-App SDK: load before Goalkeeper app -->
+  <script src="https://telegram.org/js/telegram-web-app.js?63"></script>
+  <!-- TON Connect UI SDK: load before Goalkeeper app -->
+  <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+  <script defer src="app-v3.js?v=20260919-wallet-fix1"></script>
 </body>
 </html>
