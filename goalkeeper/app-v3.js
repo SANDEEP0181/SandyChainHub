@@ -542,12 +542,20 @@ async function initTonConnect() {
   });
 
   if (connectBtn) connectBtn.addEventListener("click", async () => {
-    if (!getWalletAddress()) {
-      await tonConnectUI.openModal();
-    } else {
-      await tonConnectUI.disconnect();
+    try {
+      if (!getWalletAddress()) {
+        await tonConnectUI.openModal();
+      } else {
+        await tonConnectUI.disconnect();
+      }
+    } catch (error) {
+      console.error("TON Connect button error:", error);
+      if (walletStatus) walletStatus.textContent = "TON Connect retry needed";
     }
   });
+  } finally {
+    tonConnectInitializing = false;
+  }
 }
 
 function safeStartup(name, fn) {
