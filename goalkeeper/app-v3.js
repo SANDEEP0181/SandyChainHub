@@ -18,11 +18,20 @@ const profileTelegram = document.getElementById("profileTelegram");
 const profileWallet = document.getElementById("profileWallet");
 const profileLinkStatus = document.getElementById("profileLinkStatus");
 const profileActivity = document.getElementById("profileActivity");
+const pointsTotal = document.getElementById("pointsTotal");
+const pointsMessage = document.getElementById("pointsMessage");
+const dailyCheckinBtn = document.getElementById("dailyCheckinBtn");
+const missionTelegram = document.getElementById("missionTelegram");
+const missionWallet = document.getElementById("missionWallet");
+const missionIdentity = document.getElementById("missionIdentity");
+const missionCheckin = document.getElementById("missionCheckin");
 
 let tonConnectUI;
 let telegramInitData = "";
 let telegramVerified = false;
 let connectedWalletAddress = "";
+const POINTS_KEY = "goalkeeperPoints";
+const CHECKIN_KEY = "goalkeeperCheckinDate";
 
 function shortAddress(address) {
   if (!address) return "";
@@ -57,12 +66,41 @@ async function loadProfileSession() {
     profileTelegram.textContent = user?.username ? "@" + user.username : ([user?.first_name,user?.last_name].filter(Boolean).join(" ") || "Telegram user");
     profileActivity.textContent = "Session activity: Telegram verified • Profile loaded.";
     updateProfileWallet();
+    updateRewards();
   } catch (error) {
     profileStatus.textContent = "Profile unavailable";
     profileIdentity.textContent = error.message || "Secure profile load failed.";
     profileActivity.textContent = "Session activity: Verification available, profile endpoint unavailable.";
   }
 }
+
+function todayKey() {
+  const d = new Date();
+  return d.getUTCFullYear() + "-" + String(d.getUTCMonth()+1).padStart(2,"0") + "-" + String(d.getUTCDate()).padStart(2,"0");
+}
+
+function updateRewards() {
+  const points = Number(localStorage.getItem(POINTS_KEY) || "0");
+  const checked = localStorage.getItem(CHECKIN_KEY) === todayKey();
+  pointsTotal.textContent = points + " Points";
+  missionTelegram.textContent = telegramVerified ? "Verified" : "Pending";
+  missionWallet.textContent = getWalletAddress() ? "Connected" : "Pending";
+  missionIdentity.textContent = localStorage.getItem("goalkeeperIdentityLink") ? "Linked" : "Pending";
+  missionCheckin.textContent = checked ? "Completed today" : "Available";
+  dailyCheckinBtn.disabled = checked || !telegramVerified;
+  pointsMessage.textContent = checked
+    ? "आज का testnet check-in complete है।"
+    : "Testnet-only activity points. No real-money reward is issued.";
+}
+
+dailyCheckinBtn.addEventListener("click", () => {
+  if (!telegramVerified || localStorage.getItem(CHECKIN_KEY) === todayKey()) return;
+  const current = Number(localStorage.getItem(POINTS_KEY) || "0");
+  localStorage.setItem(POINTS_KEY, String(current + 10));
+  localStorage.setItem(CHECKIN_KEY, todayKey());
+  profileActivity.textContent = "Session activity: Daily testnet check-in completed (+10 points).";
+  updateRewards();
+});
 
 function updateIdentityState() {
   const connected = Boolean(getWalletAddress());
@@ -130,10 +168,11 @@ async function validateTelegramSession(tg) {
     telegramVerified = false;
     telegramUser.textContent = "Backend से connection नहीं हो पाया।";
     updateIdentityState();
+    updateRewards();
   }
 }
 
-async function linkWalletIdentity() {
+async function linkWalletIdentity {
   const walletAddress = getWalletAddress();
 
   if (!telegramInitData || !telegramVerified || !walletAddress) {
@@ -168,6 +207,7 @@ async function linkWalletIdentity() {
     identityStatus.textContent = "Identity Linked";
     profileLinkStatus.textContent = "Identity Linked";
     profileActivity.textContent = "Session activity: Telegram + TON wallet linked.";
+    updateRewards();
     identityMessage.textContent = "Telegram identity और TON wallet इस session के लिए linked हैं।";
     linkWalletBtn.disabled = true;
   } catch (error) {
@@ -234,6 +274,7 @@ async function initTonConnect() {
     }
     updateIdentityState();
     updateProfileWallet();
+    updateRewards();
   });
 
   // Re-check after TON Connect restores an existing Telegram WebView wallet session.
@@ -247,6 +288,8 @@ async function initTonConnect() {
         connectBtn.textContent = "Wallet Connected";
       }
       updateIdentityState();
+      updateProfileWallet();
+      updateRewards();
     }, delay);
   });
 
@@ -261,3 +304,4 @@ async function initTonConnect() {
 
 initTonConnect();
 initTelegram();
+updateRewards();
