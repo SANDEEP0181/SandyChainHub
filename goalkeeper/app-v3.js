@@ -454,6 +454,7 @@ async function disconnectWallet(){
     telegramVerified=false;
 
     localStorage.removeItem("goalkeeperIdentityLink");
+    localStorage.removeItem(POINTS_KEY);
     localStorage.removeItem(CHECKIN_KEY);
     localStorage.removeItem(STREAK_KEY);
     localStorage.removeItem(BEST_STREAK_KEY);
