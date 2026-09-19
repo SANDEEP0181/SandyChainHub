@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Goalkeeper | TON Mini-App</title>
-  <meta name="description" content="Goalkeeper — SandyChainHub's TON Mini-App starter.">
+  <title>Goalkeeper | TON + Telegram Mini-App</title>
+  <meta name="description" content="Goalkeeper — SandyChainHub's TON and Telegram Mini-App foundation.">
   <link rel="stylesheet" href="style.css">
+  <script src="https://telegram.org/js/telegram-web-app.js?63"></script>
 </head>
 <body>
   <main class="app">
@@ -14,23 +15,29 @@
         <div class="logo">GK</div>
         <div>
           <h1>Goalkeeper</h1>
-          <p>TON Mini-App by SandyChainHub</p>
+          <p>TON + Telegram Mini-App by SandyChainHub</p>
         </div>
       </div>
       <button id="connectBtn" class="primary">Connect TON Wallet</button>
     </header>
 
     <section class="hero">
-      <span class="badge">TON TESTNET • DEVELOPMENT</span>
-      <h2>SandyChainHub का TON Mini-App</h2>
-      <p>पहला चरण: सुरक्षित wallet connection और Mini-App foundation. अभी कोई real-money transaction नहीं।</p>
+      <span class="badge">TON TESTNET • TELEGRAM READY</span>
+      <h2>SandyChainHub का Goalkeeper Mini-App</h2>
+      <p>TON wallet connection और Telegram Mini-App foundation तैयार है। अभी कोई real-money transaction नहीं।</p>
     </section>
 
     <section class="grid">
       <article class="card">
-        <span>WALLET</span>
+        <span>TON WALLET</span>
         <h3 id="walletStatus">Wallet connected नहीं है</h3>
         <p id="walletAddress">Testnet wallet connect करने के बाद address यहाँ दिखेगा।</p>
+      </article>
+
+      <article class="card">
+        <span>TELEGRAM</span>
+        <h3 id="telegramStatus">Browser mode</h3>
+        <p id="telegramUser">Telegram में खोलने पर user/session information यहाँ दिखाई देगी।</p>
       </article>
 
       <article class="card">
@@ -51,13 +58,14 @@
       <ol>
         <li>Mini-App foundation</li>
         <li>TON Connect wallet connection</li>
-        <li>Testnet verification</li>
-        <li>Telegram Mini-App integration</li>
+        <li>Telegram Mini-App SDK integration</li>
+        <li>Telegram user/session display</li>
+        <li>Backend validation + SandyChainHub identity link</li>
         <li>Future TON features</li>
       </ol>
     </section>
 
-    <footer>Goalkeeper • Built with SandyChainHub • Testnet only</footer>
+    <footer>Goalkeeper • Built with SandyChainHub • Testnet development</footer>
   </main>
 
   <script src="https://unpkg.com/@tonconnect/ui@3.0.2/dist/tonconnect-ui.min.js"></script>
