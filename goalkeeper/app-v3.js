@@ -286,26 +286,43 @@ async function loadTonConnectLibrary() {
   if (window.TON_CONNECT_UI?.TonConnectUI) return true;
   if (tonConnectLoading) return tonConnectLoading;
 
-  tonConnectLoading = new Promise((resolve) => {
-    const existing = document.querySelector("script[data-tonconnect-sdk]");
-    if (existing) {
-      const started = Date.now();
-      const timer = setInterval(() => {
-        if (window.TON_CONNECT_UI?.TonConnectUI || Date.now() - started > 8000) {
-          clearInterval(timer);
-          resolve(Boolean(window.TON_CONNECT_UI?.TonConnectUI));
-        }
-      }, 100);
-      return;
+  tonConnectLoading = (async () => {
+    const sources = [
+      "https://unpkg.com/@tonconnect/ui@3.0.2/dist/tonconnect-ui.min.js",
+      "https://cdn.jsdelivr.net/npm/@tonconnect/ui@3.0.2/dist/tonconnect-ui.min.js"
+    ];
+
+    for (const src of sources) {
+      try {
+        await new Promise((resolve, reject) => {
+          const existing = document.querySelector('script[data-tonconnect-sdk="1"]');
+          if (existing) {
+            if (window.TON_CONNECT_UI?.TonConnectUI) return resolve();
+            existing.addEventListener("load", resolve, { once: true });
+            existing.addEventListener("error", reject, { once: true });
+            setTimeout(() => reject(new Error("TON Connect SDK timeout")), 10000);
+            return;
+          }
+
+          const script = document.createElement("script");
+          script.src = src;
+          script.async = true;
+          script.dataset.tonconnectSdk = "1";
+          script.onload = () => resolve();
+          script.onerror = () => reject(new Error("Failed to load " + src));
+          document.head.appendChild(script);
+        });
+
+        if (window.TON_CONNECT_UI?.TonConnectUI) return true;
+      } catch (error) {
+        console.warn("TON Connect SDK source failed:", src, error);
+        const failed = document.querySelector('script[data-tonconnect-sdk="1"]');
+        if (failed && !window.TON_CONNECT_UI?.TonConnectUI) failed.remove();
+      }
     }
-    const script = document.createElement("script");
-    script.src = "https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js";
-    script.async = true;
-    script.dataset.tonconnectSdk = "1";
-    script.onload = () => resolve(Boolean(window.TON_CONNECT_UI?.TonConnectUI));
-    script.onerror = () => resolve(false);
-    document.head.appendChild(script);
-  });
+
+    return false;
+  })();
 
   const ok = await tonConnectLoading;
   if (!ok) tonConnectLoading = null;
@@ -322,8 +339,7 @@ async function ensureTonConnect() {
   try {
     tonConnectUI = new window.TON_CONNECT_UI.TonConnectUI({
       manifestUrl: TON_MANIFEST_URL,
-      uiPreferences: { theme: "DARK" },
-      analytics: { mode: "off" }
+      uiPreferences: { theme: "DARK" }
     });
 
     tonConnectUI.onStatusChange((wallet) => {
@@ -357,6 +373,7 @@ async function openWalletSelector() {
   try {
     const ui = await ensureTonConnect();
     if (!ui) throw new Error("TON Connect SDK unavailable.");
+    if (typeof ui.openModal !== "function") throw new Error("TON Connect UI modal is unavailable.");
     await ui.openModal();
   } catch (error) {
     console.error("TON wallet selector error:", error);
