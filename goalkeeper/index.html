@@ -40,7 +40,12 @@
       </div>
     </section>
 
-    <section class="level-card card"><div class="level-top"><div><small>KEEPER LEVEL</small><h3>Level <span id="levelDisplay">1</span></h3></div><div class="level-points"><b id="levelProgress">0 / 50</b><small>XP TO NEXT</small></div></div><div class="progress-track"><i id="levelBar"></i></div><p id="levelMessage">Complete missions to unlock your next level.</p></section>\n\n    <section class="stats">
+    <section class="level-card card"><div class="level-top"><div><small>KEEPER LEVEL</small><h3>Level <span id="levelDisplay">1</span></h3></div><div class="level-points"><b id="levelProgress">0 / 50</b><small>XP TO NEXT</small><span id="levelBadge" class="level-badge">ROOKIE</span></div></div><div class="progress-track"><i id="levelBar"></i></div><p id="levelMessage">Complete missions to unlock your next level.</p></section>\n\n    <section class="streak-strip card">
+  <div class="streak-main"><span class="flame">✦</span><div><small>KEEPER STREAK</small><strong id="streakNumber">0 Days</strong></div></div>
+  <div class="streak-meta"><span id="streakStatus">Start your daily check-in</span><b id="streakBest">Best: 0</b></div>
+</section>
+
+    <section class="stats">
       <div><small>POINTS</small><strong id="pointsTotal">0 Points</strong></div>
       <div><small>NETWORK</small><strong>TON Testnet</strong></div>
       <div><small>STATUS</small><strong class="status-dot"><i></i> Active</strong></div>
@@ -116,7 +121,7 @@
       </article>
     </section>
 
-    <section class="section" id="achievements">
+    <section class="section" id="collection-achievements">
       <div class="section-head"><div><span>COLLECTION</span><h2>Achievements</h2></div></div>
       <article class="card achievement-card">
         <div class="badge-row"><div><span class="badge-icon">◆</span><small>FIRST DEFENDER</small><b id="achievementOpen">Locked</b></div>
@@ -143,6 +148,6 @@
     <a href="#home">⌂<small>Home</small></a><a href="#missions">◈<small>Missions</small></a><a href="#rewards">✦<small>Rewards</small></a><a href="#profile">◎<small>Profile</small></a>
   </nav>
   <script src="https://unpkg.com/@tonconnect/ui@3.0.2/dist/tonconnect-ui.min.js"></script>
-  <script src="app-v3.js?v=20260919-ui"></script>
+  <script src="app-v3.js?v=20260919-streak-levels"></script>
 </body>
 </html>
