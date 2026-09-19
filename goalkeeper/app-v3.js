@@ -90,7 +90,7 @@ function openTonExplorer() {
   else window.open(url, "_blank", "noopener,noreferrer");
 }
 
-copyAddressBtn.addEventListener("click", async () => {
+if (copyAddressBtn) copyAddressBtn.addEventListener("click", async () => {
   const address = getWalletAddress();
   if (!address) return;
   try {
@@ -103,7 +103,7 @@ copyAddressBtn.addEventListener("click", async () => {
   }
 });
 
-explorerBtn.addEventListener("click", openTonExplorer);
+if (explorerBtn) explorerBtn.addEventListener("click", openTonExplorer);
 
 function shortAddress(address) {
   if (!address) return "";
@@ -303,7 +303,7 @@ function updateRewards() {
     : "Testnet-only activity points. No real-money reward is issued.";
 }
 
-dailyCheckinBtn.addEventListener("click", () => {
+if (dailyCheckinBtn) dailyCheckinBtn.addEventListener("click", () => {
   if (!telegramVerified || localStorage.getItem(CHECKIN_KEY) === todayKey()) return;
   const current = Number(localStorage.getItem(POINTS_KEY) || "0");
   localStorage.setItem(POINTS_KEY, String(current + 10));
@@ -320,7 +320,7 @@ dailyCheckinBtn.addEventListener("click", () => {
   updateRewards();
 });
 
-shareGoalkeeperBtn.addEventListener("click", () => {
+if (shareGoalkeeperBtn) shareGoalkeeperBtn.addEventListener("click", () => {
   const url = "https://t.me/GoalkeeperSandyBot";
   const text = "Try Goalkeeper — TON + Telegram Mini-App by SandyChainHub.";
   const shareUrl = "https://t.me/share/url?url=" + encodeURIComponent(url) + "&text=" + encodeURIComponent(text);
@@ -449,8 +449,8 @@ async function linkWalletIdentity() {
   }
 }
 
-// Bind this immediately so Telegram WebView cannot miss the click handler.
-linkWalletBtn.addEventListener("click", linkWalletIdentity);
+// Bind immediately, with safe guards for Telegram WebView startup.
+if (linkWalletBtn) linkWalletBtn.addEventListener("click", linkWalletIdentity);
 
 function initTelegram() {
   const tg = window.Telegram?.WebApp;
@@ -530,7 +530,7 @@ async function initTonConnect() {
     }, delay);
   });
 
-  connectBtn.addEventListener("click", async () => {
+  if (connectBtn) connectBtn.addEventListener("click", async () => {
     if (!getWalletAddress()) {
       await tonConnectUI.openModal();
     } else {
