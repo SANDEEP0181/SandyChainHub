@@ -20,7 +20,7 @@ const profileTelegram = document.getElementById("profileTelegram");
 const profileWallet = document.getElementById("profileWallet");
 const profileLinkStatus = document.getElementById("profileLinkStatus");
 const profileActivity = document.getElementById("profileActivity");
-const pointsTotal = document.getElementById("pointsTotal");
+const pointsTotal = document.getElementById("pointsTotal");\nconst rewardPoints = document.getElementById("rewardPoints");\nconst levelNumber = document.getElementById("levelNumber");\nconst levelDisplay = document.getElementById("levelDisplay");\nconst levelProgress = document.getElementById("levelProgress");\nconst levelBar = document.getElementById("levelBar");\nconst levelMessage = document.getElementById("levelMessage");
 const pointsMessage = document.getElementById("pointsMessage");
 const dailyCheckinBtn = document.getElementById("dailyCheckinBtn");
 const missionTelegram = document.getElementById("missionTelegram");
@@ -163,7 +163,7 @@ function updateRewards() {
   awardMission("open", 5);
   const points = Number(localStorage.getItem(POINTS_KEY) || "0");
   const checked = localStorage.getItem(CHECKIN_KEY) === todayKey();
-  pointsTotal.textContent = points + " Points";
+  pointsTotal.textContent = points + " Points";\n  if (rewardPoints) rewardPoints.textContent = points + " Points";\n  updateLevel(points);
   missionTelegram.textContent = telegramVerified ? "Verified" : "Pending";
   missionWallet.textContent = getWalletAddress() ? "Connected" : "Pending";
   missionIdentity.textContent = localStorage.getItem("goalkeeperIdentityLink") ? "Linked" : "Pending";
