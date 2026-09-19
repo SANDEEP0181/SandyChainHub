@@ -452,7 +452,34 @@ async function linkWalletIdentity() {
 // Bind immediately, with safe guards for Telegram WebView startup.
 if (linkWalletBtn) linkWalletBtn.addEventListener("click", linkWalletIdentity);
 
-function initTelegram() {
+function loadTelegramLibrary() {
+  if (window.Telegram?.WebApp) return Promise.resolve(true);
+  if (document.querySelector("script[data-telegram-sdk]")) {
+    return new Promise(resolve => {
+      const started = Date.now();
+      const timer = setInterval(() => {
+        if (window.Telegram?.WebApp || Date.now() - started > 5000) {
+          clearInterval(timer);
+          resolve(Boolean(window.Telegram?.WebApp));
+        }
+      }, 100);
+    });
+  }
+  return new Promise(resolve => {
+    const script = document.createElement("script");
+    script.src = "https://telegram.org/js/telegram-web-app.js?63";
+    script.async = true;
+    script.dataset.telegramSdk = "1";
+    script.onload = () => resolve(Boolean(window.Telegram?.WebApp));
+    script.onerror = () => resolve(false);
+    document.head.appendChild(script);
+  });
+}
+
+async function initTelegram() {
+  if (!window.Telegram?.WebApp) {
+    await loadTelegramLibrary();
+  }
   const tg = window.Telegram?.WebApp;
   if (!tg) {
     telegramStatus.textContent = "Browser mode";
