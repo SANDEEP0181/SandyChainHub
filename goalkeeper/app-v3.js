@@ -570,11 +570,26 @@ async function initTelegram() {
 let tonConnectInitializing = false;
 
 function bindTonConnectButton() {
-  // TON Connect UI owns the actual wallet button via buttonRootId.
-  // Keep the legacy button hidden so there is only one connection control.
   if (connectBtn) {
     connectBtn.hidden = true;
     connectBtn.disabled = true;
+  }
+  const fallback = document.getElementById("tonConnectFallback");
+  if (fallback && fallback.dataset.bound !== "1") {
+    fallback.dataset.bound = "1";
+    fallback.addEventListener("click", async () => {
+      fallback.disabled = true;
+      walletStatus.textContent = "Opening TON wallet selector...";
+      try {
+        const ui = await ensureTonConnect();
+        if (!ui) throw new Error("TON Connect SDK did not load.");
+        await ui.openModal();
+      } catch (error) {
+        console.error("TON fallback connect error:", error);
+        walletStatus.textContent = "TON wallet selector could not open. Tap again.";
+        fallback.disabled = false;
+      }
+    });
   }
 }
 nst connectBtn = document.getElementById("connectBtn");
@@ -1258,7 +1273,7 @@ async function initTonConnect() {
 
     tonConnectUI = new window.TON_CONNECT_UI.TonConnectUI({
       manifestUrl: "https://sandeep0181.github.io/SandyChainHub/goalkeeper/tonconnect-manifest.json",
-      buttonRootId: "tonConnectRoot",
+      
       uiPreferences: { theme: "DARK" },
       actionsConfiguration: { twaReturnUrl: "https://t.me/GoalkeeperSandyBot" }
     });
