@@ -371,7 +371,10 @@ async function ensureTonConnect() {
   try {
     tonConnectUI = new window.TON_CONNECT_UI.TonConnectUI({
       manifestUrl: TON_MANIFEST_URL,
-      uiPreferences: { theme: "DARK" }
+      uiPreferences: { theme: "DARK" },
+      // Telegram Mini Apps need an explicit return URL.
+      // TON Connect uses this only in TMA mode.
+      twaReturnUrl: "https://t.me/GoalkeeperSandyBot"
     });
 
     tonConnectUI.onStatusChange((wallet) => {
