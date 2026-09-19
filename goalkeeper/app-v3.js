@@ -261,11 +261,9 @@ function returnToDashboard() {
   const dashboard = document.querySelector("#home");
   if (!dashboard) return;
   setTimeout(() => {
-    try {
-      history.replaceState(null, "", window.location.pathname + window.location.search + "#home");
-    } catch {}
+    try { window.location.hash = "home"; } catch {}
     dashboard.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, 250);
+  }, 350);
 }
 
 async function handleWalletReturn() {
@@ -374,6 +372,7 @@ async function ensureTonConnect() {
       connectedWalletAddress = wallet?.account?.address || "";
       updateWalletUI();
       if (connectedWalletAddress) {
+        try { tonConnectUI?.closeModal?.(); } catch {}
         awardMission("connect", 10);
         setText(walletStatus, "Wallet connected");
         setText(profileActivity, "Session activity: TON wallet connected.");
