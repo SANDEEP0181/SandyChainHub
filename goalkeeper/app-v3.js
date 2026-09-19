@@ -1,3 +1,100 @@
+
+const languageSelect = $("languageSelect");
+const LANGUAGE_KEY = "goalkeeperLanguage";
+const LANGUAGE_NAMES = {en:"EN",hi:"HI",es:"ES",fr:"FR",zh:"中文",ja:"日本語"};
+
+const I18N = {
+  hi: {
+    "Language":"भाषा","Login with Telegram":"Telegram से लॉगिन","Logout":"लॉगआउट","Connect TON Wallet":"TON Wallet कनेक्ट करें","Disconnect Wallet":"Wallet डिस्कनेक्ट करें",
+    "Goalkeeper":"Goalkeeper","TON • TELEGRAM":"TON • TELEGRAM","LIVE TESTNET EXPERIENCE":"LIVE TESTNET EXPERIENCE","Defend your":"अपनी","Web3 journey.":"Web3 यात्रा की रक्षा करें।",
+    "Connect. Complete missions. Build your Goalkeeper profile.":"कनेक्ट करें। मिशन पूरे करें। अपना Goalkeeper प्रोफाइल बनाएं।","Explore Missions":"मिशन देखें","TON TESTNET":"TON TESTNET",
+    "KEEPER LEVEL":"KEEPER LEVEL","Level":"लेवल","XP TO NEXT":"अगले लेवल का XP","ROOKIE":"शुरुआती","Complete missions to unlock your next level.":"अगला लेवल अनलॉक करने के लिए मिशन पूरे करें।",
+    "KEEPER STREAK":"KEEPER STREAK","Start your daily check-in":"अपना दैनिक चेक-इन शुरू करें","Best: 0":"सर्वश्रेष्ठ: 0","POINTS":"पॉइंट्स","NETWORK":"नेटवर्क","STATUS":"स्थिति","Active":"सक्रिय",
+    "YOUR HUB":"आपका हब","Profile":"प्रोफाइल","SECURE SESSION":"सुरक्षित सेशन","GOALKEEPER ID":"GOALKEEPER ID","Profile pending":"प्रोफाइल लंबित",
+    "Complete Telegram verification to create your secure profile.":"सुरक्षित प्रोफाइल बनाने के लिए Telegram सत्यापन पूरा करें।","TELEGRAM":"TELEGRAM","TON WALLET":"TON WALLET","Not connected":"कनेक्ट नहीं है","IDENTITY":"पहचान","SESSION":"सेशन","Waiting":"प्रतीक्षा",
+    "PLAY & EARN TESTNET POINTS":"टेस्टनेट पॉइंट्स के लिए मिशन","Missions":"मिशन","START":"शुरू","Open Goalkeeper":"Goalkeeper खोलें","Begin your keeper journey.":"अपनी keeper यात्रा शुरू करें।",
+    "WALLET":"WALLET","Connect TON Wallet":"TON Wallet कनेक्ट करें","Connect a TON testnet wallet.":"TON testnet wallet कनेक्ट करें।","IDENTITY":"पहचान","Link Identity":"पहचान लिंक करें","Link Telegram and TON.":"Telegram और TON लिंक करें।","DAILY":"दैनिक","Daily Check-in":"दैनिक चेक-इन","Return each UTC day.":"हर UTC दिन वापस आएं।",
+    "Wallet not connected":"Wallet कनेक्ट नहीं है","Connect your testnet wallet to continue.":"जारी रखने के लिए अपना testnet wallet कनेक्ट करें।","Copy Address":"Address कॉपी करें","Open Explorer":"Explorer खोलें",
+    "Browser mode":"ब्राउज़र मोड","Open Goalkeeper inside Telegram to view user and session information.":"User और session जानकारी देखने के लिए Goalkeeper को Telegram के अंदर खोलें।",
+    "Wallet link pending":"Wallet लिंक लंबित","Link your Telegram identity after connecting a TON wallet.":"TON wallet कनेक्ट करने के बाद Telegram identity लिंक करें।","Link TON Wallet":"TON Wallet लिंक करें",
+    "REWARDS":"REWARDS","Testnet-only activity points. No real-money reward is issued.":"केवल testnet activity points। कोई real-money reward नहीं दिया जाता।",
+    "Share Goalkeeper":"Goalkeeper शेयर करें","COLLECTION":"कलेक्शन","Achievements":"उपलब्धियां","Locked":"लॉक","Unlocked":"अनलॉक",
+    "ROADMAP":"रोडमैप","What's next":"आगे क्या है","Home":"होम","Rewards":"रिवॉर्ड्स"
+  },
+  es: {
+    "Language":"Idioma","Login with Telegram":"Iniciar sesión con Telegram","Logout":"Cerrar sesión","Connect TON Wallet":"Conectar TON Wallet","Disconnect Wallet":"Desconectar Wallet",
+    "Explore Missions":"Explorar misiones","Defend your":"Protege tu","Web3 journey.":"viaje Web3.","Connect. Complete missions. Build your Goalkeeper profile.":"Conecta. Completa misiones. Crea tu perfil de Goalkeeper.",
+    "KEEPER LEVEL":"NIVEL DEL KEEPER","Level":"Nivel","XP TO NEXT":"XP PARA EL SIGUIENTE","ROOKIE":"NOVATO","Complete missions to unlock your next level.":"Completa misiones para desbloquear el siguiente nivel.",
+    "KEEPER STREAK":"RACHA DEL KEEPER","Start your daily check-in":"Inicia tu check-in diario","POINTS":"PUNTOS","NETWORK":"RED","STATUS":"ESTADO","Active":"Activo",
+    "YOUR HUB":"TU HUB","Profile":"Perfil","SECURE SESSION":"SESIÓN SEGURA","Profile pending":"Perfil pendiente","Not connected":"No conectado","Waiting":"Esperando",
+    "PLAY & EARN TESTNET POINTS":"JUEGA Y GANA PUNTOS DE TESTNET","Missions":"Misiones","START":"INICIO","Open Goalkeeper":"Abrir Goalkeeper","Begin your keeper journey.":"Comienza tu camino como keeper.",
+    "WALLET":"WALLET","Connect a TON testnet wallet.":"Conecta una wallet TON de testnet.","Link Identity":"Vincular identidad","Link Telegram and TON.":"Vincula Telegram y TON.","DAILY":"DIARIO","Daily Check-in":"Check-in diario","Return each UTC day.":"Vuelve cada día UTC.",
+    "Wallet not connected":"Wallet no conectada","Connect your testnet wallet to continue.":"Conecta tu wallet de testnet para continuar.","Copy Address":"Copiar dirección","Open Explorer":"Abrir Explorer",
+    "Browser mode":"Modo navegador","Wallet link pending":"Vinculación pendiente","Link TON Wallet":"Vincular TON Wallet","REWARDS":"RECOMPENSAS",
+    "Testnet-only activity points. No real-money reward is issued.":"Puntos solo de actividad en testnet. No se emiten recompensas de dinero real.","Share Goalkeeper":"Compartir Goalkeeper","COLLECTION":"COLECCIÓN","Achievements":"Logros","Locked":"Bloqueado","Unlocked":"Desbloqueado","ROADMAP":"HOJA DE RUTA","What's next":"Qué sigue","Home":"Inicio","Rewards":"Recompensas"
+  },
+  fr: {
+    "Language":"Langue","Login with Telegram":"Se connecter avec Telegram","Logout":"Se déconnecter","Connect TON Wallet":"Connecter TON Wallet","Disconnect Wallet":"Déconnecter Wallet",
+    "Explore Missions":"Explorer les missions","Defend your":"Protège ton","Web3 journey.":"parcours Web3.","Connect. Complete missions. Build your Goalkeeper profile.":"Connecte-toi. Termine les missions. Crée ton profil Goalkeeper.",
+    "KEEPER LEVEL":"NIVEAU DU KEEPER","Level":"Niveau","XP TO NEXT":"XP SUIVANTE","ROOKIE":"DÉBUTANT","Complete missions to unlock your next level.":"Termine des missions pour débloquer le niveau suivant.",
+    "KEEPER STREAK":"SÉRIE DU KEEPER","Start your daily check-in":"Commence ton check-in quotidien","POINTS":"POINTS","NETWORK":"RÉSEAU","STATUS":"STATUT","Active":"Actif",
+    "YOUR HUB":"TON HUB","Profile":"Profil","SECURE SESSION":"SESSION SÉCURISÉE","Profile pending":"Profil en attente","Not connected":"Non connecté","Waiting":"En attente",
+    "PLAY & EARN TESTNET POINTS":"JOUE ET GAGNE DES POINTS TESTNET","Missions":"Missions","START":"DÉBUT","Open Goalkeeper":"Ouvrir Goalkeeper","Begin your keeper journey.":"Commence ton parcours de keeper.",
+    "WALLET":"WALLET","Connect a TON testnet wallet.":"Connecte un wallet TON testnet.","Link Identity":"Lier l'identité","Link Telegram and TON.":"Lier Telegram et TON.","DAILY":"QUOTIDIEN","Daily Check-in":"Check-in quotidien","Return each UTC day.":"Reviens chaque jour UTC.",
+    "Wallet not connected":"Wallet non connecté","Connect your testnet wallet to continue.":"Connecte ton wallet testnet pour continuer.","Copy Address":"Copier l'adresse","Open Explorer":"Ouvrir Explorer",
+    "Browser mode":"Mode navigateur","Wallet link pending":"Lien wallet en attente","Link TON Wallet":"Lier TON Wallet","REWARDS":"RÉCOMPENSES",
+    "Testnet-only activity points. No real-money reward is issued.":"Points d'activité uniquement sur testnet. Aucune récompense en argent réel n'est émise.","Share Goalkeeper":"Partager Goalkeeper","COLLECTION":"COLLECTION","Achievements":"Succès","Locked":"Verrouillé","Unlocked":"Déverrouillé","ROADMAP":"FEUILLE DE ROUTE","What's next":"Et ensuite","Home":"Accueil","Rewards":"Récompenses"
+  },
+  zh: {
+    "Language":"语言","Login with Telegram":"使用 Telegram 登录","Logout":"退出登录","Connect TON Wallet":"连接 TON 钱包","Disconnect Wallet":"断开钱包",
+    "Explore Missions":"探索任务","Defend your":"守护你的","Web3 journey.":"Web3 之旅。","Connect. Complete missions. Build your Goalkeeper profile.":"连接钱包，完成任务，建立 Goalkeeper 资料。",
+    "KEEPER LEVEL":"KEEPER 等级","Level":"等级","XP TO NEXT":"升级所需 XP","ROOKIE":"新手","Complete missions to unlock your next level.":"完成任务以解锁下一等级。",
+    "KEEPER STREAK":"KEEPER 连续记录","Start your daily check-in":"开始每日签到","POINTS":"积分","NETWORK":"网络","STATUS":"状态","Active":"活跃",
+    "YOUR HUB":"你的中心","Profile":"资料","SECURE SESSION":"安全会话","Profile pending":"资料待定","Not connected":"未连接","Waiting":"等待中",
+    "PLAY & EARN TESTNET POINTS":"完成任务获得测试网积分","Missions":"任务","START":"开始","Open Goalkeeper":"打开 Goalkeeper","Begin your keeper journey.":"开始你的 keeper 之旅。",
+    "WALLET":"钱包","Connect a TON testnet wallet.":"连接 TON 测试网钱包。","Link Identity":"关联身份","Link Telegram and TON.":"关联 Telegram 和 TON。","DAILY":"每日","Daily Check-in":"每日签到","Return each UTC day.":"每个 UTC 日返回。",
+    "Wallet not connected":"钱包未连接","Connect your testnet wallet to continue.":"连接测试网钱包以继续。","Copy Address":"复制地址","Open Explorer":"打开浏览器",
+    "Browser mode":"浏览器模式","Wallet link pending":"钱包关联待定","Link TON Wallet":"关联 TON 钱包","REWARDS":"奖励",
+    "Testnet-only activity points. No real-money reward is issued.":"仅限测试网活动积分，不发放真实货币奖励。","Share Goalkeeper":"分享 Goalkeeper","COLLECTION":"收藏","Achievements":"成就","Locked":"已锁定","Unlocked":"已解锁","ROADMAP":"路线图","What's next":"下一步","Home":"主页","Rewards":"奖励"
+  },
+  ja: {
+    "Language":"言語","Login with Telegram":"Telegramでログイン","Logout":"ログアウト","Connect TON Wallet":"TON Walletを接続","Disconnect Wallet":"Walletを切断",
+    "Explore Missions":"ミッションを見る","Defend your":"あなたの","Web3 journey.":"Web3の旅を守ろう。","Connect. Complete missions. Build your Goalkeeper profile.":"接続、ミッション達成、Goalkeeperプロフィールを作成。",
+    "KEEPER LEVEL":"KEEPERレベル","Level":"レベル","XP TO NEXT":"次のレベルまでのXP","ROOKIE":"ルーキー","Complete missions to unlock your next level.":"ミッションを完了して次のレベルを解放。",
+    "KEEPER STREAK":"KEEPER連続記録","Start your daily check-in":"毎日のチェックインを開始","POINTS":"ポイント","NETWORK":"ネットワーク","STATUS":"ステータス","Active":"アクティブ",
+    "YOUR HUB":"あなたのハブ","Profile":"プロフィール","SECURE SESSION":"安全なセッション","Profile pending":"プロフィール保留中","Not connected":"未接続","Waiting":"待機中",
+    "PLAY & EARN TESTNET POINTS":"テストネットポイントのミッション","Missions":"ミッション","START":"開始","Open Goalkeeper":"Goalkeeperを開く","Begin your keeper journey.":"keeperの旅を始めよう。",
+    "WALLET":"ウォレット","Connect a TON testnet wallet.":"TONテストネットWalletを接続。","Link Identity":"IDをリンク","Link Telegram and TON.":"TelegramとTONをリンク。","DAILY":"毎日","Daily Check-in":"毎日のチェックイン","Return each UTC day.":"UTCの毎日に戻ってきてください。",
+    "Wallet not connected":"Wallet未接続","Connect your testnet wallet to continue.":"続行するにはテストネットWalletを接続。","Copy Address":"アドレスをコピー","Open Explorer":"Explorerを開く",
+    "Browser mode":"ブラウザモード","Wallet link pending":"Walletリンク待ち","Link TON Wallet":"TON Walletをリンク","REWARDS":"報酬",
+    "Testnet-only activity points. No real-money reward is issued.":"テストネット活動ポイントのみ。現金報酬は発行されません。","Share Goalkeeper":"Goalkeeperを共有","COLLECTION":"コレクション","Achievements":"実績","Locked":"ロック中","Unlocked":"解除済み","ROADMAP":"ロードマップ","What's next":"次のステップ","Home":"ホーム","Rewards":"報酬"
+  }
+};
+
+function translate(value) {
+  const lang = localStorage.getItem(LANGUAGE_KEY) || "en";
+  return I18N[lang]?.[value] || value;
+}
+
+function applyLanguage(lang) {
+  lang = LANGUAGE_NAMES[lang] ? lang : "en";
+  localStorage.setItem(LANGUAGE_KEY, lang);
+  if (languageSelect) languageSelect.value = lang;
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  let node;
+  while ((node = walker.nextNode())) {
+    const raw = node.__gkI18nKey || node.nodeValue.trim();
+    if (!raw) continue;
+    node.__gkI18nKey = raw;
+    const translated = I18N[lang]?.[raw] || raw;
+    if (node.nodeValue.trim() !== translated) {
+      const leading = node.nodeValue.match(/^\s*/)?.[0] || "";
+      const trailing = node.nodeValue.match(/\s*$/)?.[0] || "";
+      node.nodeValue = leading + translated + trailing;
+    }
+  }
+}
+
 const $ = (id) => document.getElementById(id);
 
 const connectBtn = $("connectBtn");
@@ -78,7 +175,7 @@ let telegramInitData = "";
 let telegramVerified = false;
 let connectedWalletAddress = "";
 
-function setText(el, value) { if (el) el.textContent = value; }
+function setText(el, value) { if (el) el.textContent = translate(value); }
 
 function shortAddress(address) {
   if (!address) return "";
@@ -484,6 +581,7 @@ async function disconnectWallet(){
   }
 }
 
+if(languageSelect)languageSelect.addEventListener("change",()=>applyLanguage(languageSelect.value));
 if(loginBtn)loginBtn.addEventListener("click",loginTelegram);
 if(logoutBtn)logoutBtn.addEventListener("click",logoutSession);
 if(disconnectBtn)disconnectBtn.addEventListener("click",disconnectWallet);
@@ -514,6 +612,7 @@ if(connectBtn)connectBtn.hidden=false;
 updateAuthButtons();
 updateWalletUI();
 updateRewards();
+applyLanguage(localStorage.getItem(LANGUAGE_KEY) || "en");
 
 window.addEventListener("load",()=>{
   ensureTonConnect().catch((error)=>console.error("TON startup:",error));
