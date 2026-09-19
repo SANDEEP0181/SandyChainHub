@@ -481,18 +481,31 @@ function initTelegram() {
   validateTelegramSession(tg).then(() => loadProfileSession());
 }
 
+let tonConnectInitializing = false;
+
 async function initTonConnect() {
-  if (!window.TON_CONNECT_UI) {
-    walletStatus.textContent = "TON Connect library load नहीं हुई";
-    updateIdentityState();
+  if (tonConnectUI) return tonConnectUI;
+  if (tonConnectInitializing) return;
+  tonConnectInitializing = true;
+
+  if (!window.TON_CONNECT_UI?.TonConnectUI) {
+    if (walletStatus) walletStatus.textContent = "TON Connect loading...";
+    if (connectBtn) connectBtn.disabled = true;
+    setTimeout(() => {
+      tonConnectInitializing = false;
+      initTonConnect();
+    }, 1200);
     return;
   }
 
-  tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+  try {
+    tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
     manifestUrl: new URL("tonconnect-manifest.json", window.location.href).toString()
   });
 
-  tonConnectUI.onStatusChange(wallet => {
+    if (connectBtn) connectBtn.disabled = false;
+
+    tonConnectUI.onStatusChange(wallet => {
     if (wallet?.account?.address) {
       connectedWalletAddress = wallet.account.address;
       walletStatus.textContent = "TON Wallet Connected";
@@ -508,7 +521,6 @@ async function initTonConnect() {
     updateWalletTools();
     updateIdentityState();
     updateProfileWallet();
-    updateWalletTools();
     updateRewards();
   });
 
@@ -525,7 +537,6 @@ async function initTonConnect() {
       updateWalletTools();
       updateIdentityState();
       updateProfileWallet();
-      updateWalletTools();
       updateRewards();
     }, delay);
   });
@@ -539,6 +550,16 @@ async function initTonConnect() {
   });
 }
 
-initTonConnect();
-initTelegram();
-updateRewards();
+function safeStartup(name, fn) {
+  try {
+    const result = fn();
+    if (result?.catch) result.catch(error => console.error(name + " startup error:", error));
+    return result;
+  } catch (error) {
+    console.error(name + " startup error:", error);
+  }
+}
+
+safeStartup("TON Connect", initTonConnect);
+safeStartup("Telegram", initTelegram);
+safeStartup("Rewards", updateRewards);
