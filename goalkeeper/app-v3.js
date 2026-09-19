@@ -14,7 +14,7 @@ const linkWalletBtn = $("linkWalletBtn");
 const copyAddressBtn = $("copyAddressBtn");
 const explorerBtn = $("explorerBtn");
 const connectedWalletChip = $("connectedWalletChip");
-const connectedWalletAddress = $("connectedWalletAddress");
+const connectedWalletAddressEl = $("connectedWalletAddress");
 
 const profileStatus = $("profileStatus");
 const profileIdentity = $("profileIdentity");
@@ -130,7 +130,7 @@ function updateWalletUI() {
   const connected = Boolean(address);
 
   if (connectedWalletChip) connectedWalletChip.hidden = !connected;
-  setText(connectedWalletAddress, connected ? shortAddress(address) : "—");
+  setText(connectedWalletAddressEl, connected ? shortAddress(address) : "—");
 
   if (connectBtn) connectBtn.hidden = connected;
   if (tonConnectFallback) {
