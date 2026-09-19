@@ -255,11 +255,11 @@ function updateIdentityState() {
   if (telegramVerified && connected) {
     if (linkWalletBtn) linkWalletBtn.disabled = linked;
     setText(identityStatus, linked ? "Identity Linked" : "Ready to link");
-    setText(identityMessage, linked ? "Telegram identity और TON wallet इस session के लिए linked हैं।" : "Telegram verified और TON wallet connected है। Link TON Wallet दबाएं।");
+    setText(identityMessage, linked ? "Telegram identity and TON wallet are linked for this session." : "Telegram is verified and the TON wallet is connected. Select Link TON Wallet.");
   } else {
     if (linkWalletBtn) linkWalletBtn.disabled = true;
     setText(identityStatus, "Wallet link pending");
-    setText(identityMessage, telegramVerified ? "पहले TON wallet connect करें।" : "पहले Telegram verification पूरी होने दें।");
+    setText(identityMessage, telegramVerified ? "Connect a TON wallet first." : "Complete Telegram verification first.");
   }
 }
 
@@ -314,7 +314,7 @@ async function initTelegram() {
   const tg = window.Telegram?.WebApp;
   if (!loaded && !tg) {
     setText(telegramStatus, "Browser mode");
-    setText(telegramUser, "Goalkeeper browser में खुला है। Telegram में खोलने पर secure verification activate होगी.");
+    setText(telegramUser, "Goalkeeper is open in browser. Open it inside Telegram to activate secure verification.");
     updateAuthButtons(); return;
   }
   if (!tg) return;
@@ -354,7 +354,7 @@ async function linkWalletIdentity() {
   if (!telegramVerified || !telegramInitData || !wallet) { updateIdentityState(); return; }
   if (linkWalletBtn) linkWalletBtn.disabled = true;
   setText(identityStatus, "Linking...");
-  setText(identityMessage, "Secure identity link तैयार हो रहा है...");
+  setText(identityMessage, "Preparing secure identity link...");
   try {
     const response = await fetch(IDENTITY_LINK_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ initData: telegramInitData, walletAddress: wallet }) });
     const result = await response.json();
@@ -362,7 +362,7 @@ async function linkWalletIdentity() {
     localStorage.setItem("goalkeeperIdentityLink", result.linkToken);
     awardMission("link", 20);
     setText(identityStatus, "Identity Linked");
-    setText(identityMessage, "Telegram identity और TON wallet इस session के लिए linked हैं।");
+    setText(identityMessage, "Telegram identity and TON wallet are linked for this session.");
     setText(profileLinkStatus, "Identity Linked");
     setText(profileActivity, "Session activity: Telegram + TON wallet linked.");
     updateRewards();
@@ -370,7 +370,7 @@ async function linkWalletIdentity() {
   } catch (error) {
     console.error("Identity link:", error);
     setText(identityStatus, "Link failed");
-    setText(identityMessage, error.message || "Identity link नहीं बन पाया।");
+    setText(identityMessage, error.message || "Identity link could not be created.");
     updateIdentityState();
   }
 }
@@ -425,7 +425,7 @@ function updateRewards(){
   setText(pointsTotal,points+" Points"); setText(rewardPoints,points+" Points"); updateLevel(points); updateStreakUI();
   setText(missionTelegram,telegramVerified?"Verified":"Pending"); setText(missionWallet,getWalletAddress()?"Connected":"Pending"); setText(missionIdentity,localStorage.getItem("goalkeeperIdentityLink")?"Linked":"Pending"); setText(missionCheckin,checked?"Completed today":"Available");
   updateCheckinTimer(); updateMissionUI(); updateAchievements();
-  setText(pointsMessage,checked?"आज का testnet check-in complete है।":"Browser mode: daily testnet check-in is available. Telegram verification is optional.");
+  setText(pointsMessage,checked?"Today's testnet check-in is complete.":"Browser mode: daily testnet check-in is available. Telegram verification is optional.");
 }
 
 function handleDailyCheckin(){
@@ -440,7 +440,7 @@ function handleDailyCheckin(){
 async function logoutSession(){
   try{if(tonConnectUI)await tonConnectUI.disconnect();}catch(error){console.warn("Wallet disconnect:",error);}
   telegramInitData=""; telegramVerified=false; connectedWalletAddress=""; localStorage.removeItem("goalkeeperIdentityLink");
-  setText(telegramStatus,"Logged out"); setText(telegramUser,"Telegram session cleared. Open Goalkeeper from Telegram to login again."); setText(profileStatus,"Profile pending"); setText(profileIdentity,"Telegram verification के बाद secure profile तैयार होगा।"); setText(goalkeeperUserId,"—"); setText(profileTelegram,"—"); setText(profileWallet,"Not connected"); setText(profileLinkStatus,"—"); setText(profileActivity,"Waiting");
+  setText(telegramStatus,"Logged out"); setText(telegramUser,"Telegram session cleared. Open Goalkeeper from Telegram to log in again."); setText(profileStatus,"Profile pending"); setText(profileIdentity,"Complete Telegram verification to create your secure profile."); setText(goalkeeperUserId,"—"); setText(profileTelegram,"—"); setText(profileWallet,"Not connected"); setText(profileLinkStatus,"—"); setText(profileActivity,"Waiting");
   updateAuthButtons(); updateWalletUI(); updateRewards();
 }
 
@@ -467,9 +467,9 @@ async function disconnectWallet(){
     saveMissions(missions);
 
     setText(telegramStatus,"Logged out");
-    setText(telegramUser,"Telegram session cleared. Open Goalkeeper from Telegram to login again.");
+    setText(telegramUser,"Telegram session cleared. Open Goalkeeper from Telegram to log in again.");
     setText(profileStatus,"Profile pending");
-    setText(profileIdentity,"Telegram verification के बाद secure profile तैयार होगा।");
+    setText(profileIdentity,"Complete Telegram verification to create your secure profile.");
     setText(goalkeeperUserId,"—");
     setText(profileTelegram,"—");
     setText(profileWallet,"Not connected");
