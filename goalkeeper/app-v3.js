@@ -1,7 +1,6 @@
 
-const languageSelect = $("languageSelect");
 const LANGUAGE_KEY = "goalkeeperLanguage";
-const LANGUAGE_NAMES = {en:"EN",hi:"HI",es:"ES",fr:"FR",zh:"中文",ja:"日本語"};
+const LANGUAGE_NAMES = {en:"EN",hi:"HI",es:"ES",fr:"FR",zh:"中文",ja:"日本語",de:"DE",pt:"PT",ko:"한국어",ar:"العربية",ru:"RU",bn:"বাংলা"};
 
 const I18N = {
   hi: {
@@ -71,6 +70,44 @@ const I18N = {
   }
 };
 
+
+I18N.de = {
+  "Language":"Sprache","Login with Telegram":"Mit Telegram anmelden","Logout":"Abmelden","Connect TON Wallet":"TON Wallet verbinden","Disconnect Wallet":"Wallet trennen",
+  "Explore Missions":"Missionen erkunden","Defend your":"Schütze deine","Web3 journey.":"Web3-Reise.","Profile":"Profil","Missions":"Missionen","Rewards":"Belohnungen","Achievements":"Erfolge","Home":"Startseite",
+  "Wallet not connected":"Wallet nicht verbunden","Connect your testnet wallet to continue.":"Verbinde deine Testnet-Wallet, um fortzufahren.","Copy Address":"Adresse kopieren","Open Explorer":"Explorer öffnen",
+  "Daily Check-in":"Täglicher Check-in","Share Goalkeeper":"Goalkeeper teilen","Locked":"Gesperrt","Unlocked":"Freigeschaltet","ROADMAP":"ROADMAP","What's next":"Was kommt als Nächstes?"
+};
+I18N.pt = {
+  "Language":"Idioma","Login with Telegram":"Entrar com Telegram","Logout":"Sair","Connect TON Wallet":"Conectar TON Wallet","Disconnect Wallet":"Desconectar Wallet",
+  "Explore Missions":"Explorar missões","Defend your":"Proteja sua","Web3 journey.":"jornada Web3.","Profile":"Perfil","Missions":"Missões","Rewards":"Recompensas","Achievements":"Conquistas","Home":"Início",
+  "Wallet not connected":"Wallet não conectada","Connect your testnet wallet to continue.":"Conecte sua wallet de testnet para continuar.","Copy Address":"Copiar endereço","Open Explorer":"Abrir Explorer",
+  "Daily Check-in":"Check-in diário","Share Goalkeeper":"Compartilhar Goalkeeper","Locked":"Bloqueado","Unlocked":"Desbloqueado","ROADMAP":"ROTEIRO","What's next":"Próximos passos"
+};
+I18N.ko = {
+  "Language":"언어","Login with Telegram":"Telegram으로 로그인","Logout":"로그아웃","Connect TON Wallet":"TON Wallet 연결","Disconnect Wallet":"Wallet 연결 해제",
+  "Explore Missions":"미션 보기","Defend your":"당신의","Web3 journey.":"Web3 여정을 지켜보세요.","Profile":"프로필","Missions":"미션","Rewards":"보상","Achievements":"업적","Home":"홈",
+  "Wallet not connected":"Wallet 연결 안 됨","Connect your testnet wallet to continue.":"계속하려면 테스트넷 Wallet을 연결하세요.","Copy Address":"주소 복사","Open Explorer":"Explorer 열기",
+  "Daily Check-in":"일일 체크인","Share Goalkeeper":"Goalkeeper 공유","Locked":"잠김","Unlocked":"잠금 해제","ROADMAP":"로드맵","What's next":"다음 단계"
+};
+I18N.ar = {
+  "Language":"اللغة","Login with Telegram":"تسجيل الدخول عبر Telegram","Logout":"تسجيل الخروج","Connect TON Wallet":"ربط TON Wallet","Disconnect Wallet":"فصل Wallet",
+  "Explore Missions":"استكشاف المهام","Defend your":"احمِ","Web3 journey.":"رحلة Web3 الخاصة بك.","Profile":"الملف الشخصي","Missions":"المهام","Rewards":"المكافآت","Achievements":"الإنجازات","Home":"الرئيسية",
+  "Wallet not connected":"المحفظة غير متصلة","Connect your testnet wallet to continue.":"اربط محفظة الاختبار للمتابعة.","Copy Address":"نسخ العنوان","Open Explorer":"فتح Explorer",
+  "Daily Check-in":"تسجيل يومي","Share Goalkeeper":"مشاركة Goalkeeper","Locked":"مقفل","Unlocked":"مفتوح","ROADMAP":"خارطة الطريق","What's next":"ما التالي؟"
+};
+I18N.ru = {
+  "Language":"Язык","Login with Telegram":"Войти через Telegram","Logout":"Выйти","Connect TON Wallet":"Подключить TON Wallet","Disconnect Wallet":"Отключить Wallet",
+  "Explore Missions":"Открыть миссии","Defend your":"Защити свою","Web3 journey.":"Web3-путешествие.","Profile":"Профиль","Missions":"Миссии","Rewards":"Награды","Achievements":"Достижения","Home":"Главная",
+  "Wallet not connected":"Wallet не подключён","Connect your testnet wallet to continue.":"Подключите тестовую Wallet, чтобы продолжить.","Copy Address":"Копировать адрес","Open Explorer":"Открыть Explorer",
+  "Daily Check-in":"Ежедневная отметка","Share Goalkeeper":"Поделиться Goalkeeper","Locked":"Заблокировано","Unlocked":"Разблокировано","ROADMAP":"ДОРОЖНАЯ КАРТА","What's next":"Что дальше?"
+};
+I18N.bn = {
+  "Language":"ভাষা","Login with Telegram":"Telegram দিয়ে লগইন","Logout":"লগআউট","Connect TON Wallet":"TON Wallet সংযুক্ত করুন","Disconnect Wallet":"Wallet বিচ্ছিন্ন করুন",
+  "Explore Missions":"মিশন দেখুন","Defend your":"আপনার","Web3 journey.":"Web3 যাত্রা রক্ষা করুন।","Profile":"প্রোফাইল","Missions":"মিশন","Rewards":"পুরস্কার","Achievements":"অর্জন","Home":"হোম",
+  "Wallet not connected":"Wallet সংযুক্ত নয়","Connect your testnet wallet to continue.":"চালিয়ে যেতে testnet Wallet সংযুক্ত করুন।","Copy Address":"ঠিকানা কপি করুন","Open Explorer":"Explorer খুলুন",
+  "Daily Check-in":"দৈনিক চেক-ইন","Share Goalkeeper":"Goalkeeper শেয়ার করুন","Locked":"লকড","Unlocked":"আনলকড","ROADMAP":"রোডম্যাপ","What's next":"পরবর্তী কী?"
+};
+
 function translate(value) {
   const lang = localStorage.getItem(LANGUAGE_KEY) || "en";
   return I18N[lang]?.[value] || value;
@@ -96,6 +133,7 @@ function applyLanguage(lang) {
 }
 
 const $ = (id) => document.getElementById(id);
+const languageSelect = $("languageSelect");
 
 const connectBtn = $("connectBtn");
 const tonConnectFallback = $("tonConnectFallback");
