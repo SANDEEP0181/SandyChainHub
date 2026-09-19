@@ -267,14 +267,20 @@ function returnToDashboard() {
 }
 
 async function handleWalletReturn() {
-  if (document.visibilityState === "hidden") return;
   try {
-    if (tonConnectUI) {
-      try { await tonConnectUI.connectionRestored; } catch {}
-      connectedWalletAddress = tonConnectUI.account?.address || tonConnectUI.wallet?.account?.address || connectedWalletAddress || "";
+    const ui = tonConnectUI || await ensureTonConnect();
+    if (ui) {
+      try { await ui.connectionRestored; } catch {}
+      connectedWalletAddress = ui.account?.address || ui.wallet?.account?.address || connectedWalletAddress || "";
+      updateWalletUI();
     }
-  } catch {}
-  if (getWalletAddress()) returnToDashboard();
+  } catch (error) {
+    console.warn("TON wallet return restore:", error);
+  }
+  if (getWalletAddress()) {
+    try { sessionStorage.removeItem("goalkeeperWalletConnected"); } catch {}
+    returnToDashboard();
+  }
 }
 
 window.addEventListener("pageshow", () => { void handleWalletReturn(); });
@@ -372,10 +378,10 @@ async function ensureTonConnect() {
       connectedWalletAddress = wallet?.account?.address || "";
       updateWalletUI();
       if (connectedWalletAddress) {
-        try { tonConnectUI?.closeModal?.(); } catch {}
         awardMission("connect", 10);
         setText(walletStatus, "Wallet connected");
         setText(profileActivity, "Session activity: TON wallet connected.");
+        try { sessionStorage.setItem("goalkeeperWalletConnected", "1"); } catch {}
         handleWalletReturn();
       } else {
         setText(walletStatus, "Wallet not connected");
@@ -401,11 +407,9 @@ async function openWalletSelector() {
   try {
     const ui = await ensureTonConnect();
     if (!ui) throw new Error("TON Connect SDK unavailable.");
-    if (typeof ui.openSingleWalletModal === "function") {
-      await ui.openSingleWalletModal("tonkeeper");
-    } else {
-      await ui.openModal();
-    }
+    // Use the standard TON Connect modal so the SDK can choose the
+    // correct Tonkeeper deep-link/return target for this device.
+    await ui.openModal();
     void handleWalletReturn();
   } catch (error) {
     console.error("TON wallet selector error:", error);
