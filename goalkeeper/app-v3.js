@@ -1,4 +1,6 @@
 const connectBtn = document.getElementById("connectBtn");
+const loginBtn = document.getElementById("loginBtn");
+const logoutBtn = document.getElementById("logoutBtn");
 const walletStatus = document.getElementById("walletStatus");
 const walletAddress = document.getElementById("walletAddress");
 const telegramStatus = document.getElementById("telegramStatus");
@@ -60,6 +62,60 @@ let tonConnectUI;
 let telegramInitData = "";
 let telegramVerified = false;
 let connectedWalletAddress = "";
+function updateAuthButtons() {
+  const loggedIn = Boolean(telegramVerified);
+  if (loginBtn) loginBtn.hidden = loggedIn;
+  if (logoutBtn) logoutBtn.hidden = !loggedIn;
+}
+
+async function loginTelegram() {
+  const tg = window.Telegram?.WebApp;
+  if (!tg) {
+    telegramStatus.textContent = "Open Goalkeeper from Telegram";
+    telegramUser.textContent = "Login with Telegram तभी उपलब्ध होगा जब Mini-App Telegram के अंदर खुले।";
+    return;
+  }
+  try {
+    tg.ready();
+    await initTelegram();
+  } catch (error) {
+    console.error("Telegram login error:", error);
+    telegramStatus.textContent = "Telegram login failed";
+  }
+}
+
+async function logoutSession() {
+  try {
+    if (tonConnectUI && getWalletAddress()) {
+      await tonConnectUI.disconnect();
+    }
+  } catch (error) {
+    console.error("Wallet disconnect during logout:", error);
+  }
+  telegramInitData = "";
+  telegramVerified = false;
+  connectedWalletAddress = "";
+  localStorage.removeItem("goalkeeperIdentityLink");
+  telegramStatus.textContent = "Logged out";
+  telegramUser.textContent = "Telegram session cleared. Login again to continue.";
+  profileStatus.textContent = "Profile pending";
+  profileIdentity.textContent = "Login with Telegram to create a secure session.";
+  goalkeeperUserId.textContent = "—";
+  profileTelegram.textContent = "—";
+  profileWallet.textContent = "Not connected";
+  profileLinkStatus.textContent = "—";
+  profileActivity.textContent = "Waiting for login";
+  identityStatus.textContent = "Login required";
+  identityMessage.textContent = "Login with Telegram और फिर TON wallet connect करें।";
+  updateAuthButtons();
+  updateWalletTools();
+  updateIdentityState();
+  updateRewards();
+}
+
+if (loginBtn) loginBtn.addEventListener("click", loginTelegram);
+if (logoutBtn) logoutBtn.addEventListener("click", logoutSession);
+
 const POINTS_KEY = "goalkeeperPoints";
 const CHECKIN_KEY = "goalkeeperCheckinDate";
 const STREAK_KEY = "goalkeeperStreak";
@@ -379,6 +435,7 @@ async function validateTelegramSession(tg) {
     telegramStatus.textContent = "Telegram verified";
     telegramInitData = tg.initData;
     telegramVerified = true;
+    updateAuthButtons();
 
     const user = result.user;
     if (user) {
@@ -397,6 +454,7 @@ async function validateTelegramSession(tg) {
     telegramStatus.textContent = "Verification server unavailable";
     telegramVerified = false;
     telegramUser.textContent = "Backend से connection नहीं हो पाया।";
+    updateAuthButtons();
     updateIdentityState();
     updateRewards();
   }
@@ -487,6 +545,7 @@ async function initTelegram() {
       "Goalkeeper browser में खुला है। Telegram में खोलने पर secure verification activate होगी।";
     updateIdentityState();
     updateWalletTools();
+    updateAuthButtons();
     return;
   }
 
@@ -686,6 +745,7 @@ function safeStartup(name, fn) {
 safeStartup("TON Connect", () => ensureTonConnect());
 safeStartup("Telegram", initTelegram);
 safeStartup("Rewards", updateRewards);
+safeStartup("Auth buttons", updateAuthButtons);
 
 // Global safety net: keep the Mini-App interactive even if one optional UI update fails.
 window.addEventListener("error", event => {
@@ -700,6 +760,7 @@ window.addEventListener("load", () => {
   if (!tonConnectUI) initTonConnect();
   updateWalletTools();
   updateIdentityState();
+  updateAuthButtons();
   updateRewards();
 });
 
