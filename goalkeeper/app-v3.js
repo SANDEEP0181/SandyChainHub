@@ -349,14 +349,14 @@ function updateRewards() {
   missionWallet.textContent = getWalletAddress() ? "Connected" : "Pending";
   missionIdentity.textContent = localStorage.getItem("goalkeeperIdentityLink") ? "Linked" : "Pending";
   missionCheckin.textContent = checked ? "Completed today" : "Available";
-  dailyCheckinBtn.disabled = checked || !telegramVerified;
+  dailyCheckinBtn.disabled = checked;
   dailyCheckinBtn.textContent = checked ? "Check-in Complete" : "Daily Check-in";
   updateCheckinTimer();
   updateMissionUI();
   updateAchievements();
   pointsMessage.textContent = checked
     ? "आज का testnet check-in complete है।"
-    : "Testnet-only activity points. No real-money reward is issued.";
+    : (telegramVerified ? "Testnet-only activity points. No real-money reward is issued." : "Browser mode: daily testnet check-in is available. Telegram verification is optional.");
 }
 
 if (dailyCheckinBtn) dailyCheckinBtn.addEventListener("click", () => {
