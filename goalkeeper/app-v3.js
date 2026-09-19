@@ -373,11 +373,12 @@ async function ensureTonConnect() {
       manifestUrl: TON_MANIFEST_URL,
       uiPreferences: { theme: "DARK" }
     });
-    // TMA return strategy must be assigned through uiOptions.
-    // The TON Connect UI docs specify this setter for Telegram Mini Apps.
+    // Telegram Mini App return URL belongs inside actionsConfiguration.
     try {
       tonConnectUI.uiOptions = {
-        twaReturnUrl: "https://t.me/GoalkeeperSandyBot"
+        actionsConfiguration: {
+          twaReturnUrl: "https://t.me/GoalkeeperSandyBot"
+        }
       };
     } catch (error) {
       console.warn("TON Connect TMA return strategy:", error);
