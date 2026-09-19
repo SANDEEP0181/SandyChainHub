@@ -257,6 +257,15 @@ function updateAuthButtons() {
   if (logoutBtn) logoutBtn.hidden = !loggedIn;
 }
 
+function returnToDashboard() {
+  const dashboard = document.querySelector(".dashboard-grid");
+  if (dashboard) {
+    setTimeout(() => {
+      dashboard.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 150);
+  }
+}
+
 function updateWalletUI() {
   const address = getWalletAddress();
   const connected = Boolean(address);
@@ -349,6 +358,7 @@ async function ensureTonConnect() {
         awardMission("connect", 10);
         setText(walletStatus, "Wallet connected");
         setText(profileActivity, "Session activity: TON wallet connected.");
+        returnToDashboard();
       } else {
         setText(walletStatus, "Wallet not connected");
       }
@@ -375,6 +385,7 @@ async function openWalletSelector() {
     if (!ui) throw new Error("TON Connect SDK unavailable.");
     if (typeof ui.openModal !== "function") throw new Error("TON Connect UI modal is unavailable.");
     await ui.openModal();
+    if (getWalletAddress()) returnToDashboard();
   } catch (error) {
     console.error("TON wallet selector error:", error);
     setText(walletStatus, "Wallet selector could not open. Tap again.");
