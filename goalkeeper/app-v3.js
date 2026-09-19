@@ -434,7 +434,7 @@ async function validateTelegramSession(tg) {
   if (!tg?.initData) {
     telegramVerified = false;
     setText(telegramStatus, "Browser mode");
-    setText(telegramUser, "Telegram में खोलने पर user/session information यहाँ दिखाई देगी।");
+    setText(telegramUser, "Open Goalkeeper inside Telegram to view user and session information.");
     updateAuthButtons(); updateIdentityState(); updateRewards(); return;
   }
   try {
@@ -478,7 +478,7 @@ async function loginTelegram() {
   const tg = window.Telegram?.WebApp;
   if (tg) { await validateTelegramSession(tg); return; }
   setText(telegramStatus, "Open Goalkeeper from Telegram");
-  setText(telegramUser, "Login with Telegram तभी उपलब्ध होगा जब Mini-App Telegram के अंदर खुले।");
+  setText(telegramUser, "Login with Telegram is available when the Mini-App is opened inside Telegram.");
 }
 
 async function loadProfileSession() {
