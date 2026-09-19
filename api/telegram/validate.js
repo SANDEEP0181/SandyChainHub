@@ -1,6 +1,14 @@
 import crypto from "node:crypto";
 
 const MAX_AUTH_AGE_SECONDS = 24 * 60 * 60;
+const ALLOWED_ORIGIN = "https://sandeep0181.github.io";
+
+function setCors(res) {
+  res.setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Vary", "Origin");
+}
 
 function validateTelegramInitData(initData, botToken) {
   if (!initData || !botToken) return { ok: false, error: "Missing initData or bot token" };
@@ -19,11 +27,16 @@ function validateTelegramInitData(initData, botToken) {
   if (!valid) return { ok: false, error: "Telegram signature check failed" };
   let user = null;
   const rawUser = params.get("user");
-  if (rawUser) { try { user = JSON.parse(rawUser); } catch { return { ok: false, error: "Invalid Telegram user data" }; } }
+  if (rawUser) {
+    try { user = JSON.parse(rawUser); }
+    catch { return { ok: false, error: "Invalid Telegram user data" }; }
+  }
   return { ok: true, user, authDate };
 }
 
 export default async function handler(req, res) {
+  setCors(res);
+  if (req.method === "OPTIONS") return res.status(204).end();
   if (req.method !== "POST") return res.status(405).json({ ok: false, error: "Method not allowed" });
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
   if (!botToken) return res.status(500).json({ ok: false, error: "Server is not configured" });
