@@ -500,7 +500,8 @@ async function initTonConnect() {
 
   try {
     tonConnectUI = new window.TON_CONNECT_UI.TonConnectUI({
-      manifestUrl: new URL("tonconnect-manifest.json", window.location.href).toString()
+      manifestUrl: new URL("tonconnect-manifest.json", window.location.href).toString(),
+      uiPreferences: { theme: "DARK" }
     });
 
     if (connectBtn) connectBtn.disabled = false;
