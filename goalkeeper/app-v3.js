@@ -21,6 +21,14 @@ const profileWallet = document.getElementById("profileWallet");
 const profileLinkStatus = document.getElementById("profileLinkStatus");
 const profileActivity = document.getElementById("profileActivity");
 const pointsTotal = document.getElementById("pointsTotal");\nconst rewardPoints = document.getElementById("rewardPoints");\nconst levelNumber = document.getElementById("levelNumber");\nconst levelDisplay = document.getElementById("levelDisplay");\nconst levelProgress = document.getElementById("levelProgress");\nconst levelBar = document.getElementById("levelBar");\nconst levelMessage = document.getElementById("levelMessage");
+const levelBadge = document.getElementById("levelBadge");
+const levelOrb = document.getElementById("levelOrb");
+const levelTitle = document.getElementById("levelTitle");
+const streakNumber = document.getElementById("streakNumber");
+const streakBest = document.getElementById("streakBest");
+const streakStatus = document.getElementById("streakStatus");
+const streakDetail = document.getElementById("streakDetail");
+const streakMessage = document.getElementById("streakMessage");
 const pointsMessage = document.getElementById("pointsMessage");
 const dailyCheckinBtn = document.getElementById("dailyCheckinBtn");
 const missionTelegram = document.getElementById("missionTelegram");
@@ -43,6 +51,9 @@ let telegramVerified = false;
 let connectedWalletAddress = "";
 const POINTS_KEY = "goalkeeperPoints";
 const CHECKIN_KEY = "goalkeeperCheckinDate";
+const STREAK_KEY = "goalkeeperStreak";
+const BEST_STREAK_KEY = "goalkeeperBestStreak";
+const STREAK_DATE_KEY = "goalkeeperStreakDate";
 const MISSIONS_KEY = "goalkeeperMissions";
 const TON_TESTNET_EXPLORER = "https://testnet.tonscan.org";
 
@@ -145,6 +156,53 @@ function updateMissionUI() {
   missionDaily.textContent = localStorage.getItem(CHECKIN_KEY) === todayKey() ? "Completed" : "+10";
 }
 
+function getStreak() { return Number(localStorage.getItem(STREAK_KEY) || "0"); }
+function getBestStreak() { return Number(localStorage.getItem(BEST_STREAK_KEY) || "0"); }
+
+function previousDayKey() {
+  const d = new Date();
+  d.setUTCDate(d.getUTCDate() - 1);
+  return d.getUTCFullYear() + "-" + String(d.getUTCMonth()+1).padStart(2,"0") + "-" + String(d.getUTCDate()).padStart(2,"0");
+}
+
+function updateStreakUI() {
+  const streak = getStreak();
+  const best = getBestStreak();
+  const today = todayKey();
+  const last = localStorage.getItem(STREAK_DATE_KEY);
+  const checked = localStorage.getItem(CHECKIN_KEY) === today;
+  streakNumber.textContent = streak + (streak === 1 ? " Day" : " Days");
+  streakBest.textContent = "Best: " + best;
+  streakDetail.textContent = streak + (streak === 1 ? " day" : " days");
+  if (checked) {
+    streakStatus.textContent = "Streak protected today";
+    streakMessage.textContent = "Nice save. Come back tomorrow to keep the streak alive.";
+  } else if (last === previousDayKey()) {
+    streakStatus.textContent = "Check-in available";
+    streakMessage.textContent = "Your streak is waiting. Complete today's check-in.";
+  } else {
+    streakStatus.textContent = streak ? "Check-in available" : "Start your daily check-in";
+    streakMessage.textContent = streak ? "Check in today to start a new streak cycle." : "Daily check-in starts your keeper streak.";
+  }
+}
+
+function updateRankUI(level) {
+  const titles = {1:"Rookie",2:"Defender",3:"Guardian",4:"Elite"};
+  const badges = {1:"ROOKIE",2:"DEFENDER",3:"GUARDIAN",4:"ELITE"};
+  const safeLevel = Math.min(level, 4);
+  if (levelBadge) levelBadge.textContent = level > 4 ? "ELITE+" : badges[safeLevel];
+  if (levelOrb) levelOrb.textContent = level > 4 ? "4+" : String(level);
+  if (levelTitle) levelTitle.textContent = level > 4 ? "Elite+" : titles[safeLevel];
+  document.querySelectorAll(".level-ladder span").forEach(el => {
+    const n = el.dataset.level === "5+" ? 5 : Number(el.dataset.level);
+    el.classList.toggle("active", level >= n);
+  });
+  document.querySelectorAll(".rank-item").forEach(el => {
+    const n = Number(el.dataset.rank);
+    el.classList.toggle("unlocked", level >= n);
+  });
+}
+
 function todayKey() {
   const d = new Date();
   return d.getUTCFullYear() + "-" + String(d.getUTCMonth()+1).padStart(2,"0") + "-" + String(d.getUTCDate()).padStart(2,"0");
@@ -164,6 +222,7 @@ function updateRewards() {
   const points = Number(localStorage.getItem(POINTS_KEY) || "0");
   const checked = localStorage.getItem(CHECKIN_KEY) === todayKey();
   pointsTotal.textContent = points + " Points";\n  if (rewardPoints) rewardPoints.textContent = points + " Points";\n  updateLevel(points);
+  updateStreakUI();
   missionTelegram.textContent = telegramVerified ? "Verified" : "Pending";
   missionWallet.textContent = getWalletAddress() ? "Connected" : "Pending";
   missionIdentity.textContent = localStorage.getItem("goalkeeperIdentityLink") ? "Linked" : "Pending";
@@ -180,7 +239,15 @@ dailyCheckinBtn.addEventListener("click", () => {
   if (!telegramVerified || localStorage.getItem(CHECKIN_KEY) === todayKey()) return;
   const current = Number(localStorage.getItem(POINTS_KEY) || "0");
   localStorage.setItem(POINTS_KEY, String(current + 10));
-  localStorage.setItem(CHECKIN_KEY, todayKey());
+  const today = todayKey();
+  const last = localStorage.getItem(STREAK_DATE_KEY);
+  let streak = getStreak();
+  if (last === previousDayKey()) streak += 1;
+  else if (last !== today) streak = 1;
+  localStorage.setItem(STREAK_KEY, String(streak));
+  localStorage.setItem(BEST_STREAK_KEY, String(Math.max(getBestStreak(), streak)));
+  localStorage.setItem(STREAK_DATE_KEY, today);
+  localStorage.setItem(CHECKIN_KEY, today);
   profileActivity.textContent = "Session activity: Daily testnet check-in completed (+10 points).";
   updateRewards();
 });
