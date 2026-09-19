@@ -656,7 +656,7 @@ function safeStartup(name, fn) {
   }
 }
 
-safeStartup("TON Connect", initTonConnect);
+safeStartup("TON Connect", () => ensureTonConnect());
 safeStartup("Telegram", initTelegram);
 safeStartup("Rewards", updateRewards);
 
