@@ -487,17 +487,47 @@ function bindTonConnectButton() {
   if (!connectBtn || connectBtn.dataset.tonBound === "1") return;
   connectBtn.dataset.tonBound = "1";
   connectBtn.disabled = false;
-  connectBtn.addEventListener("click", async () => {
+  connectBtn.addEventListener("click", () => {
     try {
-      connectBtn.disabled = true;
-      walletStatus.textContent = "Opening TON wallet selector...";
-      const ui = await ensureTonConnect();
-      if (!ui) throw new Error("TON Connect UI is still loading.");
-      if (!getWalletAddress()) {
-        await ui.openModal();
-      } else {
-        await ui.disconnect();
+      if (getWalletAddress()) {
+        const ui = tonConnectUI;
+        if (!ui) throw new Error("TON Connect UI is not ready.");
+        ui.disconnect().catch(error => {
+          console.error("TON disconnect error:", error);
+          walletStatus.textContent = "Wallet disconnect failed. Tap again.";
+        });
+        return;
       }
+
+      // Keep openModal() directly inside the user click handler.
+      // Waiting on an async loader first can cause Telegram WebView/browser
+      // popup protection to block the wallet selector.
+      const ui = tonConnectUI;
+      if (ui) {
+        connectBtn.disabled = true;
+        walletStatus.textContent = "Opening TON wallet selector...";
+        Promise.resolve(ui.openModal()).catch(error => {
+          console.error("TON wallet modal error:", error);
+          walletStatus.textContent = "TON wallet selector could not open. Tap Connect again.";
+          connectBtn.disabled = false;
+        });
+        return;
+      }
+
+      connectBtn.disabled = true;
+      walletStatus.textContent = "TON Connect loading... tap again in a moment.";
+      ensureTonConnect().then(ready => {
+        if (ready) {
+          connectBtn.disabled = false;
+          walletStatus.textContent = "TON Connect ready. Tap Connect TON Wallet again.";
+        } else {
+          throw new Error("TON Connect UI is still loading.");
+        }
+      }).catch(error => {
+        console.error("TON Connect load error:", error);
+        walletStatus.textContent = "TON Connect could not load. Tap Connect again.";
+        connectBtn.disabled = false;
+      });
     } catch (error) {
       console.error("TON Connect button error:", error);
       walletStatus.textContent = "TON Connect could not open. Tap Connect again.";
