@@ -28,6 +28,11 @@ const missionCheckin = document.getElementById("missionCheckin");
 const missionOpen = document.getElementById("missionOpen");
 const missionConnect = document.getElementById("missionConnect");
 const missionLink = document.getElementById("missionLink");
+const achievementOpen = document.getElementById("achievementOpen");
+const achievementWallet = document.getElementById("achievementWallet");
+const achievementIdentity = document.getElementById("achievementIdentity");
+const achievementCheckin = document.getElementById("achievementCheckin");
+const shareGoalkeeperBtn = document.getElementById("shareGoalkeeperBtn");
 
 
 let tonConnectUI;
@@ -111,6 +116,15 @@ function todayKey() {
   return d.getUTCFullYear() + "-" + String(d.getUTCMonth()+1).padStart(2,"0") + "-" + String(d.getUTCDate()).padStart(2,"0");
 }
 
+function updateAchievements() {
+  const missions = getMissions();
+  const checkinDone = localStorage.getItem(CHECKIN_KEY) === todayKey();
+  achievementOpen.textContent = missions.open ? "Unlocked" : "Locked";
+  achievementWallet.textContent = missions.connect ? "Unlocked" : "Locked";
+  achievementIdentity.textContent = missions.link ? "Unlocked" : "Locked";
+  achievementCheckin.textContent = checkinDone ? "Unlocked" : "Locked";
+}
+
 function updateRewards() {
   awardMission("open", 5);
   const points = Number(localStorage.getItem(POINTS_KEY) || "0");
@@ -122,6 +136,7 @@ function updateRewards() {
   missionCheckin.textContent = checked ? "Completed today" : "Available";
   dailyCheckinBtn.disabled = checked || !telegramVerified;
   updateMissionUI();
+  updateAchievements();
   pointsMessage.textContent = checked
     ? "आज का testnet check-in complete है।"
     : "Testnet-only activity points. No real-money reward is issued.";
@@ -134,6 +149,18 @@ dailyCheckinBtn.addEventListener("click", () => {
   localStorage.setItem(CHECKIN_KEY, todayKey());
   profileActivity.textContent = "Session activity: Daily testnet check-in completed (+10 points).";
   updateRewards();
+});
+
+shareGoalkeeperBtn.addEventListener("click", () => {
+  const url = "https://t.me/GoalkeeperSandyBot";
+  const text = "Try Goalkeeper — TON + Telegram Mini-App by SandyChainHub.";
+  const shareUrl = "https://t.me/share/url?url=" + encodeURIComponent(url) + "&text=" + encodeURIComponent(text);
+  const tg = window.Telegram?.WebApp;
+  if (tg?.openTelegramLink) {
+    tg.openTelegramLink(shareUrl);
+  } else {
+    window.open(shareUrl, "_blank", "noopener,noreferrer");
+  }
 });
 
 function updateIdentityState() {
@@ -206,7 +233,7 @@ async function validateTelegramSession(tg) {
   }
 }
 
-async function linkWalletIdentity {
+async function linkWalletIdentity() {
   const walletAddress = getWalletAddress();
 
   if (!telegramInitData || !telegramVerified || !walletAddress) {
