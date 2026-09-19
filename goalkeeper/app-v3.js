@@ -25,6 +25,10 @@ const missionTelegram = document.getElementById("missionTelegram");
 const missionWallet = document.getElementById("missionWallet");
 const missionIdentity = document.getElementById("missionIdentity");
 const missionCheckin = document.getElementById("missionCheckin");
+const missionOpen = document.getElementById("missionOpen");
+const missionConnect = document.getElementById("missionConnect");
+const missionLink = document.getElementById("missionLink");
+
 
 let tonConnectUI;
 let telegramInitData = "";
@@ -32,6 +36,7 @@ let telegramVerified = false;
 let connectedWalletAddress = "";
 const POINTS_KEY = "goalkeeperPoints";
 const CHECKIN_KEY = "goalkeeperCheckinDate";
+const MISSIONS_KEY = "goalkeeperMissions";
 
 function shortAddress(address) {
   if (!address) return "";
@@ -74,12 +79,40 @@ async function loadProfileSession() {
   }
 }
 
+function getMissions() {
+  try { return JSON.parse(localStorage.getItem(MISSIONS_KEY) || "{}"); }
+  catch { return {}; }
+}
+
+function saveMissions(missions) {
+  localStorage.setItem(MISSIONS_KEY, JSON.stringify(missions));
+}
+
+function awardMission(id, points) {
+  const missions = getMissions();
+  if (missions[id]) return false;
+  const current = Number(localStorage.getItem(POINTS_KEY) || "0");
+  localStorage.setItem(POINTS_KEY, String(current + points));
+  missions[id] = {completedAt: new Date().toISOString(), points};
+  saveMissions(missions);
+  return true;
+}
+
+function updateMissionUI() {
+  const missions = getMissions();
+  missionOpen.textContent = missions.open ? "Completed" : "+5";
+  missionConnect.textContent = missions.connect ? "Completed" : "+10";
+  missionLink.textContent = missions.link ? "Completed" : "+20";
+  missionDaily.textContent = localStorage.getItem(CHECKIN_KEY) === todayKey() ? "Completed" : "+10";
+}
+
 function todayKey() {
   const d = new Date();
   return d.getUTCFullYear() + "-" + String(d.getUTCMonth()+1).padStart(2,"0") + "-" + String(d.getUTCDate()).padStart(2,"0");
 }
 
 function updateRewards() {
+  awardMission("open", 5);
   const points = Number(localStorage.getItem(POINTS_KEY) || "0");
   const checked = localStorage.getItem(CHECKIN_KEY) === todayKey();
   pointsTotal.textContent = points + " Points";
@@ -88,6 +121,7 @@ function updateRewards() {
   missionIdentity.textContent = localStorage.getItem("goalkeeperIdentityLink") ? "Linked" : "Pending";
   missionCheckin.textContent = checked ? "Completed today" : "Available";
   dailyCheckinBtn.disabled = checked || !telegramVerified;
+  updateMissionUI();
   pointsMessage.textContent = checked
     ? "आज का testnet check-in complete है।"
     : "Testnet-only activity points. No real-money reward is issued.";
@@ -207,6 +241,7 @@ async function linkWalletIdentity {
     identityStatus.textContent = "Identity Linked";
     profileLinkStatus.textContent = "Identity Linked";
     profileActivity.textContent = "Session activity: Telegram + TON wallet linked.";
+    awardMission("link", 20);
     updateRewards();
     identityMessage.textContent = "Telegram identity और TON wallet इस session के लिए linked हैं।";
     linkWalletBtn.disabled = true;
@@ -266,6 +301,7 @@ async function initTonConnect() {
       walletStatus.textContent = "TON Wallet Connected";
       walletAddress.textContent = shortAddress(connectedWalletAddress);
       connectBtn.textContent = "Wallet Connected";
+      awardMission("connect", 10);
     } else {
       connectedWalletAddress = "";
       walletStatus.textContent = "Wallet connected नहीं है";

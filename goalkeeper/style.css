@@ -15,3 +15,5 @@
 .mission-list{display:grid;gap:8px;margin-top:14px}
 .mission-list div{display:flex;justify-content:space-between;gap:12px;padding:9px 11px;border:1px solid #28314a;border-radius:10px;background:#0d1425;font-size:12px}
 .mission-list span{color:#aeb7cc}
+
+.missions-card{grid-column:span 1}
