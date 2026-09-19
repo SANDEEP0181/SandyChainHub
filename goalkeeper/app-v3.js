@@ -279,7 +279,7 @@ function updateCheckinTimer() {
   checkinCountdown.textContent = formatCountdown(remaining);
 }
 
-setInterval(updateCheckinTimer, 1000);
+setInterval(() => { try { updateCheckinTimer(); } catch (error) { console.error("Check-in timer error:", error); } }, 1000);
 
 function updateRewards() {
   awardMission("open", 5);
@@ -499,9 +499,9 @@ async function initTonConnect() {
   }
 
   try {
-    tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-    manifestUrl: new URL("tonconnect-manifest.json", window.location.href).toString()
-  });
+    tonConnectUI = new window.TON_CONNECT_UI.TonConnectUI({
+      manifestUrl: new URL("tonconnect-manifest.json", window.location.href).toString()
+    });
 
     if (connectBtn) connectBtn.disabled = false;
 
@@ -542,12 +542,20 @@ async function initTonConnect() {
   });
 
   if (connectBtn) connectBtn.addEventListener("click", async () => {
-    if (!getWalletAddress()) {
-      await tonConnectUI.openModal();
-    } else {
-      await tonConnectUI.disconnect();
+    try {
+      if (!getWalletAddress()) {
+        await tonConnectUI.openModal();
+      } else {
+        await tonConnectUI.disconnect();
+      }
+    } catch (error) {
+      console.error("TON Connect button error:", error);
+      if (walletStatus) walletStatus.textContent = "TON Connect retry needed";
     }
   });
+  } finally {
+    tonConnectInitializing = false;
+  }
 }
 
 function safeStartup(name, fn) {
@@ -563,3 +571,20 @@ function safeStartup(name, fn) {
 safeStartup("TON Connect", initTonConnect);
 safeStartup("Telegram", initTelegram);
 safeStartup("Rewards", updateRewards);
+
+// Global safety net: keep the Mini-App interactive even if one optional UI update fails.
+window.addEventListener("error", event => {
+  console.error("Goalkeeper UI error:", event.error || event.message);
+});
+window.addEventListener("unhandledrejection", event => {
+  console.error("Goalkeeper async error:", event.reason);
+});
+
+// If TON Connect loads late, keep retrying without locking the button.
+window.addEventListener("load", () => {
+  if (!tonConnectUI) initTonConnect();
+  updateWalletTools();
+  updateIdentityState();
+  updateRewards();
+});
+
