@@ -13,7 +13,7 @@ const I18N = {
     "Complete Telegram verification to create your secure profile.":"सुरक्षित प्रोफाइल बनाने के लिए Telegram सत्यापन पूरा करें।","TELEGRAM":"TELEGRAM","TON WALLET":"TON WALLET","Not connected":"कनेक्ट नहीं है","IDENTITY":"पहचान","SESSION":"सेशन","Waiting":"प्रतीक्षा",
     "PLAY & EARN TESTNET POINTS":"टेस्टनेट पॉइंट्स के लिए मिशन","Missions":"मिशन","START":"शुरू","Open Goalkeeper":"Goalkeeper खोलें","Begin your keeper journey.":"अपनी keeper यात्रा शुरू करें।",
     "WALLET":"WALLET","Connect TON Wallet":"TON Wallet कनेक्ट करें","Connect a TON testnet wallet.":"TON testnet wallet कनेक्ट करें।","IDENTITY":"पहचान","Link Identity":"पहचान लिंक करें","Link Telegram and TON.":"Telegram और TON लिंक करें।","DAILY":"दैनिक","Daily Check-in":"दैनिक चेक-इन","Return each UTC day.":"हर UTC दिन वापस आएं।",
-    "Wallet not connected":"Wallet कनेक्ट नहीं है","Connect your testnet wallet to continue.":"जारी रखने के लिए अपना testnet wallet कनेक्ट करें।","Copy Address":"Address कॉपी करें","Open Explorer":"Explorer खोलें",
+    "Wallet not connected":"Wallet कनेक्ट नहीं है","Connect your TON wallet to continue.":"जारी रखने के लिए अपना testnet wallet कनेक्ट करें।","Copy Address":"Address कॉपी करें","Open Explorer":"Explorer खोलें",
     "Browser mode":"ब्राउज़र मोड","Open Goalkeeper inside Telegram to view user and session information.":"User और session जानकारी देखने के लिए Goalkeeper को Telegram के अंदर खोलें।",
     "Wallet link pending":"Wallet लिंक लंबित","Link your Telegram identity after connecting a TON wallet.":"TON wallet कनेक्ट करने के बाद Telegram identity लिंक करें।","Link TON Wallet":"TON Wallet लिंक करें",
     "REWARDS":"REWARDS","Testnet-only activity points. No real-money reward is issued.":"केवल testnet activity points। कोई real-money reward नहीं दिया जाता।",
@@ -381,13 +381,9 @@ async function ensureTonConnect() {
     } catch (error) {
       console.warn("TON Connect TMA return strategy:", error);
     }
-    // Goalkeeper is testnet-only, so require the wallet to connect to TON testnet (-3).
-    try {
-      tonConnectUI.setConnectionNetwork("-3");
-    } catch (error) {
-      console.warn("TON testnet network setup:", error);
-    }
-
+    // Do not force a network during connection. Keeper does not offer a user-facing network switch,
+    // and TON Connect requires the wallet and dApp network to match when a network is requested.
+    // Goalkeeper currently uses the wallet only for connection/identity; no transaction is requested.
     tonConnectUI.onStatusChange((wallet) => {
       connectedWalletAddress = wallet?.account?.address || "";
       updateWalletUI();
