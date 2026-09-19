@@ -373,15 +373,19 @@ async function ensureTonConnect() {
       manifestUrl: TON_MANIFEST_URL,
       uiPreferences: { theme: "DARK" }
     });
-    // Telegram Mini App return URL belongs inside actionsConfiguration.
+    // Telegram Mini App return URL uses the TON Connect TMA return strategy.
     try {
       tonConnectUI.uiOptions = {
-        actionsConfiguration: {
-          twaReturnUrl: "https://t.me/GoalkeeperSandyBot"
-        }
+        twaReturnUrl: "https://t.me/GoalkeeperSandyBot"
       };
     } catch (error) {
       console.warn("TON Connect TMA return strategy:", error);
+    }
+    // Goalkeeper is testnet-only, so require the wallet to connect to TON testnet (-3).
+    try {
+      tonConnectUI.setConnectionNetwork("-3");
+    } catch (error) {
+      console.warn("TON testnet network setup:", error);
     }
 
     tonConnectUI.onStatusChange((wallet) => {
@@ -423,7 +427,8 @@ async function openWalletSelector() {
     void handleWalletReturn();
   } catch (error) {
     console.error("TON wallet selector error:", error);
-    setText(walletStatus, "Wallet selector could not open. Tap again.");
+    const message = error?.message || error?.name || "Unknown TON Connect error";
+    setText(walletStatus, "TON Connect error: " + message);
   } finally {
     if (button && !getWalletAddress()) button.disabled = false;
   }
