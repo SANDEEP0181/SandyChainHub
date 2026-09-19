@@ -483,22 +483,63 @@ function initTelegram() {
 
 let tonConnectInitializing = false;
 
+function bindTonConnectButton() {
+  if (!connectBtn || connectBtn.dataset.tonBound === "1") return;
+  connectBtn.dataset.tonBound = "1";
+  connectBtn.disabled = false;
+  connectBtn.addEventListener("click", async () => {
+    try {
+      connectBtn.disabled = true;
+      walletStatus.textContent = "Opening TON wallet selector...";
+      const ui = await ensureTonConnect();
+      if (!ui) throw new Error("TON Connect UI is still loading.");
+      if (!getWalletAddress()) {
+        await ui.openModal();
+      } else {
+        await ui.disconnect();
+      }
+    } catch (error) {
+      console.error("TON Connect button error:", error);
+      walletStatus.textContent = "TON Connect could not open. Tap Connect again.";
+      connectBtn.disabled = false;
+    }
+  });
+}
+
+async function ensureTonConnect() {
+  if (tonConnectUI) return tonConnectUI;
+  for (let i = 0; i < 10; i += 1) {
+    if (window.TON_CONNECT_UI?.TonConnectUI) {
+      await initTonConnect();
+      if (tonConnectUI) return tonConnectUI;
+    }
+    await new Promise(resolve => setTimeout(resolve, 300));
+  }
+  return tonConnectUI || null;
+}
+
 async function initTonConnect() {
   if (tonConnectUI) return tonConnectUI;
-  if (tonConnectInitializing) return;
-  tonConnectInitializing = true;
-
-  if (!window.TON_CONNECT_UI?.TonConnectUI) {
-    if (walletStatus) walletStatus.textContent = "TON Connect loading...";
-    if (connectBtn) connectBtn.disabled = true;
-    setTimeout(() => {
-      tonConnectInitializing = false;
-      initTonConnect();
-    }, 1200);
-    return;
+  if (tonConnectInitializing) {
+    return new Promise(resolve => {
+      const started = Date.now();
+      const timer = setInterval(() => {
+        if (tonConnectUI || Date.now() - started > 5000) {
+          clearInterval(timer);
+          resolve(tonConnectUI || null);
+        }
+      }, 100);
+    });
   }
 
+  tonConnectInitializing = true;
+
   try {
+    if (!window.TON_CONNECT_UI?.TonConnectUI) {
+      if (walletStatus) walletStatus.textContent = "TON Connect loading...";
+      return null;
+    }
+
     tonConnectUI = new window.TON_CONNECT_UI.TonConnectUI({
       manifestUrl: new URL("tonconnect-manifest.json", window.location.href).toString(),
       uiPreferences: { theme: "DARK" }
@@ -507,57 +548,52 @@ async function initTonConnect() {
     if (connectBtn) connectBtn.disabled = false;
 
     tonConnectUI.onStatusChange(wallet => {
-    if (wallet?.account?.address) {
-      connectedWalletAddress = wallet.account.address;
-      walletStatus.textContent = "TON Wallet Connected";
-      walletAddress.textContent = shortAddress(connectedWalletAddress);
-      connectBtn.textContent = "Wallet Connected";
-      awardMission("connect", 10);
-    } else {
-      connectedWalletAddress = "";
-      walletStatus.textContent = "Wallet connected नहीं है";
-      walletAddress.textContent = "Testnet wallet connect करने के बाद address यहाँ दिखेगा।";
-      connectBtn.textContent = "Connect TON Wallet";
-    }
-    updateWalletTools();
-    updateIdentityState();
-    updateProfileWallet();
-    updateRewards();
-  });
-
-  // Re-check after TON Connect restores an existing Telegram WebView wallet session.
-  [300, 800, 1500, 2500].forEach(delay => {
-    setTimeout(() => {
-      const address = tonConnectUI?.account?.address || "";
-      if (address) {
-        connectedWalletAddress = address;
+      if (wallet?.account?.address) {
+        connectedWalletAddress = wallet.account.address;
         walletStatus.textContent = "TON Wallet Connected";
-        walletAddress.textContent = shortAddress(address);
+        walletAddress.textContent = shortAddress(connectedWalletAddress);
         connectBtn.textContent = "Wallet Connected";
+        awardMission("connect", 10);
+      } else {
+        connectedWalletAddress = "";
+        walletStatus.textContent = "Wallet connected नहीं है";
+        walletAddress.textContent = "Testnet wallet connect करने के बाद address यहाँ दिखेगा।";
+        connectBtn.textContent = "Connect TON Wallet";
       }
       updateWalletTools();
       updateIdentityState();
       updateProfileWallet();
       updateRewards();
-    }, delay);
-  });
+    });
 
-  if (connectBtn) connectBtn.addEventListener("click", async () => {
-    try {
-      if (!getWalletAddress()) {
-        await tonConnectUI.openModal();
-      } else {
-        await tonConnectUI.disconnect();
-      }
-    } catch (error) {
-      console.error("TON Connect button error:", error);
-      if (walletStatus) walletStatus.textContent = "TON Connect retry needed";
-    }
-  });
+    [300, 800, 1500, 2500].forEach(delay => {
+      setTimeout(() => {
+        const address = tonConnectUI?.account?.address || "";
+        if (address) {
+          connectedWalletAddress = address;
+          walletStatus.textContent = "TON Wallet Connected";
+          walletAddress.textContent = shortAddress(address);
+          connectBtn.textContent = "Wallet Connected";
+        }
+        updateWalletTools();
+        updateIdentityState();
+        updateProfileWallet();
+        updateRewards();
+      }, delay);
+    });
+
+    return tonConnectUI;
+  } catch (error) {
+    console.error("TON Connect init error:", error);
+    tonConnectUI = null;
+    walletStatus.textContent = "TON Connect failed — tap Connect again.";
+    return null;
   } finally {
     tonConnectInitializing = false;
   }
 }
+
+bindTonConnectButton();
 
 function safeStartup(name, fn) {
   try {
