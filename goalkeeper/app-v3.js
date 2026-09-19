@@ -401,8 +401,11 @@ async function openWalletSelector() {
   try {
     const ui = await ensureTonConnect();
     if (!ui) throw new Error("TON Connect SDK unavailable.");
-    if (typeof ui.openModal !== "function") throw new Error("TON Connect UI modal is unavailable.");
-    await ui.openModal();
+    if (typeof ui.openSingleWalletModal === "function") {
+      await ui.openSingleWalletModal("tonkeeper");
+    } else {
+      await ui.openModal();
+    }
     void handleWalletReturn();
   } catch (error) {
     console.error("TON wallet selector error:", error);
