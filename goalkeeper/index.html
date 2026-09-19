@@ -2,138 +2,147 @@
 <html lang="hi">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Goalkeeper | TON + Telegram Mini-App</title>
-  <meta name="description" content="Goalkeeper — SandyChainHub's TON and Telegram Mini-App foundation.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#070a13">
+  <title>Goalkeeper | TON Mini-App</title>
+  <meta name="description" content="Goalkeeper — SandyChainHub TON and Telegram Mini-App.">
   <link rel="stylesheet" href="style.css">
   <script src="https://telegram.org/js/telegram-web-app.js?63"></script>
 </head>
 <body>
+  <div class="ambient ambient-one"></div>
+  <div class="ambient ambient-two"></div>
   <main class="app">
-    <header>
-      <div class="brand">
-        <div class="logo">GK</div>
+    <header class="topbar">
+      <a class="brand" href="#">
+        <div class="logo"><span>GK</span></div>
         <div>
-          <h1>Goalkeeper</h1>
-          <p>TON + Telegram Mini-App by SandyChainHub</p>
+          <strong>Goalkeeper</strong>
+          <small>TON • TELEGRAM</small>
         </div>
-      </div>
-      <button id="connectBtn" class="primary">Connect TON Wallet</button>
+      </a>
+      <button id="connectBtn" class="primary compact" type="button">Connect TON Wallet</button>
     </header>
 
-    <section class="hero">
-      <span class="badge">TON TESTNET • TELEGRAM READY</span>
-      <h2>SandyChainHub का Goalkeeper Mini-App</h2>
-      <p>TON wallet connection और Telegram Mini-App foundation तैयार है। अभी कोई real-money transaction नहीं।</p>
+    <section class="hero" id="home">
+      <div class="hero-copy">
+        <div class="eyebrow"><i></i> LIVE TESTNET EXPERIENCE</div>
+        <h1>Defend your<br><em>Web3 journey.</em></h1>
+        <p>Connect. Complete missions. Build your Goalkeeper profile.</p>
+        <div class="hero-actions">
+          <button class="primary" type="button" onclick="document.getElementById('missions').scrollIntoView({behavior:'smooth'})">Explore Missions</button>
+          <span class="network-pill">TON TESTNET</span>
+        </div>
+      </div>
+      <div class="hero-ball" aria-hidden="true">
+        <div class="ring ring-a"></div><div class="ring ring-b"></div>
+        <div class="ball">GK</div>
+      </div>
     </section>
 
-    <section class="grid">
-      <article class="card">
-        <span>TON WALLET</span>
-        <h3 id="walletStatus">Wallet connected नहीं है</h3>
-        <p id="walletAddress">Testnet wallet connect करने के बाद address यहाँ दिखेगा।</p>
+    <section class="stats">
+      <div><small>POINTS</small><strong id="pointsTotal">0 Points</strong></div>
+      <div><small>NETWORK</small><strong>TON Testnet</strong></div>
+      <div><small>STATUS</small><strong class="status-dot"><i></i> Active</strong></div>
+    </section>
+
+    <section class="section" id="profile">
+      <div class="section-head"><div><span>YOUR HUB</span><h2>Profile</h2></div><span class="live-label">SECURE SESSION</span></div>
+      <article class="profile-main card">
+        <div class="profile-avatar">GK</div>
+        <div class="profile-info">
+          <small>GOALKEEPER ID</small>
+          <h3 id="goalkeeperUserId">—</h3>
+          <p id="profileIdentity">Telegram verification के बाद secure profile तैयार होगा।</p>
+        </div>
+        <div class="profile-state"><i></i><span id="profileStatus">Profile pending</span></div>
+        <div class="profile-grid">
+          <div><small>TELEGRAM</small><strong id="profileTelegram">—</strong></div>
+          <div><small>TON WALLET</small><strong id="profileWallet">Not connected</strong></div>
+          <div><small>IDENTITY</small><strong id="profileLinkStatus">—</strong></div>
+          <div><small>SESSION</small><strong id="profileActivity">Waiting</strong></div>
+        </div>
+      </article>
+    </section>
+
+    <section class="section" id="missions">
+      <div class="section-head"><div><span>PLAY & EARN TESTNET POINTS</span><h2>Missions</h2></div></div>
+      <div class="mission-grid">
+        <article class="mission card">
+          <div class="mission-icon">01</div><div><small>START</small><h3>Open Goalkeeper</h3><p>Begin your keeper journey.</p></div><b id="missionOpen">+5</b>
+        </article>
+        <article class="mission card">
+          <div class="mission-icon">02</div><div><small>WALLET</small><h3>Connect TON Wallet</h3><p>Connect a TON testnet wallet.</p></div><b id="missionConnect">+10</b>
+        </article>
+        <article class="mission card">
+          <div class="mission-icon">03</div><div><small>IDENTITY</small><h3>Link Identity</h3><p>Link Telegram and TON.</p></div><b id="missionLink">+20</b>
+        </article>
+        <article class="mission card">
+          <div class="mission-icon">04</div><div><small>DAILY</small><h3>Daily Check-in</h3><p>Return each UTC day.</p></div><b id="missionDaily">+10</b>
+        </article>
+      </div>
+    </section>
+
+    <section class="dashboard-grid">
+      <article class="card wallet-card" id="wallet">
+        <div class="card-top"><span>TON WALLET</span><span class="tiny-live">TESTNET</span></div>
+        <h3 id="walletStatus">Wallet not connected</h3>
+        <p id="walletAddress">Connect your testnet wallet to continue.</p>
         <div class="wallet-tools">
           <button id="copyAddressBtn" class="secondary" type="button" disabled>Copy Address</button>
           <button id="explorerBtn" class="secondary" type="button" disabled>Open Explorer</button>
         </div>
       </article>
 
-      <article class="card">
-        <span>TELEGRAM</span>
+      <article class="card telegram-card">
+        <div class="card-top"><span>TELEGRAM</span><span class="tg-mark">TG</span></div>
         <h3 id="telegramStatus">Browser mode</h3>
         <p id="telegramUser">Telegram में खोलने पर user/session information यहाँ दिखाई देगी।</p>
       </article>
 
-      <article class="card">
-        <span>IDENTITY</span>
+      <article class="card identity-card">
+        <div class="card-top"><span>IDENTITY</span><span class="shield">◆</span></div>
         <h3 id="identityStatus">Wallet link pending</h3>
         <p id="identityMessage">Telegram verification और TON wallet connect होने के बाद identity link कर सकते हैं।</p>
-        <button id="linkWalletBtn" class="primary" type="button" disabled>Link TON Wallet</button>
+        <button id="linkWalletBtn" class="primary full" type="button" disabled>Link TON Wallet</button>
       </article>
 
-      <article class="card profile-card">
-        <span>GOALKEEPER PROFILE</span>
-        <h3 id="profileStatus">Profile pending</h3>
-        <p id="profileIdentity">Telegram verification के बाद secure profile तैयार होगा।</p>
-        <div class="profile-grid">
-          <div><small>USER ID</small><strong id="goalkeeperUserId">—</strong></div>
-          <div><small>TELEGRAM</small><strong id="profileTelegram">—</strong></div>
-          <div><small>TON WALLET</small><strong id="profileWallet">—</strong></div>
-          <div><small>IDENTITY</small><strong id="profileLinkStatus">—</strong></div>
-        </div>
-        <p id="profileActivity" class="activity">Session activity: Waiting for secure verification.</p>
-      </article>
-
-      <article class="card missions-card">
-        <span>MISSIONS</span>
-        <h3>Testnet Missions</h3>
-        <p>Goalkeeper activity missions. Points are testnet-only and have no cash value.</p>
-        <div class="mission-list">
-          <div><strong>Open Goalkeeper</strong><span id="missionOpen">+5</span></div>
-          <div><strong>Connect TON Wallet</strong><span id="missionConnect">+10</span></div>
-          <div><strong>Link Identity</strong><span id="missionLink">+20</span></div>
-          <div><strong>Daily Check-in</strong><span id="missionDaily">+10</span></div>
-        </div>
-      </article>
-
-      <article class="card rewards-card">
-        <span>GOALKEEPER REWARDS</span>
-        <h3 id="pointsTotal">0 Points</h3>
+      <article class="card reward-card" id="rewards">
+        <div class="card-top"><span>REWARDS</span><span class="star">✦</span></div>
+        <div class="reward-number" id="pointsTotal">0 Points</div>
         <p id="pointsMessage">Testnet-only activity points. No real-money reward is issued.</p>
-        <button id="dailyCheckinBtn" class="primary" type="button">Daily Check-in</button>
-        <div class="mission-list">
-          <div><strong>Telegram verified</strong><span id="missionTelegram">Pending</span></div>
-          <div><strong>TON wallet connected</strong><span id="missionWallet">Pending</span></div>
-          <div><strong>Identity linked</strong><span id="missionIdentity">Pending</span></div>
-          <div><strong>Daily check-in</strong><span id="missionCheckin">Available</span></div>
-        </div>
-      </article>
-
-      <article class="card achievements-card">
-        <span>ACHIEVEMENTS</span>
-        <h3>Goalkeeper Badges</h3>
-        <p>Local testnet achievements based on completed Goalkeeper activity.</p>
-        <div class="mission-list">
-          <div><strong>First Defender</strong><span id="achievementOpen">Locked</span></div>
-          <div><strong>Wallet Guard</strong><span id="achievementWallet">Locked</span></div>
-          <div><strong>Identity Shield</strong><span id="achievementIdentity">Locked</span></div>
-          <div><strong>Daily Keeper</strong><span id="achievementCheckin">Locked</span></div>
-        </div>
-        <button id="shareGoalkeeperBtn" class="primary share-btn" type="button">Share Goalkeeper</button>
-      </article>
-
-      <article class="card">
-        <span>NETWORK</span>
-        <h3>TON Testnet</h3>
-        <p>Development और testing के लिए। Mainnet functionality बाद में जोड़ी जाएगी.</p>
-      </article>
-
-      <article class="card">
-        <span>PROJECT</span>
-        <h3>Goalkeeper</h3>
-        <p>SandyChainHub ecosystem के लिए TON-focused Mini-App foundation.</p>
+        <button id="dailyCheckinBtn" class="primary full" type="button">Daily Check-in</button>
+        <div class="mini-status"><span>Telegram <b id="missionTelegram">Pending</b></span><span>Wallet <b id="missionWallet">Pending</b></span><span>Identity <b id="missionIdentity">Pending</b></span><span>Check-in <b id="missionCheckin">Available</b></span></div>
       </article>
     </section>
 
-    <section class="card roadmap">
-      <span>ROADMAP</span>
+    <section class="section" id="achievements">
+      <div class="section-head"><div><span>COLLECTION</span><h2>Achievements</h2></div></div>
+      <article class="card achievement-card">
+        <div class="badge-row"><div><span class="badge-icon">◆</span><small>FIRST DEFENDER</small><b id="achievementOpen">Locked</b></div>
+          <div><span class="badge-icon">◈</span><small>WALLET GUARD</small><b id="achievementWallet">Locked</b></div>
+          <div><span class="badge-icon">⬢</span><small>IDENTITY SHIELD</small><b id="achievementIdentity">Locked</b></div>
+          <div><span class="badge-icon">✦</span><small>DAILY KEEPER</small><b id="achievementCheckin">Locked</b></div></div>
+        <button id="shareGoalkeeperBtn" class="secondary share-btn" type="button">Share Goalkeeper</button>
+      </article>
+    </section>
+
+    <section class="roadmap card">
+      <div><span>ROADMAP</span><h2>What's next</h2></div>
       <ol>
-        <li>Mini-App foundation</li>
-        <li>TON Connect wallet connection</li>
-        <li>Telegram Mini-App SDK integration</li>
-        <li>Telegram user/session display</li>
-        <li>Backend validation + SandyChainHub identity link</li>
-        <li>Secure user profile + session dashboard</li>
-        <li>Testnet activity + points dashboard</li>
-        <li>Achievements + Telegram sharing</li>
-        <li>Future TON features</li>
+        <li>Mini-App foundation</li><li>TON Connect wallet connection</li><li>Telegram Mini-App SDK integration</li>
+        <li>Telegram user/session display</li><li>Backend validation + SandyChainHub identity link</li>
+        <li>Secure user profile + session dashboard</li><li>Testnet activity + points dashboard</li>
+        <li>Achievements + Telegram sharing</li><li>Future TON features</li>
       </ol>
     </section>
 
-    <footer>Goalkeeper • Built with SandyChainHub • Testnet development</footer>
+    <footer><strong>GOALKEEPER</strong><span>Built with SandyChainHub • Testnet development</span></footer>
   </main>
-
+  <nav class="bottom-nav">
+    <a href="#home">⌂<small>Home</small></a><a href="#missions">◈<small>Missions</small></a><a href="#rewards">✦<small>Rewards</small></a><a href="#profile">◎<small>Profile</small></a>
+  </nav>
   <script src="https://unpkg.com/@tonconnect/ui@3.0.2/dist/tonconnect-ui.min.js"></script>
-  <script src="app-v3.js"></script>
+  <script src="app-v3.js?v=20260919-ui"></script>
 </body>
 </html>
