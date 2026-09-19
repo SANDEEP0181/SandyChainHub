@@ -9,6 +9,15 @@ const linkWalletBtn = document.getElementById("linkWalletBtn");
 
 const TELEGRAM_VALIDATE_URL = "https://sandy-chain-hub.vercel.app/api/telegram/validate";
 const IDENTITY_LINK_URL = "https://sandy-chain-hub.vercel.app/api/identity/link";
+const PROFILE_SESSION_URL = "https://sandy-chain-hub.vercel.app/api/profile/session";
+
+const profileStatus = document.getElementById("profileStatus");
+const profileIdentity = document.getElementById("profileIdentity");
+const goalkeeperUserId = document.getElementById("goalkeeperUserId");
+const profileTelegram = document.getElementById("profileTelegram");
+const profileWallet = document.getElementById("profileWallet");
+const profileLinkStatus = document.getElementById("profileLinkStatus");
+const profileActivity = document.getElementById("profileActivity");
 
 let tonConnectUI;
 let telegramInitData = "";
@@ -24,12 +33,43 @@ function getWalletAddress() {
   return connectedWalletAddress || tonConnectUI?.account?.address || "";
 }
 
+function updateProfileWallet() {
+  const address = getWalletAddress();
+  profileWallet.textContent = address ? shortAddress(address) : "Not connected";
+  const linked = Boolean(localStorage.getItem("goalkeeperIdentityLink"));
+  profileLinkStatus.textContent = linked ? "Identity Linked" : "Not linked";
+}
+
+async function loadProfileSession() {
+  if (!telegramInitData || !telegramVerified) return;
+  try {
+    profileStatus.textContent = "Secure profile ready";
+    profileIdentity.textContent = "Telegram session verified by Goalkeeper backend.";
+    const response = await fetch(PROFILE_SESSION_URL, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({initData: telegramInitData})
+    });
+    const result = await response.json();
+    if (!response.ok || !result.ok) throw new Error(result.error || "Profile unavailable");
+    goalkeeperUserId.textContent = result.goalkeeperUserId;
+    const user=result.user;
+    profileTelegram.textContent = user?.username ? "@" + user.username : ([user?.first_name,user?.last_name].filter(Boolean).join(" ") || "Telegram user");
+    profileActivity.textContent = "Session activity: Telegram verified • Profile loaded.";
+    updateProfileWallet();
+  } catch (error) {
+    profileStatus.textContent = "Profile unavailable";
+    profileIdentity.textContent = error.message || "Secure profile load failed.";
+    profileActivity.textContent = "Session activity: Verification available, profile endpoint unavailable.";
+  }
+}
+
 function updateIdentityState() {
   const connected = Boolean(getWalletAddress());
 
   if (telegramVerified && connected) {
     const existingLink = localStorage.getItem("goalkeeperIdentityLink");
-    linkWalletBtn.disabled = false;
+    linkWalletBtn.disabled = Boolean(existingLink);
     identityStatus.textContent = existingLink ? "Identity Linked" : "Ready to link";
     identityMessage.textContent = existingLink
       ? "Telegram identity और TON wallet इस session के लिए linked हैं।"
@@ -83,6 +123,7 @@ async function validateTelegramSession(tg) {
     }
 
     updateIdentityState();
+    updateProfileWallet();
   } catch (error) {
     console.error(error);
     telegramStatus.textContent = "Verification server unavailable";
@@ -125,6 +166,8 @@ async function linkWalletIdentity() {
 
     localStorage.setItem("goalkeeperIdentityLink", result.linkToken);
     identityStatus.textContent = "Identity Linked";
+    profileLinkStatus.textContent = "Identity Linked";
+    profileActivity.textContent = "Session activity: Telegram + TON wallet linked.";
     identityMessage.textContent = "Telegram identity और TON wallet इस session के लिए linked हैं।";
     linkWalletBtn.disabled = true;
   } catch (error) {
@@ -163,7 +206,7 @@ function initTelegram() {
       "Telegram session active. Server verification शुरू हो रही है...";
   }
 
-  validateTelegramSession(tg);
+  validateTelegramSession(tg).then(() => loadProfileSession());
 }
 
 async function initTonConnect() {
@@ -190,6 +233,7 @@ async function initTonConnect() {
       connectBtn.textContent = "Connect TON Wallet";
     }
     updateIdentityState();
+    updateProfileWallet();
   });
 
   // Re-check after TON Connect restores an existing Telegram WebView wallet session.
