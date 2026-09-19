@@ -6,6 +6,8 @@ const telegramUser = document.getElementById("telegramUser");
 const identityStatus = document.getElementById("identityStatus");
 const identityMessage = document.getElementById("identityMessage");
 const linkWalletBtn = document.getElementById("linkWalletBtn");
+const copyAddressBtn = document.getElementById("copyAddressBtn");
+const explorerBtn = document.getElementById("explorerBtn");
 
 const TELEGRAM_VALIDATE_URL = "https://sandy-chain-hub.vercel.app/api/telegram/validate";
 const IDENTITY_LINK_URL = "https://sandy-chain-hub.vercel.app/api/identity/link";
@@ -42,6 +44,38 @@ let connectedWalletAddress = "";
 const POINTS_KEY = "goalkeeperPoints";
 const CHECKIN_KEY = "goalkeeperCheckinDate";
 const MISSIONS_KEY = "goalkeeperMissions";
+const TON_TESTNET_EXPLORER = "https://testnet.tonscan.org";
+
+function updateWalletTools() {
+  const address = getWalletAddress();
+  const enabled = Boolean(address);
+  copyAddressBtn.disabled = !enabled;
+  explorerBtn.disabled = !enabled;
+}
+
+function openTonExplorer() {
+  const address = getWalletAddress();
+  if (!address) return;
+  const url = TON_TESTNET_EXPLORER + "/address/" + encodeURIComponent(address);
+  const tg = window.Telegram?.WebApp;
+  if (tg?.openLink) tg.openLink(url);
+  else window.open(url, "_blank", "noopener,noreferrer");
+}
+
+copyAddressBtn.addEventListener("click", async () => {
+  const address = getWalletAddress();
+  if (!address) return;
+  try {
+    await navigator.clipboard.writeText(address);
+    copyAddressBtn.textContent = "Copied";
+    setTimeout(() => { copyAddressBtn.textContent = "Copy Address"; }, 1200);
+  } catch {
+    copyAddressBtn.textContent = "Copy failed";
+    setTimeout(() => { copyAddressBtn.textContent = "Copy Address"; }, 1200);
+  }
+});
+
+explorerBtn.addEventListener("click", openTonExplorer);
 
 function shortAddress(address) {
   if (!address) return "";
@@ -290,6 +324,7 @@ function initTelegram() {
     telegramUser.textContent =
       "Goalkeeper browser में खुला है। Telegram में खोलने पर secure verification activate होगी।";
     updateIdentityState();
+    updateWalletTools();
     return;
   }
 
@@ -337,6 +372,7 @@ async function initTonConnect() {
     }
     updateIdentityState();
     updateProfileWallet();
+    updateWalletTools();
     updateRewards();
   });
 
@@ -352,6 +388,7 @@ async function initTonConnect() {
       }
       updateIdentityState();
       updateProfileWallet();
+      updateWalletTools();
       updateRewards();
     }, delay);
   });
