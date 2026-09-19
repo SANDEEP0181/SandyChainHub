@@ -203,16 +203,16 @@ function updateStreakUI() {
   const checked = localStorage.getItem(CHECKIN_KEY) === today;
   streakNumber.textContent = streak + (streak === 1 ? " Day" : " Days");
   streakBest.textContent = "Best: " + best;
-  streakDetail.textContent = streak + (streak === 1 ? " day" : " days");
+  if (streakDetail) streakDetail.textContent = streak + (streak === 1 ? " day" : " days");
   if (checked) {
     streakStatus.textContent = "Streak protected today";
-    streakMessage.textContent = "Nice save. Come back tomorrow to keep the streak alive.";
+    if (streakMessage) streakMessage.textContent = "Nice save. Come back tomorrow to keep the streak alive.";
   } else if (last === previousDayKey()) {
     streakStatus.textContent = "Check-in available";
-    streakMessage.textContent = "Your streak is waiting. Complete today's check-in.";
+    if (streakMessage) streakMessage.textContent = "Your streak is waiting. Complete today's check-in.";
   } else {
     streakStatus.textContent = streak ? "Check-in available" : "Start your daily check-in";
-    streakMessage.textContent = streak ? "Check in today to start a new streak cycle." : "Daily check-in starts your keeper streak.";
+    if (streakMessage) streakMessage.textContent = streak ? "Check in today to start a new streak cycle." : "Daily check-in starts your keeper streak.";
   }
 }
 
@@ -272,7 +272,7 @@ function updateCheckinTimer() {
   if (remaining <= 0) {
     checkinTimer.hidden = true;
     dailyCheckinBtn.disabled = !telegramVerified;
-    updateRewards();
+    dailyCheckinBtn.textContent = "Daily Check-in";
     return;
   }
   checkinTimer.hidden = false;
@@ -506,8 +506,29 @@ function bindTonConnectButton() {
   });
 }
 
+async function loadTonConnectLibrary() {
+  if (window.TON_CONNECT_UI?.TonConnectUI) return true;
+  if (document.querySelector("script[data-tonconnect-fallback]")) {
+    for (let i = 0; i < 15; i += 1) {
+      if (window.TON_CONNECT_UI?.TonConnectUI) return true;
+      await new Promise(resolve => setTimeout(resolve, 200));
+    }
+    return Boolean(window.TON_CONNECT_UI?.TonConnectUI);
+  }
+  return new Promise(resolve => {
+    const script = document.createElement("script");
+    script.src = "https://cdn.jsdelivr.net/npm/@tonconnect/ui@4.0.2/dist/tonconnect-ui.min.js";
+    script.async = true;
+    script.dataset.tonconnectFallback = "1";
+    script.onload = () => resolve(Boolean(window.TON_CONNECT_UI?.TonConnectUI));
+    script.onerror = () => resolve(false);
+    document.head.appendChild(script);
+  });
+}
+
 async function ensureTonConnect() {
   if (tonConnectUI) return tonConnectUI;
+  await loadTonConnectLibrary();
   for (let i = 0; i < 10; i += 1) {
     if (window.TON_CONNECT_UI?.TonConnectUI) {
       await initTonConnect();
