@@ -2,6 +2,8 @@ const $ = (id) => document.getElementById(id);
 
 const connectBtn = $("connectBtn");
 const tonConnectFallback = $("tonConnectFallback");
+const disconnectBtn = $("disconnectBtn");
+const disconnectWalletBtn = $("disconnectWalletBtn");
 const loginBtn = $("loginBtn");
 const logoutBtn = $("logoutBtn");
 const walletStatus = $("walletStatus");
@@ -76,9 +78,7 @@ let telegramInitData = "";
 let telegramVerified = false;
 let connectedWalletAddress = "";
 
-function setText(el, value) {
-  if (el) el.textContent = value;
-}
+function setText(el, value) { if (el) el.textContent = value; }
 
 function shortAddress(address) {
   if (!address) return "";
@@ -101,13 +101,10 @@ function previousDayKey() {
 }
 
 function getMissions() {
-  try { return JSON.parse(localStorage.getItem(MISSIONS_KEY) || "{}"); }
-  catch { return {}; }
+  try { return JSON.parse(localStorage.getItem(MISSIONS_KEY) || "{}"); } catch { return {}; }
 }
 
-function saveMissions(value) {
-  localStorage.setItem(MISSIONS_KEY, JSON.stringify(value));
-}
+function saveMissions(value) { localStorage.setItem(MISSIONS_KEY, JSON.stringify(value)); }
 
 function awardMission(id, points) {
   const missions = getMissions();
@@ -133,6 +130,9 @@ function updateWalletUI() {
   setText(connectedWalletAddressEl, connected ? shortAddress(address) : "—");
 
   if (connectBtn) connectBtn.hidden = connected;
+  if (disconnectBtn) disconnectBtn.hidden = !connected;
+  if (disconnectWalletBtn) disconnectWalletBtn.hidden = !connected;
+
   if (tonConnectFallback) {
     tonConnectFallback.hidden = true;
     tonConnectFallback.disabled = false;
@@ -140,10 +140,8 @@ function updateWalletUI() {
 
   setText(walletStatus, connected ? "Wallet connected" : "Wallet not connected");
   setText(walletAddress, connected ? shortAddress(address) : "Connect your testnet wallet to continue.");
-
   if (copyAddressBtn) copyAddressBtn.disabled = !connected;
   if (explorerBtn) explorerBtn.disabled = !connected;
-
   setText(profileWallet, connected ? shortAddress(address) : "Not connected");
   updateIdentityState();
   updateRewards();
@@ -165,7 +163,6 @@ async function loadTonConnectLibrary() {
       }, 100);
       return;
     }
-
     const script = document.createElement("script");
     script.src = "https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js";
     script.async = true;
@@ -182,15 +179,11 @@ async function loadTonConnectLibrary() {
 
 async function ensureTonConnect() {
   if (tonConnectUI) return tonConnectUI;
-
   const loaded = await loadTonConnectLibrary();
   if (!loaded) {
     setText(walletStatus, "TON Connect SDK failed to load");
     return null;
   }
-
-  if (tonConnectUI) return tonConnectUI;
-
   try {
     tonConnectUI = new window.TON_CONNECT_UI.TonConnectUI({
       manifestUrl: TON_MANIFEST_URL,
@@ -210,12 +203,7 @@ async function ensureTonConnect() {
       }
     });
 
-    try {
-      await tonConnectUI.connectionRestored;
-    } catch (error) {
-      console.warn("TON connection restore:", error);
-    }
-
+    try { await tonConnectUI.connectionRestored; } catch (error) { console.warn("TON connection restore:", error); }
     connectedWalletAddress = tonConnectUI.account?.address || tonConnectUI.wallet?.account?.address || "";
     updateWalletUI();
     return tonConnectUI;
@@ -231,7 +219,6 @@ async function openWalletSelector() {
   const button = connectBtn;
   if (button) button.disabled = true;
   setText(walletStatus, "Opening TON wallet selector...");
-
   try {
     const ui = await ensureTonConnect();
     if (!ui) throw new Error("TON Connect SDK unavailable.");
@@ -268,15 +255,11 @@ function updateIdentityState() {
   if (telegramVerified && connected) {
     if (linkWalletBtn) linkWalletBtn.disabled = linked;
     setText(identityStatus, linked ? "Identity Linked" : "Ready to link");
-    setText(identityMessage, linked
-      ? "Telegram identity और TON wallet इस session के लिए linked हैं।"
-      : "Telegram verified और TON wallet connected है। Link TON Wallet दबाएं।");
+    setText(identityMessage, linked ? "Telegram identity और TON wallet इस session के लिए linked हैं।" : "Telegram verified और TON wallet connected है। Link TON Wallet दबाएं।");
   } else {
     if (linkWalletBtn) linkWalletBtn.disabled = true;
     setText(identityStatus, "Wallet link pending");
-    setText(identityMessage, telegramVerified
-      ? "पहले TON wallet connect करें।"
-      : "पहले Telegram verification पूरी होने दें।");
+    setText(identityMessage, telegramVerified ? "पहले TON wallet connect करें।" : "पहले Telegram verification पूरी होने दें।");
   }
 }
 
@@ -284,7 +267,6 @@ async function loadTelegramLibrary() {
   if (window.Telegram?.WebApp) return true;
   const existing = document.querySelector("script[data-telegram-sdk]");
   if (existing) return false;
-
   return new Promise((resolve) => {
     const script = document.createElement("script");
     script.src = "https://telegram.org/js/telegram-web-app.js?63";
@@ -301,59 +283,40 @@ async function validateTelegramSession(tg) {
     telegramVerified = false;
     setText(telegramStatus, "Browser mode");
     setText(telegramUser, "Telegram में खोलने पर user/session information यहाँ दिखाई देगी।");
-    updateAuthButtons();
-    updateIdentityState();
-    updateRewards();
-    return;
+    updateAuthButtons(); updateIdentityState(); updateRewards(); return;
   }
-
   try {
     setText(telegramStatus, "Verifying Telegram session...");
-    const response = await fetch(TELEGRAM_VALIDATE_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ initData: tg.initData })
-    });
+    const response = await fetch(TELEGRAM_VALIDATE_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ initData: tg.initData }) });
     const result = await response.json();
-
     if (!response.ok || !result.ok) throw new Error(result.error || "Telegram verification failed");
-
     telegramInitData = tg.initData;
     telegramVerified = true;
     setText(telegramStatus, "Telegram verified");
-
     const user = result.user || tg.initDataUnsafe?.user;
     const name = [user?.first_name, user?.last_name].filter(Boolean).join(" ");
     const username = user?.username ? "@" + user.username : "";
     setText(telegramUser, [name, username].filter(Boolean).join(" • ") || "Telegram user verified");
-
     awardMission("telegram", 0);
-    updateAuthButtons();
-    updateIdentityState();
-    updateRewards();
+    updateAuthButtons(); updateIdentityState(); updateRewards();
     await loadProfileSession();
   } catch (error) {
     console.error("Telegram verification:", error);
     telegramVerified = false;
     setText(telegramStatus, "Telegram verification failed");
     setText(telegramUser, error.message || "Backend verification failed.");
-    updateAuthButtons();
-    updateIdentityState();
-    updateRewards();
+    updateAuthButtons(); updateIdentityState(); updateRewards();
   }
 }
 
 async function initTelegram() {
   const loaded = await loadTelegramLibrary();
   const tg = window.Telegram?.WebApp;
-
   if (!loaded && !tg) {
     setText(telegramStatus, "Browser mode");
-    setText(telegramUser, "Goalkeeper browser में खुला है। Telegram में खोलने पर secure verification activate होगी।");
-    updateAuthButtons();
-    return;
+    setText(telegramUser, "Goalkeeper browser में खुला है। Telegram में खोलने पर secure verification activate होगी.");
+    updateAuthButtons(); return;
   }
-
   if (!tg) return;
   try { tg.ready(); tg.expand(); } catch (error) { console.warn("Telegram ready:", error); }
   await validateTelegramSession(tg);
@@ -361,26 +324,17 @@ async function initTelegram() {
 
 async function loginTelegram() {
   const tg = window.Telegram?.WebApp;
-  if (tg) {
-    await validateTelegramSession(tg);
-    return;
-  }
+  if (tg) { await validateTelegramSession(tg); return; }
   setText(telegramStatus, "Open Goalkeeper from Telegram");
   setText(telegramUser, "Login with Telegram तभी उपलब्ध होगा जब Mini-App Telegram के अंदर खुले।");
 }
 
 async function loadProfileSession() {
   if (!telegramVerified || !telegramInitData) return;
-
   try {
-    const response = await fetch(PROFILE_SESSION_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ initData: telegramInitData })
-    });
+    const response = await fetch(PROFILE_SESSION_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ initData: telegramInitData }) });
     const result = await response.json();
     if (!response.ok || !result.ok) throw new Error(result.error || "Profile unavailable");
-
     setText(goalkeeperUserId, result.goalkeeperUserId || "—");
     const user = result.user || {};
     setText(profileTelegram, user.username ? "@" + user.username : ([user.first_name, user.last_name].filter(Boolean).join(" ") || "Telegram user"));
@@ -397,26 +351,14 @@ async function loadProfileSession() {
 
 async function linkWalletIdentity() {
   const wallet = getWalletAddress();
-
-  if (!telegramVerified || !telegramInitData || !wallet) {
-    updateIdentityState();
-    return;
-  }
-
+  if (!telegramVerified || !telegramInitData || !wallet) { updateIdentityState(); return; }
   if (linkWalletBtn) linkWalletBtn.disabled = true;
   setText(identityStatus, "Linking...");
   setText(identityMessage, "Secure identity link तैयार हो रहा है...");
-
   try {
-    const response = await fetch(IDENTITY_LINK_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ initData: telegramInitData, walletAddress: wallet })
-    });
+    const response = await fetch(IDENTITY_LINK_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ initData: telegramInitData, walletAddress: wallet }) });
     const result = await response.json();
-
     if (!response.ok || !result.ok) throw new Error(result.error || "Identity link failed");
-
     localStorage.setItem("goalkeeperIdentityLink", result.linkToken);
     awardMission("link", 20);
     setText(identityStatus, "Identity Linked");
@@ -436,214 +378,119 @@ async function linkWalletIdentity() {
 function updateLevel(points) {
   const level = Math.floor(points / 50) + 1;
   const progress = points % 50;
-  setText(levelNumber, String(level));
-  setText(levelDisplay, String(level));
-  setText(levelProgress, progress + " / 50");
+  setText(levelNumber, String(level)); setText(levelDisplay, String(level)); setText(levelProgress, progress + " / 50");
   if (levelBar) levelBar.style.width = (progress * 2) + "%";
   setText(levelMessage, level > 1 ? "Level " + level + " unlocked. Keep defending your streak." : "Complete missions to unlock your next level.");
-  const titles = { 1: "Rookie", 2: "Defender", 3: "Guardian", 4: "Elite" };
-  const badges = { 1: "ROOKIE", 2: "DEFENDER", 3: "GUARDIAN", 4: "ELITE" };
-  const safe = Math.min(level, 4);
+  const titles = {1:"Rookie",2:"Defender",3:"Guardian",4:"Elite"}; const badges = {1:"ROOKIE",2:"DEFENDER",3:"GUARDIAN",4:"ELITE"}; const safe = Math.min(level,4);
   setText(levelBadge, level > 4 ? "ELITE+" : badges[safe]);
-  setText(levelOrb, level > 4 ? "4+" : String(level));
-  setText(levelTitle, level > 4 ? "Elite+" : titles[safe]);
-
-  document.querySelectorAll(".level-ladder span").forEach((el) => {
-    const n = el.dataset.level === "5+" ? 5 : Number(el.dataset.level);
-    el.classList.toggle("active", level >= n);
-  });
-  document.querySelectorAll(".rank-item").forEach((el) => {
-    el.classList.toggle("unlocked", level >= Number(el.dataset.rank));
-  });
+  setText(levelOrb, level > 4 ? "4+" : String(level)); setText(levelTitle, level > 4 ? "Elite+" : titles[safe]);
+  document.querySelectorAll(".level-ladder span").forEach((el)=>{const n=el.dataset.level==="5+"?5:Number(el.dataset.level);el.classList.toggle("active",level>=n);});
+  document.querySelectorAll(".rank-item").forEach((el)=>el.classList.toggle("unlocked",level>=Number(el.dataset.rank)));
 }
 
-function getStreak() { return Number(localStorage.getItem(STREAK_KEY) || "0"); }
-function getBestStreak() { return Number(localStorage.getItem(BEST_STREAK_KEY) || "0"); }
+function getStreak(){return Number(localStorage.getItem(STREAK_KEY)||"0");}
+function getBestStreak(){return Number(localStorage.getItem(BEST_STREAK_KEY)||"0");}
 
-function updateStreakUI() {
-  const streak = getStreak();
-  const best = getBestStreak();
-  const checked = localStorage.getItem(CHECKIN_KEY) === todayKey();
+function updateStreakUI(){
+  const streak=getStreak(); const best=getBestStreak(); const checked=localStorage.getItem(CHECKIN_KEY)===todayKey();
+  setText(streakNumber,streak+(streak===1?" Day":" Days")); setText(streakBest,"Best: "+best); setText(streakDetail,streak+(streak===1?" day":" days"));
+  if(checked){setText(streakStatus,"Streak protected today");setText(streakMessage,"Nice save. Come back tomorrow to keep the streak alive.");}
+  else{setText(streakStatus,streak?"Check-in available":"Start your daily check-in");setText(streakMessage,streak?"Check in today to keep the streak alive.":"Daily check-in starts your keeper streak.");}
+}
 
-  setText(streakNumber, streak + (streak === 1 ? " Day" : " Days"));
-  setText(streakBest, "Best: " + best);
-  setText(streakDetail, streak + (streak === 1 ? " day" : " days"));
+function updateMissionUI(){
+  const missions=getMissions(); const checked=localStorage.getItem(CHECKIN_KEY)===todayKey();
+  setText(missionOpen,missions.open?"Completed":"+5"); setText(missionConnect,missions.connect?"Completed":"+10"); setText(missionLink,missions.link?"Completed":"+20"); setText(missionCheckin,checked?"Completed":"+10");
+}
 
-  if (checked) {
-    setText(streakStatus, "Streak protected today");
-    setText(streakMessage, "Nice save. Come back tomorrow to keep the streak alive.");
-  } else {
-    setText(streakStatus, streak ? "Check-in available" : "Start your daily check-in");
-    setText(streakMessage, streak ? "Check in today to keep the streak alive." : "Daily check-in starts your keeper streak.");
+function updateAchievements(){
+  const missions=getMissions(); const checked=localStorage.getItem(CHECKIN_KEY)===todayKey();
+  setText(achievementOpen,missions.open?"Unlocked":"Locked"); setText(achievementWallet,missions.connect?"Unlocked":"Locked"); setText(achievementIdentity,missions.link?"Unlocked":"Locked"); setText(achievementCheckin,checked?"Unlocked":"Locked");
+}
+
+function nextCheckinTimestamp(){const now=new Date();return Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate()+1);}
+function formatCountdown(ms){const total=Math.max(0,Math.floor(ms/1000));return String(Math.floor(total/3600)).padStart(2,"0")+":"+String(Math.floor((total%3600)/60)).padStart(2,"0")+":"+String(total%60).padStart(2,"0");}
+
+function updateCheckinTimer(){
+  if(!dailyCheckinBtn)return;
+  const checked=localStorage.getItem(CHECKIN_KEY)===todayKey(); dailyCheckinBtn.disabled=checked; dailyCheckinBtn.textContent=checked?"Check-in Complete":"Daily Check-in";
+  if(!checkinTimer||!checkinCountdown)return;
+  if(!checked){checkinTimer.hidden=true;return;}
+  checkinTimer.hidden=false; setText(checkinCountdown,formatCountdown(nextCheckinTimestamp()-Date.now()));
+}
+
+function updateRewards(){
+  const opened=getMissions(); if(!opened.open)awardMission("open",5);
+  const points=Number(localStorage.getItem(POINTS_KEY)||"0"); const checked=localStorage.getItem(CHECKIN_KEY)===todayKey();
+  setText(pointsTotal,points+" Points"); setText(rewardPoints,points+" Points"); updateLevel(points); updateStreakUI();
+  setText(missionTelegram,telegramVerified?"Verified":"Pending"); setText(missionWallet,getWalletAddress()?"Connected":"Pending"); setText(missionIdentity,localStorage.getItem("goalkeeperIdentityLink")?"Linked":"Pending"); setText(missionCheckin,checked?"Completed today":"Available");
+  updateCheckinTimer(); updateMissionUI(); updateAchievements();
+  setText(pointsMessage,checked?"आज का testnet check-in complete है।":"Browser mode: daily testnet check-in is available. Telegram verification is optional.");
+}
+
+function handleDailyCheckin(){
+  if(localStorage.getItem(CHECKIN_KEY)===todayKey())return;
+  const current=Number(localStorage.getItem(POINTS_KEY)||"0"); localStorage.setItem(POINTS_KEY,String(current+10));
+  const today=todayKey(); const last=localStorage.getItem(STREAK_DATE_KEY); let streak=getStreak();
+  if(last===previousDayKey())streak+=1; else if(last!==today)streak=1;
+  localStorage.setItem(STREAK_KEY,String(streak)); localStorage.setItem(BEST_STREAK_KEY,String(Math.max(getBestStreak(),streak))); localStorage.setItem(STREAK_DATE_KEY,today); localStorage.setItem(CHECKIN_KEY,today);
+  setText(profileActivity,"Session activity: Daily testnet check-in completed (+10 points)."); updateRewards();
+}
+
+async function logoutSession(){
+  try{if(tonConnectUI)await tonConnectUI.disconnect();}catch(error){console.warn("Wallet disconnect:",error);}
+  telegramInitData=""; telegramVerified=false; connectedWalletAddress=""; localStorage.removeItem("goalkeeperIdentityLink");
+  setText(telegramStatus,"Logged out"); setText(telegramUser,"Telegram session cleared. Open Goalkeeper from Telegram to login again."); setText(profileStatus,"Profile pending"); setText(profileIdentity,"Telegram verification के बाद secure profile तैयार होगा।"); setText(goalkeeperUserId,"—"); setText(profileTelegram,"—"); setText(profileWallet,"Not connected"); setText(profileLinkStatus,"—"); setText(profileActivity,"Waiting");
+  updateAuthButtons(); updateWalletUI(); updateRewards();
+}
+
+async function disconnectWallet(){
+  try{
+    const ui=await ensureTonConnect();
+    if(ui)await ui.disconnect();
+    connectedWalletAddress="";
+    updateWalletUI();
+    setText(profileActivity,"Session activity: TON wallet disconnected.");
+  }catch(error){
+    console.error("Wallet disconnect:",error);
+    setText(walletStatus,"Wallet disconnect failed. Try again.");
   }
 }
 
-function updateMissionUI() {
-  const missions = getMissions();
-  const checked = localStorage.getItem(CHECKIN_KEY) === todayKey();
-  setText(missionOpen, missions.open ? "Completed" : "+5");
-  setText(missionConnect, missions.connect ? "Completed" : "+10");
-  setText(missionLink, missions.link ? "Completed" : "+20");
-  setText(missionCheckin, checked ? "Completed" : "+10");
-}
+if(loginBtn)loginBtn.addEventListener("click",loginTelegram);
+if(logoutBtn)logoutBtn.addEventListener("click",logoutSession);
+if(disconnectBtn)disconnectBtn.addEventListener("click",disconnectWallet);
+if(disconnectWalletBtn)disconnectWalletBtn.addEventListener("click",disconnectWallet);
+if(linkWalletBtn)linkWalletBtn.addEventListener("click",linkWalletIdentity);
+if(dailyCheckinBtn)dailyCheckinBtn.addEventListener("click",handleDailyCheckin);
 
-function updateAchievements() {
-  const missions = getMissions();
-  const checked = localStorage.getItem(CHECKIN_KEY) === todayKey();
-  setText(achievementOpen, missions.open ? "Unlocked" : "Locked");
-  setText(achievementWallet, missions.connect ? "Unlocked" : "Locked");
-  setText(achievementIdentity, missions.link ? "Unlocked" : "Locked");
-  setText(achievementCheckin, checked ? "Unlocked" : "Locked");
-}
-
-function nextCheckinTimestamp() {
-  const now = new Date();
-  return Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1);
-}
-
-function formatCountdown(ms) {
-  const total = Math.max(0, Math.floor(ms / 1000));
-  return String(Math.floor(total / 3600)).padStart(2, "0") + ":" +
-    String(Math.floor((total % 3600) / 60)).padStart(2, "0") + ":" +
-    String(total % 60).padStart(2, "0");
-}
-
-function updateCheckinTimer() {
-  if (!dailyCheckinBtn) return;
-  const checked = localStorage.getItem(CHECKIN_KEY) === todayKey();
-  dailyCheckinBtn.disabled = checked;
-  dailyCheckinBtn.textContent = checked ? "Check-in Complete" : "Daily Check-in";
-
-  if (!checkinTimer || !checkinCountdown) return;
-  if (!checked) {
-    checkinTimer.hidden = true;
-    return;
-  }
-  checkinTimer.hidden = false;
-  setText(checkinCountdown, formatCountdown(nextCheckinTimestamp() - Date.now()));
-}
-
-function updateRewards() {
-  const opened = getMissions();
-  if (!opened.open) awardMission("open", 5);
-
-  const points = Number(localStorage.getItem(POINTS_KEY) || "0");
-  const checked = localStorage.getItem(CHECKIN_KEY) === todayKey();
-
-  setText(pointsTotal, points + " Points");
-  setText(rewardPoints, points + " Points");
-  updateLevel(points);
-  updateStreakUI();
-
-  setText(missionTelegram, telegramVerified ? "Verified" : "Pending");
-  setText(missionWallet, getWalletAddress() ? "Connected" : "Pending");
-  setText(missionIdentity, localStorage.getItem("goalkeeperIdentityLink") ? "Linked" : "Pending");
-  setText(missionCheckin, checked ? "Completed today" : "Available");
-
-  updateCheckinTimer();
-  updateMissionUI();
-  updateAchievements();
-
-  setText(pointsMessage, checked
-    ? "आज का testnet check-in complete है।"
-    : "Browser mode: daily testnet check-in is available. Telegram verification is optional.");
-}
-
-function handleDailyCheckin() {
-  if (localStorage.getItem(CHECKIN_KEY) === todayKey()) return;
-
-  const current = Number(localStorage.getItem(POINTS_KEY) || "0");
-  localStorage.setItem(POINTS_KEY, String(current + 10));
-
-  const today = todayKey();
-  const last = localStorage.getItem(STREAK_DATE_KEY);
-  let streak = getStreak();
-  if (last === previousDayKey()) streak += 1;
-  else if (last !== today) streak = 1;
-
-  localStorage.setItem(STREAK_KEY, String(streak));
-  localStorage.setItem(BEST_STREAK_KEY, String(Math.max(getBestStreak(), streak)));
-  localStorage.setItem(STREAK_DATE_KEY, today);
-  localStorage.setItem(CHECKIN_KEY, today);
-
-  setText(profileActivity, "Session activity: Daily testnet check-in completed (+10 points).");
-  updateRewards();
-}
-
-async function logoutSession() {
-  try {
-    if (tonConnectUI) await tonConnectUI.disconnect();
-  } catch (error) {
-    console.warn("Wallet disconnect:", error);
-  }
-
-  telegramInitData = "";
-  telegramVerified = false;
-  connectedWalletAddress = "";
-  localStorage.removeItem("goalkeeperIdentityLink");
-
-  setText(telegramStatus, "Logged out");
-  setText(telegramUser, "Telegram session cleared. Open Goalkeeper from Telegram to login again.");
-  setText(profileStatus, "Profile pending");
-  setText(profileIdentity, "Telegram verification के बाद secure profile तैयार होगा।");
-  setText(goalkeeperUserId, "—");
-  setText(profileTelegram, "—");
-  setText(profileWallet, "Not connected");
-  setText(profileLinkStatus, "—");
-  setText(profileActivity, "Waiting");
-
-  updateAuthButtons();
-  updateWalletUI();
-  updateRewards();
-}
-
-if (loginBtn) loginBtn.addEventListener("click", loginTelegram);
-if (logoutBtn) logoutBtn.addEventListener("click", logoutSession);
-if (linkWalletBtn) linkWalletBtn.addEventListener("click", linkWalletIdentity);
-if (dailyCheckinBtn) dailyCheckinBtn.addEventListener("click", handleDailyCheckin);
-
-if (copyAddressBtn) copyAddressBtn.addEventListener("click", async () => {
-  const address = getWalletAddress();
-  if (!address) return;
-  try {
-    await navigator.clipboard.writeText(address);
-    copyAddressBtn.textContent = "Copied";
-    setTimeout(() => { copyAddressBtn.textContent = "Copy Address"; }, 1200);
-  } catch {
-    copyAddressBtn.textContent = "Copy failed";
-    setTimeout(() => { copyAddressBtn.textContent = "Copy Address"; }, 1200);
-  }
+if(copyAddressBtn)copyAddressBtn.addEventListener("click",async()=>{
+  const address=getWalletAddress(); if(!address)return;
+  try{await navigator.clipboard.writeText(address);copyAddressBtn.textContent="Copied";setTimeout(()=>{copyAddressBtn.textContent="Copy Address";},1200);}
+  catch{copyAddressBtn.textContent="Copy failed";setTimeout(()=>{copyAddressBtn.textContent="Copy Address";},1200);}
 });
 
-if (explorerBtn) explorerBtn.addEventListener("click", () => {
-  const address = getWalletAddress();
-  if (!address) return;
-  const url = TON_TESTNET_EXPLORER + "/address/" + encodeURIComponent(address);
-  const tg = window.Telegram?.WebApp;
-  if (tg?.openLink) tg.openLink(url);
-  else window.open(url, "_blank", "noopener,noreferrer");
+if(explorerBtn)explorerBtn.addEventListener("click",()=>{
+  const address=getWalletAddress(); if(!address)return;
+  const url=TON_TESTNET_EXPLORER+"/address/"+encodeURIComponent(address); const tg=window.Telegram?.WebApp;
+  if(tg?.openLink)tg.openLink(url);else window.open(url,"_blank","noopener,noreferrer");
 });
 
-if (shareGoalkeeperBtn) shareGoalkeeperBtn.addEventListener("click", () => {
-  const url = "https://t.me/GoalkeeperSandyBot";
-  const text = "Try Goalkeeper — TON + Telegram Mini-App by SandyChainHub.";
-  const shareUrl = "https://t.me/share/url?url=" + encodeURIComponent(url) + "&text=" + encodeURIComponent(text);
-  const tg = window.Telegram?.WebApp;
-  if (tg?.openTelegramLink) tg.openTelegramLink(shareUrl);
-  else window.open(shareUrl, "_blank", "noopener,noreferrer");
+if(shareGoalkeeperBtn)shareGoalkeeperBtn.addEventListener("click",()=>{
+  const url="https://t.me/GoalkeeperSandyBot"; const text="Try Goalkeeper — TON + Telegram Mini-App by SandyChainHub.";
+  const shareUrl="https://t.me/share/url?url="+encodeURIComponent(url)+"&text="+encodeURIComponent(text); const tg=window.Telegram?.WebApp;
+  if(tg?.openTelegramLink)tg.openTelegramLink(shareUrl);else window.open(shareUrl,"_blank","noopener,noreferrer");
 });
 
 bindWalletButtons();
-if (connectBtn) connectBtn.hidden = false;
+if(connectBtn)connectBtn.hidden=false;
 updateAuthButtons();
 updateWalletUI();
 updateRewards();
 
-window.addEventListener("load", () => {
-  ensureTonConnect().catch((error) => console.error("TON startup:", error));
-  initTelegram().catch((error) => console.error("Telegram startup:", error));
+window.addEventListener("load",()=>{
+  ensureTonConnect().catch((error)=>console.error("TON startup:",error));
+  initTelegram().catch((error)=>console.error("Telegram startup:",error));
 });
 
-setInterval(() => {
-  try { updateCheckinTimer(); } catch (error) { console.error("Check-in timer:", error); }
-}, 1000);
+setInterval(()=>{try{updateCheckinTimer();}catch(error){console.error("Check-in timer:",error);}},1000);
