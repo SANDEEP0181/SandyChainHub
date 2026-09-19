@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Goalkeeper | TON Mini-App</title>
+  <meta name="description" content="Goalkeeper — SandyChainHub's TON Mini-App starter.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app">
+    <header>
+      <div class="brand">
+        <div class="logo">GK</div>
+        <div>
+          <h1>Goalkeeper</h1>
+          <p>TON Mini-App by SandyChainHub</p>
+        </div>
+      </div>
+      <button id="connectBtn" class="primary">Connect TON Wallet</button>
+    </header>
+
+    <section class="hero">
+      <span class="badge">TON TESTNET • DEVELOPMENT</span>
+      <h2>SandyChainHub का TON Mini-App</h2>
+      <p>पहला चरण: सुरक्षित wallet connection और Mini-App foundation. अभी कोई real-money transaction नहीं।</p>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <span>WALLET</span>
+        <h3 id="walletStatus">Wallet connected नहीं है</h3>
+        <p id="walletAddress">Testnet wallet connect करने के बाद address यहाँ दिखेगा।</p>
+      </article>
+
+      <article class="card">
+        <span>NETWORK</span>
+        <h3>TON Testnet</h3>
+        <p>Development और testing के लिए। Mainnet functionality बाद में जोड़ी जाएगी।</p>
+      </article>
+
+      <article class="card">
+        <span>PROJECT</span>
+        <h3>Goalkeeper</h3>
+        <p>SandyChainHub ecosystem के लिए TON-focused Mini-App foundation.</p>
+      </article>
+    </section>
+
+    <section class="card roadmap">
+      <span>ROADMAP</span>
+      <ol>
+        <li>Mini-App foundation</li>
+        <li>TON Connect wallet connection</li>
+        <li>Testnet verification</li>
+        <li>Telegram Mini-App integration</li>
+        <li>Future TON features</li>
+      </ol>
+    </section>
+
+    <footer>Goalkeeper • Built with SandyChainHub • Testnet only</footer>
+  </main>
+
+  <script src="https://unpkg.com/@tonconnect/ui@2.3.0/dist/tonconnect-ui.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
