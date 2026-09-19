@@ -194,7 +194,6 @@ async function ensureTonConnect() {
   try {
     tonConnectUI = new window.TON_CONNECT_UI.TonConnectUI({
       manifestUrl: TON_MANIFEST_URL,
-      buttonRootId: "tonConnectRoot",
       uiPreferences: { theme: "DARK" },
       analytics: { mode: "off" }
     });
@@ -229,7 +228,7 @@ async function ensureTonConnect() {
 }
 
 async function openWalletSelector() {
-  const button = tonConnectFallback || connectBtn;
+  const button = connectBtn;
   if (button) button.disabled = true;
   setText(walletStatus, "Opening TON wallet selector...");
 
@@ -635,6 +634,7 @@ if (shareGoalkeeperBtn) shareGoalkeeperBtn.addEventListener("click", () => {
 });
 
 bindWalletButtons();
+if (connectBtn) connectBtn.hidden = false;
 updateAuthButtons();
 updateWalletUI();
 updateRewards();
