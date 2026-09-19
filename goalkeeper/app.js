@@ -3,10 +3,15 @@ const walletStatus = document.getElementById("walletStatus");
 const walletAddress = document.getElementById("walletAddress");
 const telegramStatus = document.getElementById("telegramStatus");
 const telegramUser = document.getElementById("telegramUser");
+const identityStatus = document.getElementById("identityStatus");
+const identityMessage = document.getElementById("identityMessage");
+const linkWalletBtn = document.getElementById("linkWalletBtn");
 
 const TELEGRAM_VALIDATE_URL = "https://sandy-chain-hub.vercel.app/api/telegram/validate";
 
 let tonConnectUI;
+let telegramInitData = "";
+let telegramVerified = false;
 
 function shortAddress(address) {
   if (!address) return "";
@@ -38,6 +43,9 @@ async function validateTelegramSession(tg) {
     }
 
     telegramStatus.textContent = "Telegram verified";
+    telegramInitData = tg.initData;
+    telegramVerified = true;
+    updateIdentityState();
     const user = result.user;
     if (user) {
       const name = [user.first_name, user.last_name].filter(Boolean).join(" ");
@@ -50,6 +58,48 @@ async function validateTelegramSession(tg) {
     console.error(error);
     telegramStatus.textContent = "Verification server unavailable";
     telegramUser.textContent = "Backend से connection नहीं हो पाया।";
+  }
+}
+
+function updateIdentityState() {
+  const connected = Boolean(tonConnectUI?.account?.address);
+  if (telegramVerified && connected) {
+    linkWalletBtn.disabled = false;
+    identityStatus.textContent = "Ready to link";
+    identityMessage.textContent = "Telegram verified और TON wallet connected है। Link TON Wallet दबाएं।";
+  } else {
+    linkWalletBtn.disabled = true;
+    identityStatus.textContent = "Wallet link pending";
+    identityMessage.textContent = telegramVerified ? "पहले TON wallet connect करें।" : "पहले Telegram verification पूरी होने दें।";
+  }
+}
+
+async function linkWalletIdentity() {
+  if (!telegramInitData || !telegramVerified || !tonConnectUI?.account?.address) return;
+  try {
+    linkWalletBtn.disabled = true;
+    identityStatus.textContent = "Linking...";
+    identityMessage.textContent = "Secure identity link तैयार हो रहा है...";
+    const response = await fetch("https://sandy-chain-hub.vercel.app/api/identity/link", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ initData: telegramInitData, walletAddress: tonConnectUI.account.address })
+    });
+    const result = await response.json();
+    if (!response.ok || !result.ok) {
+      identityStatus.textContent = "Link failed";
+      identityMessage.textContent = result.error || "Identity link नहीं बन पाया।";
+      return;
+    }
+    localStorage.setItem("goalkeeperIdentityLink", result.linkToken);
+    identityStatus.textContent = "Identity Linked";
+    identityMessage.textContent = "Telegram identity और TON wallet इस session के लिए linked हैं।";
+  } catch (error) {
+    console.error(error);
+    identityStatus.textContent = "Link server unavailable";
+    identityMessage.textContent = "Backend से connection नहीं हो पाया।";
+  } finally {
+    updateIdentityState();
   }
 }
 
@@ -94,12 +144,16 @@ async function initTonConnect() {
       walletStatus.textContent = "TON Wallet Connected";
       walletAddress.textContent = shortAddress(wallet.account.address);
       connectBtn.textContent = "Wallet Connected";
+      updateIdentityState();
     } else {
       walletStatus.textContent = "Wallet connected नहीं है";
       walletAddress.textContent = "Testnet wallet connect करने के बाद address यहाँ दिखेगा।";
       connectBtn.textContent = "Connect TON Wallet";
+      updateIdentityState();
     }
   });
+
+  linkWalletBtn.addEventListener("click", linkWalletIdentity);
 
   connectBtn.addEventListener("click", async () => {
     if (!tonConnectUI.account) {
