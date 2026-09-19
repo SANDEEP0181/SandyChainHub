@@ -134,7 +134,7 @@ function updateWalletUI() {
 
   if (connectBtn) connectBtn.hidden = connected;
   if (tonConnectFallback) {
-    tonConnectFallback.hidden = connected;
+    tonConnectFallback.hidden = true;
     tonConnectFallback.disabled = false;
   }
 
@@ -194,7 +194,9 @@ async function ensureTonConnect() {
   try {
     tonConnectUI = new window.TON_CONNECT_UI.TonConnectUI({
       manifestUrl: TON_MANIFEST_URL,
-      uiPreferences: { theme: "DARK" }
+      buttonRootId: "tonConnectRoot",
+      uiPreferences: { theme: "DARK" },
+      analytics: { mode: "off" }
     });
 
     tonConnectUI.onStatusChange((wallet) => {
