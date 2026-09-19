@@ -126,7 +126,7 @@ async function linkWalletIdentity() {
     localStorage.setItem("goalkeeperIdentityLink", result.linkToken);
     identityStatus.textContent = "Identity Linked";
     identityMessage.textContent = "Telegram identity और TON wallet इस session के लिए linked हैं।";
-    linkWalletBtn.disabled = false;
+    linkWalletBtn.disabled = true;
   } catch (error) {
     console.error(error);
     identityStatus.textContent = "Link server unavailable";
