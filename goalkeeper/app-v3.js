@@ -371,11 +371,17 @@ async function ensureTonConnect() {
   try {
     tonConnectUI = new window.TON_CONNECT_UI.TonConnectUI({
       manifestUrl: TON_MANIFEST_URL,
-      uiPreferences: { theme: "DARK" },
-      // Telegram Mini Apps need an explicit return URL.
-      // TON Connect uses this only in TMA mode.
-      twaReturnUrl: "https://t.me/GoalkeeperSandyBot"
+      uiPreferences: { theme: "DARK" }
     });
+    // TMA return strategy must be assigned through uiOptions.
+    // The TON Connect UI docs specify this setter for Telegram Mini Apps.
+    try {
+      tonConnectUI.uiOptions = {
+        twaReturnUrl: "https://t.me/GoalkeeperSandyBot"
+      };
+    } catch (error) {
+      console.warn("TON Connect TMA return strategy:", error);
+    }
 
     tonConnectUI.onStatusChange((wallet) => {
       connectedWalletAddress = wallet?.account?.address || "";
