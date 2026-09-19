@@ -1,4 +1,4 @@
-const connectBtn = document.getElementById("connectBtn");
+coconst connectBtn = document.getElementById("connectBtn");
 const loginBtn = document.getElementById("loginBtn");
 const logoutBtn = document.getElementById("logoutBtn");
 const walletStatus = document.getElementById("walletStatus");
