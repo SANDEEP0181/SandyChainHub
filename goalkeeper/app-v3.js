@@ -461,32 +461,19 @@ async function ensureTonConnect() {
 async function connectNewWallet() {
   const button = connectBtn;
   if (button) button.disabled = true;
-  setText(walletStatus, "Preparing a completely fresh wallet connection...");
+  setText(walletStatus, "Opening TON wallet selector...");
 
   try {
-    if (tonConnectUI) {
-      try { await tonConnectUI.disconnect(); } catch (error) {
-        console.warn("Old TON session cleanup:", error);
-      }
-      try {
-        if (typeof tonConnectUI.destroy === "function") tonConnectUI.destroy();
-      } catch (error) {
-        console.warn("TON Connect destroy:", error);
-      }
-    }
-
-    clearGoalkeeperTonConnectStorage();
-    tonConnectUI = null;
-    connectedWalletAddress = "";
-    updateWalletUI();
-
     const ui = await ensureTonConnect();
     if (!ui) throw new Error("TON Connect SDK unavailable.");
 
-    setText(walletStatus, "Select a new TON wallet...");
+    if (typeof ui.openModal !== "function") {
+      throw new Error("TON Connect wallet selector is unavailable.");
+    }
+
     await ui.openModal();
   } catch (error) {
-    console.error("Fresh TON wallet connection error:", error);
+    console.error("TON wallet connection error:", error);
     const message = error?.message || error?.name || "Unknown TON Connect error";
     setText(walletStatus, "TON Connect error: " + message);
   } finally {
