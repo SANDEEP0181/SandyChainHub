@@ -287,7 +287,8 @@ function awardMission(id, points) {
   saveMissions(missions);
   try {
     if (window.GoalkeeperBackend?.mission) {
-      window.GoalkeeperBackend.mission(id);
+      const backendId = id === "link" ? "identity" : id;
+      window.GoalkeeperBackend.mission(backendId);
     }
   } catch {}
   return true;
@@ -297,8 +298,7 @@ function updateAuthButtons() {
   const loggedIn = Boolean(telegramVerified);
 }
 
-function returnToDashboard() {
-  const dashboard = document.querySelector("#home");
+function returnToDashboard() {  const dashboard = document.querySelector("#home");
   if (!dashboard) return;
   setTimeout(() => {
     try { window.location.hash = "home"; } catch {}
@@ -597,8 +597,7 @@ async function loadProfileSession() {
     const result = await response.json();
     if (!response.ok || !result.ok) throw new Error(result.error || "Profile unavailable");
     setText(goalkeeperUserId, result.goalkeeperUserId || "—");
-    const user = result.user || {};
-    setText(profileTelegram, user.username ? "@" + user.username : ([user.first_name, user.last_name].filter(Boolean).join(" ") || "Telegram user"));
+    const user = result.user || {};    setText(profileTelegram, user.username ? "@" + user.username : ([user.first_name, user.last_name].filter(Boolean).join(" ") || "Telegram user"));
     setText(profileIdentity, "Telegram session verified by Goalkeeper backend.");
     setText(profileStatus, "Secure profile ready");
     setText(profileActivity, "Session activity: Profile loaded.");
@@ -621,7 +620,7 @@ async function linkWalletIdentity() {
     const result = await response.json();
     if (!response.ok || !result.ok) throw new Error(result.error || "Identity link failed");
     localStorage.setItem("goalkeeperIdentityLink", result.linkToken);
-    awardMission("link", 20);
+    awardMission("link", 15);
     setText(identityStatus, "Identity Linked");
     setText(identityMessage, "Telegram identity and TON wallet are linked for this session.");
     setText(profileLinkStatus, "Identity Linked");
@@ -661,7 +660,7 @@ function updateStreakUI(){
 
 function updateMissionUI(){
   const missions=getMissions(); const checked=localStorage.getItem(CHECKIN_KEY)===todayKey();
-  setText(missionOpen,missions.open?"Completed":"+5"); setText(missionConnect,missions.connect?"Completed":"+10"); setText(missionLink,missions.link?"Completed":"+20"); setText(missionCheckin,checked?"Completed":"+10");
+  setText(missionOpen,missions.open?"Completed":"+5"); setText(missionConnect,missions.connect?"Completed":"+10"); setText(missionLink,missions.link?"Completed":"+15"); setText(missionCheckin,checked?"Completed":"+10");
 }
 
 function updateAchievements(){
@@ -695,6 +694,14 @@ function handleDailyCheckin(){
   const today=todayKey(); const last=localStorage.getItem(STREAK_DATE_KEY); let streak=getStreak();
   if(last===previousDayKey())streak+=1; else if(last!==today)streak=1;
   localStorage.setItem(STREAK_KEY,String(streak)); localStorage.setItem(BEST_STREAK_KEY,String(Math.max(getBestStreak(),streak))); localStorage.setItem(STREAK_DATE_KEY,today); localStorage.setItem(CHECKIN_KEY,today);
+  const missions=getMissions();
+  missions.checkin={completedAt:new Date().toISOString(),points:10};
+  saveMissions(missions);
+  try {
+    if (window.GoalkeeperBackend?.mission) {
+      window.GoalkeeperBackend.mission("checkin");
+    }
+  } catch {}
   setText(profileActivity,"Session activity: Daily testnet check-in completed (+10 points)."); updateRewards();
 }
 
