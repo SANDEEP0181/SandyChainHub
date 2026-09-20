@@ -139,8 +139,6 @@ const connectBtn = $("connectBtn");
 const tonConnectFallback = $("tonConnectFallback");
 const disconnectBtn = $("disconnectBtn");
 const disconnectWalletBtn = $("disconnectWalletBtn");
-const loginBtn = $("loginBtn");
-const logoutBtn = $("logoutBtn");
 const walletStatus = $("walletStatus");
 const walletAddress = $("walletAddress");
 const telegramStatus = $("telegramStatus");
@@ -292,8 +290,6 @@ function awardMission(id, points) {
 
 function updateAuthButtons() {
   const loggedIn = Boolean(telegramVerified);
-  if (loginBtn) loginBtn.hidden = loggedIn;
-  if (logoutBtn) logoutBtn.hidden = !loggedIn;
 }
 
 function returnToDashboard() {
@@ -754,8 +750,6 @@ async function disconnectWallet(){
 }
 
 if(languageSelect)languageSelect.addEventListener("change",()=>applyLanguage(languageSelect.value));
-if(loginBtn)loginBtn.addEventListener("click",loginTelegram);
-if(logoutBtn)logoutBtn.addEventListener("click",logoutSession);
 if(disconnectBtn)disconnectBtn.addEventListener("click",disconnectWallet);
 if(disconnectWalletBtn)disconnectWalletBtn.addEventListener("click",disconnectWallet);
 if(linkWalletBtn)linkWalletBtn.addEventListener("click",linkWalletIdentity);
