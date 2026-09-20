@@ -251,10 +251,11 @@ function shortAddress(address) {
 }
 
 function getWalletAddress() {
-  // TON Connect UI is the source of truth. Never prefer a stale cached value.
+  // TON Connect is the only source of truth. Never fall back to a stale
+  // in-memory address after a disconnect or wallet switch.
   const live = tonConnectUI?.account?.address || tonConnectUI?.wallet?.account?.address || "";
-  if (live) connectedWalletAddress = live;
-  return rawTonAddressToFriendly(live || connectedWalletAddress || "");
+  connectedWalletAddress = live;
+  return rawTonAddressToFriendly(live);
 }
 
 function todayKey() {
@@ -304,7 +305,6 @@ async function handleWalletReturn() {
     const ui = tonConnectUI || await ensureTonConnect();
     if (ui) {
       try { await ui.connectionRestored; } catch {}
-      // Always replace the cached address with TON Connect's current account.
       connectedWalletAddress = ui.account?.address || ui.wallet?.account?.address || "";
       updateWalletUI();
     }
@@ -316,12 +316,6 @@ async function handleWalletReturn() {
     returnToDashboard();
   }
 }
-
-window.addEventListener("pageshow", () => { void handleWalletReturn(); });
-window.addEventListener("focus", () => { void handleWalletReturn(); });
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") void handleWalletReturn();
-});
 
 function updateWalletUI() {
   const address = getWalletAddress();
@@ -466,8 +460,10 @@ async function openWalletSelector() {
     await new Promise((resolve) => setTimeout(resolve, 250));
 
     setText(walletStatus, "Opening TON wallet selector...");
+    // Do not read the account again here. The modal may still be waiting for
+    // the user to choose a wallet. onStatusChange is the authoritative event
+    // for the newly selected wallet.
     await ui.openModal();
-    void handleWalletReturn();
   } catch (error) {
     console.error("TON wallet selector error:", error);
     const message = error?.message || error?.name || "Unknown TON Connect error";
@@ -695,6 +691,8 @@ async function disconnectWallet(){
     const ui=await ensureTonConnect();
     if(ui)await ui.disconnect();
 
+    // Clear every in-memory wallet reference immediately. The next connect
+    // must come only from TON Connect's new onStatusChange event.
     connectedWalletAddress="";
     telegramInitData="";
     telegramVerified=false;
