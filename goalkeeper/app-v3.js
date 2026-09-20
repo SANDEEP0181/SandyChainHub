@@ -826,36 +826,33 @@ renderNotes();renderLeaderboard();syncHeroPoints();captureReferral();renderRefer
   window.addEventListener("goalkeeper:mission",e=>addNote("Mission update",e.detail?.message||"Mission progress updated.","◆"));
 })();
 
-/* Referral actions fallback - keeps invite buttons working even if feature bindings are delayed. */
+/* Referral actions fallback v2 */
 (function(){
-  function getReferralUrl(){
+  function referralUrl(){
     let ref="";
-    try{ref=localStorage.getItem("goalkeeperReferralCode")||"";}catch{}
+    try{ref=localStorage.getItem("goalkeeperReferralCode")||"";}catch(e){}
     if(!/^GK-[A-Z0-9]{6}$/.test(ref)){
       ref="GK-"+Math.random().toString(36).slice(2,8).toUpperCase();
-      try{localStorage.setItem("goalkeeperReferralCode",ref)}catch{}
+      try{localStorage.setItem("goalkeeperReferralCode",ref)}catch(e){}
     }
     return location.origin+location.pathname+"?ref="+encodeURIComponent(ref);
   }
-  window.GoalkeeperCopyInvite=async function(){
-    const url=getReferralUrl();
-    const btn=document.getElementById("copyReferralBtn")||document.getElementById("referralCopyBtn");
-    try{
-      await navigator.clipboard.writeText(url);
-      if(btn){const old=btn.textContent;btn.textContent="Copied";setTimeout(()=>btn.textContent=old||"Copy Invite Link",1200)}
-      return true;
-    }catch{
-      try{window.prompt("Copy your Goalkeeper invite link:",url)}catch{}
-      return false;
-    }
+  window.GoalkeeperCopyInvite=function(){
+    var url=referralUrl(), ta=document.createElement("textarea");
+    ta.value=url;ta.setAttribute("readonly","");ta.style.position="fixed";ta.style.left="-9999px";
+    document.body.appendChild(ta);ta.select();ta.setSelectionRange(0,ta.value.length);
+    var ok=false;try{ok=document.execCommand("copy")}catch(e){}
+    document.body.removeChild(ta);
+    var btn=document.getElementById("copyReferralBtn")||document.getElementById("referralCopyBtn");
+    if(btn){var old=btn.textContent;btn.textContent=ok?"Copied ✓":"Copy failed";setTimeout(function(){btn.textContent=old||"Copy Invite Link"},1400)}
+    if(!ok){try{window.prompt("Copy this Goalkeeper invite link:",url)}catch(e){}}
+    return false;
   };
-  window.GoalkeeperShareInvite=async function(){
-    const url=getReferralUrl();
-    const text="Join me on Goalkeeper — TON + Telegram Mini-App by SandyChainHub.";
-    try{
-      if(navigator.share){await navigator.share({title:"Goalkeeper",text,url});return true;}
-    }catch(error){if(error?.name==="AbortError")return false;}
-    const tg="https://t.me/share/url?url="+encodeURIComponent(url)+"&text="+encodeURIComponent(text);
-    try{window.open(tg,"_blank","noopener,noreferrer");return true}catch{return false}
+  window.GoalkeeperShareInvite=function(){
+    var url=referralUrl();
+    var text="Join me on Goalkeeper — TON + Telegram Mini-App by SandyChainHub.";
+    var tg="https://t.me/share/url?url="+encodeURIComponent(url)+"&text="+encodeURIComponent(text);
+    try{location.href=tg}catch(e){try{window.open(tg,"_blank")}catch(x){}}
+    return false;
   };
 })();
