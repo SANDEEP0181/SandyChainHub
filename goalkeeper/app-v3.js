@@ -251,8 +251,10 @@ function shortAddress(address) {
 }
 
 function getWalletAddress() {
-  const raw = connectedWalletAddress || tonConnectUI?.account?.address || tonConnectUI?.wallet?.account?.address || "";
-  return rawTonAddressToFriendly(raw);
+  // TON Connect UI is the source of truth. Never prefer a stale cached value.
+  const live = tonConnectUI?.account?.address || tonConnectUI?.wallet?.account?.address || "";
+  if (live) connectedWalletAddress = live;
+  return rawTonAddressToFriendly(live || connectedWalletAddress || "");
 }
 
 function todayKey() {
@@ -302,7 +304,8 @@ async function handleWalletReturn() {
     const ui = tonConnectUI || await ensureTonConnect();
     if (ui) {
       try { await ui.connectionRestored; } catch {}
-      connectedWalletAddress = ui.account?.address || ui.wallet?.account?.address || connectedWalletAddress || "";
+      // Always replace the cached address with TON Connect's current account.
+      connectedWalletAddress = ui.account?.address || ui.wallet?.account?.address || "";
       updateWalletUI();
     }
   } catch (error) {
@@ -416,6 +419,7 @@ async function ensureTonConnect() {
     // and TON Connect requires the wallet and dApp network to match when a network is requested.
     // Goalkeeper currently uses the wallet only for connection/identity; no transaction is requested.
     tonConnectUI.onStatusChange((wallet) => {
+      // Wallet switch/connect/disconnect events are authoritative.
       connectedWalletAddress = wallet?.account?.address || "";
       updateWalletUI();
       if (connectedWalletAddress) {
