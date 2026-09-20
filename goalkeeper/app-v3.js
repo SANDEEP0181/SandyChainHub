@@ -285,6 +285,11 @@ function awardMission(id, points) {
   localStorage.setItem(POINTS_KEY, String(current + points));
   missions[id] = { completedAt: new Date().toISOString(), points };
   saveMissions(missions);
+  try {
+    if (window.GoalkeeperBackend?.mission) {
+      window.GoalkeeperBackend.mission(id);
+    }
+  } catch {}
   return true;
 }
 
@@ -708,28 +713,11 @@ async function disconnectWallet(){
     // Clear every in-memory wallet reference immediately. The next connect
     // must come only from TON Connect's new onStatusChange event.
     connectedWalletAddress="";
-    telegramInitData="";
-    telegramVerified=false;
 
+    // Wallet disconnect must not erase the user's testnet points,
+    // daily check-in, streak, or mission history.
     localStorage.removeItem("goalkeeperIdentityLink");
-    localStorage.removeItem(POINTS_KEY);
-    localStorage.removeItem(CHECKIN_KEY);
-    localStorage.removeItem(STREAK_KEY);
-    localStorage.removeItem(BEST_STREAK_KEY);
-    localStorage.removeItem(STREAK_DATE_KEY);
 
-    const missions=getMissions();
-    delete missions.telegram;
-    delete missions.connect;
-    delete missions.link;
-    saveMissions(missions);
-
-    setText(telegramStatus,"Logged out");
-    setText(telegramUser,"Telegram session cleared. Open Goalkeeper from Telegram to log in again.");
-    setText(profileStatus,"Profile pending");
-    setText(profileIdentity,"Complete Telegram verification to create your secure profile.");
-    setText(goalkeeperUserId,"—");
-    setText(profileTelegram,"—");
     setText(profileWallet,"Not connected");
     setText(profileLinkStatus,"—");
     setText(profileActivity,"Session activity: Wallet disconnected.");
