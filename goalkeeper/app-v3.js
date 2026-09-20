@@ -458,6 +458,9 @@ async function ensureTonConnect() {
   }
 }
 
+window.addEventListener("error",(event)=>{try{const el=document.getElementById("walletStatus");if(el&&!el.dataset.gkErrorShown){el.dataset.gkErrorShown="1";el.textContent="Goalkeeper JS error: "+(event?.message||"Unknown error");}}catch{}});
+window.addEventListener("unhandledrejection",(event)=>{try{const el=document.getElementById("walletStatus");if(el&&!el.dataset.gkErrorShown){el.dataset.gkErrorShown="1";el.textContent="Goalkeeper error: "+(event?.reason?.message||String(event?.reason||"Unknown error"));}}catch{}});
+
 async function connectNewWallet() {
   const button = connectBtn;
   if (button) button.disabled = true;
@@ -480,6 +483,9 @@ async function connectNewWallet() {
     if (button) button.disabled = false;
   }
 }
+
+window.GoalkeeperConnectWallet=connectNewWallet;
+window.GoalkeeperDailyCheckin=handleDailyCheckin;
 
 function bindWalletButtons() {
   if (tonConnectFallback && tonConnectFallback.dataset.bound !== "1") {
