@@ -448,12 +448,24 @@ async function ensureTonConnect() {
 async function openWalletSelector() {
   const button = connectBtn;
   if (button) button.disabled = true;
-  setText(walletStatus, "Opening TON wallet selector...");
+  setText(walletStatus, "Resetting wallet session...");
   try {
     const ui = await ensureTonConnect();
     if (!ui) throw new Error("TON Connect SDK unavailable.");
-    // Use the standard TON Connect modal so the SDK can choose the
-    // correct Tonkeeper deep-link/return target for this device.
+
+    // IMPORTANT: clear TON Connect's persisted connection before opening
+    // the selector. Otherwise TON Connect can restore the previously
+    // selected wallet and the dApp keeps showing that old account.
+    try { await ui.disconnect(); } catch (error) {
+      console.warn("TON Connect previous session cleanup:", error);
+    }
+    connectedWalletAddress = "";
+    updateWalletUI();
+
+    // Give the SDK a moment to finish its disconnect event/storage cleanup.
+    await new Promise((resolve) => setTimeout(resolve, 250));
+
+    setText(walletStatus, "Opening TON wallet selector...");
     await ui.openModal();
     void handleWalletReturn();
   } catch (error) {
