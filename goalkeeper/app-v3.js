@@ -244,18 +244,23 @@ function rawTonAddressToFriendly(address) {
   }
 }
 
-function shortAddress(address) {
+function friendlyWalletAddress(address) {
   if (!address) return "";
-  const friendly = rawTonAddressToFriendly(address);
+  return rawTonAddressToFriendly(address);
+}
+
+function shortAddress(address) {
+  const friendly = friendlyWalletAddress(address);
+  if (!friendly) return "";
   return friendly.length > 18 ? friendly.slice(0, 10) + "..." + friendly.slice(-8) : friendly;
 }
 
 function getWalletAddress() {
-  // TON Connect is the only source of truth. Never fall back to a stale
-  // in-memory address after a disconnect or wallet switch.
+  // TON Connect is the only source of truth. All Goalkeeper UI uses the
+  // same friendly UQ/EQ-style address returned by this function.
   const live = tonConnectUI?.account?.address || tonConnectUI?.wallet?.account?.address || "";
   connectedWalletAddress = live;
-  return rawTonAddressToFriendly(live);
+  return friendlyWalletAddress(live);
 }
 
 function todayKey() {
@@ -506,7 +511,7 @@ function bindWalletButtons() {
 
 function updateProfileWallet() {
   const address = getWalletAddress();
-  setText(profileWallet, address ? rawTonAddressToFriendly(address) : "Not connected");
+  setText(profileWallet, address ? address : "Not connected");
   setText(profileLinkStatus, localStorage.getItem("goalkeeperIdentityLink") ? "Identity Linked" : "Not linked");
 }
 
