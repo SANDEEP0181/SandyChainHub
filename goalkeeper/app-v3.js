@@ -818,6 +818,7 @@ try{applyTheme(localStorage.getItem(THEME_KEY)||"dark");}catch{applyTheme("dark"
   function safeGet(k,d){try{return localStorage.getItem(k)||d}catch{return d}}
   function safeSet(k,v){try{localStorage.setItem(k,v)}catch{}}
   function currentPoints(){const el=$("pointsTotal");const m=(el?.textContent||"0").match(/\d+/);return m?Number(m[0]):0}
+  function syncHeroPoints(){const el=$("heroPointsTotal");if(el)el.textContent=String(currentPoints())}
   function currentUser(){return ($("goalkeeperUserId")?.textContent||"Goalkeeper").trim()||"Goalkeeper"}
   function addNote(title,message,icon="✦"){if(safeGet(GK_STORE.notify,"on")!=="on")return;let arr=[];try{arr=JSON.parse(safeGet(GK_STORE.notes,"[]"))||[]}catch{};arr.unshift({title,message,icon,time:new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})});safeSet(GK_STORE.notes,JSON.stringify(arr.slice(0,12)));renderNotes()}
   function renderNotes(){const box=$("notificationList");if(!box)return;let arr=[];try{arr=JSON.parse(safeGet(GK_STORE.notes,"[]"))||[]}catch{};if(!arr.length){box.innerHTML='<div class="empty-notification">No new activity yet.</div>';return}box.innerHTML=arr.map(n=>'<div class="notification-item"><span class="notification-icon">'+n.icon+'</span><div><strong>'+String(n.title).replace(/[<>]/g,"")+'</strong><small>'+String(n.message).replace(/[<>]/g,"")+'</small></div><span class="notification-time">'+n.time+'</span></div>').join("")}
@@ -833,8 +834,8 @@ try{applyTheme(localStorage.getItem(THEME_KEY)||"dark");}catch{applyTheme("dark"
     $("clearNotificationsBtn")?.addEventListener("click",()=>{safeSet(GK_STORE.notes,"[]");renderNotes()});
     $("copyReferralBtn")?.addEventListener("click",async()=>{try{await navigator.clipboard.writeText(ref);addNote("Referral code copied","Your Goalkeeper invite code is ready.","↗")}catch{}});
     $("shareGoalkeeperBtn")?.addEventListener("click",()=>{const text="Join me on Goalkeeper — a TON + Telegram Mini-App by SandyChainHub.";const url=location.href;const tg="https://t.me/share/url?url="+encodeURIComponent(url)+"&text="+encodeURIComponent(text);window.open(tg,"_blank","noopener");addNote("Goalkeeper shared","Invite link opened in Telegram.","↗")});
-    renderNotes();renderLeaderboard();
-    setInterval(renderLeaderboard,1500);
+    renderNotes();renderLeaderboard();syncHeroPoints();
+    setInterval(renderLeaderboard,1500);setInterval(syncHeroPoints,1000);
     setTimeout(()=>addNote("Goalkeeper ready","Your dashboard is active.","✓"),1200);
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",initFeaturePack);else initFeaturePack();
