@@ -216,7 +216,7 @@ let connectedWalletAddress = "";
 function setText(el, value) { if (el) el.textContent = translate(value); }
 
 function rawTonAddressToFriendly(address) {
-  if (!address || !/^-?\\d+:[0-9a-fA-F]{64}$/.test(address)) return address || "";
+  if (!address || !/^-?\d+:[0-9a-fA-F]{64}$/.test(address)) return address || "";
   try {
     const parts = address.split(":");
     const workchain = Number(parts[0]);
@@ -238,7 +238,7 @@ function rawTonAddressToFriendly(address) {
     out[35] = crc & 0xff;
     let binary = "";
     for (let i = 0; i < out.length; i++) binary += String.fromCharCode(out[i]);
-    return btoa(binary).replace(/\\+/g, "-").replace(/\\//g, "_").replace(/=+$/, "");
+    return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
   } catch {
     return address;
   }
