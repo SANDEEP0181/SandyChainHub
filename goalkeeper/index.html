@@ -17,7 +17,7 @@
       <div id="connectedWalletChip" class="connected-wallet-chip" hidden><span class="wallet-live-dot"></span><span><small>TON WALLET</small><strong id="connectedWalletAddress">—</strong></span></div>
       <div class="account-actions"><button id="themeToggleBtn" class="secondary compact theme-toggle" type="button" aria-label="Toggle light and dark theme" title="Theme"><span id="themeIcon">☀</span><span id="themeLabel">Light</span></button>
         <select id="languageSelect" class="language-select" aria-label="Language" title="Language"><option value="en">EN</option><option value="hi">HI</option><option value="es">ES</option><option value="fr">FR</option><option value="zh">中文</option><option value="ja">日本語</option><option value="de">DE</option><option value="pt">PT</option><option value="ko">한국어</option><option value="ar">العربية</option><option value="ru">RU</option><option value="bn">বাংলা</option></select>
-        <button id="connectBtn" class="primary compact" type="button">Connect TON Wallet</button>
+        <button id="connectBtn" class="primary compact" type="button" onclick="window.GoalkeeperConnectWallet&&window.GoalkeeperConnectWallet()">Connect TON Wallet</button>
         <button id="disconnectBtn" class="secondary compact" type="button" hidden>Disconnect Wallet</button>
       </div>
     </header>
@@ -37,7 +37,7 @@
       <article class="card telegram-card"><div class="card-top"><span>TELEGRAM</span><span class="tg-mark">TG</span></div><h3 id="telegramStatus">Browser mode</h3><p id="telegramUser">Open Goalkeeper inside Telegram to view user and session information.</p></article>
       <article class="card identity-card"><div class="card-top"><span>IDENTITY</span><span class="shield">◆</span></div><h3 id="identityStatus">Wallet link pending</h3><p id="identityMessage">Link your Telegram identity after connecting a TON wallet.</p><button id="linkWalletBtn" class="primary full" type="button" disabled>Link TON Wallet</button></article>
       <article class="card support-card"><div class="card-top"><span>SUPPORT</span><span class="shield">?</span></div><h3>Support</h3><div class="support-actions"><a class="support-button support-link" href="https://t.me/GoalkeeperHubBot" target="_blank" rel="noopener noreferrer">Telegram</a><a class="support-button support-link" href="mailto:sandyvibe1982@gmail.com">Mail</a></div></article>
-      <article class="card reward-card" id="rewards"><div class="card-top"><span>REWARDS</span><span class="star">✦</span></div><div class="reward-number" id="rewardPoints">0 Points</div><p id="pointsMessage">Testnet-only activity points. No real-money reward is issued.</p><button id="dailyCheckinBtn" class="primary full" type="button">Daily Check-in</button><div id="checkinTimer" class="checkin-timer" hidden>Next check-in in <strong id="checkinCountdown">—</strong></div><div class="mini-status"><span>Telegram <b id="missionTelegram">Pending</b></span><span>Wallet <b id="missionWallet">Pending</b></span><span>Identity <b id="missionIdentity">Pending</b></span><span>Check-in <b id="missionCheckin">Available</b></span></div></article>
+      <article class="card reward-card" id="rewards"><div class="card-top"><span>REWARDS</span><span class="star">✦</span></div><div class="reward-number" id="rewardPoints">0 Points</div><p id="pointsMessage">Testnet-only activity points. No real-money reward is issued.</p><button id="dailyCheckinBtn" class="primary full" type="button" onclick="window.GoalkeeperDailyCheckin&&window.GoalkeeperDailyCheckin()">Daily Check-in</button><div id="checkinTimer" class="checkin-timer" hidden>Next check-in in <strong id="checkinCountdown">—</strong></div><div class="mini-status"><span>Telegram <b id="missionTelegram">Pending</b></span><span>Wallet <b id="missionWallet">Pending</b></span><span>Identity <b id="missionIdentity">Pending</b></span><span>Check-in <b id="missionCheckin">Available</b></span></div></article>
     </section>
     <section class="section" id="collection-achievements"><div class="section-head"><div><span>COLLECTION</span><h2>Achievements</h2></div></div><article class="card achievement-card"><div class="badge-row"><div><span class="badge-icon">◆</span><small>FIRST DEFENDER</small><b id="achievementOpen">Locked</b></div><div><span class="badge-icon">◈</span><small>WALLET GUARD</small><b id="achievementWallet">Locked</b></div><div><span class="badge-icon">⬢</span><small>IDENTITY SHIELD</small><b id="achievementIdentity">Locked</b></div><div><span class="badge-icon">✦</span><small>DAILY KEEPER</small><b id="achievementCheckin">Locked</b></div></div><button id="shareGoalkeeperBtn" class="secondary share-btn" type="button">Share Goalkeeper</button></article></section>
 
@@ -51,6 +51,6 @@
   <script src="https://telegram.org/js/telegram-web-app.js?63"></script>
   <script src="https://unpkg.com/@tonconnect/ui@3.0.2/dist/tonconnect-ui.min.js"></script>
   <script src="backend-sync.js?v=20260920-redis1"></script>
-  <script defer src="app-v3.js?v=20260920-walletfix"></script>
+  <script defer src="app-v3.js?v=20260920-finalfix"></script>
 </body>
 </html>
