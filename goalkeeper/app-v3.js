@@ -825,3 +825,37 @@ renderNotes();renderLeaderboard();syncHeroPoints();captureReferral();renderRefer
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",initFeaturePack);else initFeaturePack();
   window.addEventListener("goalkeeper:mission",e=>addNote("Mission update",e.detail?.message||"Mission progress updated.","◆"));
 })();
+
+/* Referral actions fallback - keeps invite buttons working even if feature bindings are delayed. */
+(function(){
+  function getReferralUrl(){
+    let ref="";
+    try{ref=localStorage.getItem("goalkeeperReferralCode")||"";}catch{}
+    if(!/^GK-[A-Z0-9]{6}$/.test(ref)){
+      ref="GK-"+Math.random().toString(36).slice(2,8).toUpperCase();
+      try{localStorage.setItem("goalkeeperReferralCode",ref)}catch{}
+    }
+    return location.origin+location.pathname+"?ref="+encodeURIComponent(ref);
+  }
+  window.GoalkeeperCopyInvite=async function(){
+    const url=getReferralUrl();
+    const btn=document.getElementById("copyReferralBtn")||document.getElementById("referralCopyBtn");
+    try{
+      await navigator.clipboard.writeText(url);
+      if(btn){const old=btn.textContent;btn.textContent="Copied";setTimeout(()=>btn.textContent=old||"Copy Invite Link",1200)}
+      return true;
+    }catch{
+      try{window.prompt("Copy your Goalkeeper invite link:",url)}catch{}
+      return false;
+    }
+  };
+  window.GoalkeeperShareInvite=async function(){
+    const url=getReferralUrl();
+    const text="Join me on Goalkeeper — TON + Telegram Mini-App by SandyChainHub.";
+    try{
+      if(navigator.share){await navigator.share({title:"Goalkeeper",text,url});return true;}
+    }catch(error){if(error?.name==="AbortError")return false;}
+    const tg="https://t.me/share/url?url="+encodeURIComponent(url)+"&text="+encodeURIComponent(text);
+    try{window.open(tg,"_blank","noopener,noreferrer");return true}catch{return false}
+  };
+})();
