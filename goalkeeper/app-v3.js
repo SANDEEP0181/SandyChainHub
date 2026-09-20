@@ -397,8 +397,12 @@ async function ensureTonConnect() {
     return null;
   }
   try {
+    // NEW Goalkeeper wallet connector:
+    // never restore the previous TON Connect session automatically.
+    // The user must explicitly choose a wallet from the picker.
     tonConnectUI = new window.TON_CONNECT_UI.TonConnectUI({
       manifestUrl: TON_MANIFEST_URL,
+      restoreConnection: false,
       uiPreferences: { theme: "DARK" }
     });
     // Telegram Mini App return URL uses the TON Connect TMA return strategy.
@@ -427,8 +431,7 @@ async function ensureTonConnect() {
       }
     });
 
-    try { await tonConnectUI.connectionRestored; } catch (error) { console.warn("TON connection restore:", error); }
-    connectedWalletAddress = tonConnectUI.account?.address || tonConnectUI.wallet?.account?.address || "";
+    connectedWalletAddress = "";
     updateWalletUI();
     return tonConnectUI;
   } catch (error) {
@@ -439,48 +442,43 @@ async function ensureTonConnect() {
   }
 }
 
-async function openWalletSelector() {
+async function connectNewWallet() {
   const button = connectBtn;
   if (button) button.disabled = true;
-  setText(walletStatus, "Resetting wallet session...");
+  setText(walletStatus, "Opening new wallet connection...");
+
   try {
     const ui = await ensureTonConnect();
     if (!ui) throw new Error("TON Connect SDK unavailable.");
 
-    // IMPORTANT: clear TON Connect's persisted connection before opening
-    // the selector. Otherwise TON Connect can restore the previously
-    // selected wallet and the dApp keeps showing that old account.
+    // Make absolutely sure any old session is gone before the new picker.
     try { await ui.disconnect(); } catch (error) {
-      console.warn("TON Connect previous session cleanup:", error);
+      console.warn("Old TON session cleanup:", error);
     }
+
     connectedWalletAddress = "";
     updateWalletUI();
 
-    // Give the SDK a moment to finish its disconnect event/storage cleanup.
-    await new Promise((resolve) => setTimeout(resolve, 250));
-
-    setText(walletStatus, "Opening TON wallet selector...");
-    // Do not read the account again here. The modal may still be waiting for
-    // the user to choose a wallet. onStatusChange is the authoritative event
-    // for the newly selected wallet.
+    // Open the picker. The selected wallet is accepted only through
+    // onStatusChange(), which is the authoritative new connection event.
     await ui.openModal();
   } catch (error) {
-    console.error("TON wallet selector error:", error);
+    console.error("New TON wallet connection error:", error);
     const message = error?.message || error?.name || "Unknown TON Connect error";
     setText(walletStatus, "TON Connect error: " + message);
   } finally {
-    if (button && !getWalletAddress()) button.disabled = false;
+    if (button) button.disabled = false;
   }
 }
 
 function bindWalletButtons() {
   if (tonConnectFallback && tonConnectFallback.dataset.bound !== "1") {
     tonConnectFallback.dataset.bound = "1";
-    tonConnectFallback.addEventListener("click", openWalletSelector);
+    tonConnectFallback.addEventListener("click", connectNewWallet);
   }
   if (connectBtn && connectBtn.dataset.bound !== "1") {
     connectBtn.dataset.bound = "1";
-    connectBtn.addEventListener("click", openWalletSelector);
+    connectBtn.addEventListener("click", connectNewWallet);
   }
 }
 
