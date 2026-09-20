@@ -227,7 +227,7 @@ function rawTonAddressToFriendly(address) {
     bytes[0] = 0x51;
     bytes[1] = workchain < 0 ? workchain + 256 : workchain;
     for (let i = 0; i < 32; i++) bytes[i + 2] = parseInt(hashHex.slice(i * 2, i * 2 + 2), 16);
-    let crc = 0xffff;
+    let crc = 0;
     for (let i = 0; i < 34; i++) {
       crc ^= bytes[i] << 8;
       for (let j = 0; j < 8; j++) crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) & 0xffff : (crc << 1) & 0xffff;
@@ -251,7 +251,8 @@ function shortAddress(address) {
 }
 
 function getWalletAddress() {
-  return connectedWalletAddress || tonConnectUI?.account?.address || tonConnectUI?.wallet?.account?.address || "";
+  const raw = connectedWalletAddress || tonConnectUI?.account?.address || tonConnectUI?.wallet?.account?.address || "";
+  return rawTonAddressToFriendly(raw);
 }
 
 function todayKey() {
