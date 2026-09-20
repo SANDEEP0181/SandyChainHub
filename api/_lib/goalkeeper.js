@@ -48,8 +48,10 @@ export function validateTelegramInitData(initData, botToken) {
 }
 
 export async function redis(command) {
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  // Vercel's Upstash integration may expose either the UPSTASH_* names
+  // or the KV_* names. Support both without requiring secret duplication.
+  const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
   if (!url || !token) throw new Error("Goalkeeper storage is not configured");
 
   const response = await fetch(url, {
