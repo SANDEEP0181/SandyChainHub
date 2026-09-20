@@ -792,3 +792,20 @@ window.addEventListener("load",()=>{
 });
 
 setInterval(()=>{try{updateCheckinTimer();}catch(error){console.error("Check-in timer:",error);}},1000);
+
+
+/* Theme preference */
+const THEME_KEY="goalkeeperTheme";
+function applyTheme(theme){
+  const light=theme==="light";
+  document.body.classList.toggle("light-theme",light);
+  if(themeIcon)themeIcon.textContent=light?"☾":"☀";
+  if(themeLabel)themeLabel.textContent=light?"Dark":"Light";
+  if(themeToggleBtn)themeToggleBtn.setAttribute("aria-label",light?"Switch to dark theme":"Switch to light theme");
+  try{localStorage.setItem(THEME_KEY,light?"light":"dark");}catch{}
+}
+const themeToggleBtn=document.getElementById("themeToggleBtn");
+const themeIcon=document.getElementById("themeIcon");
+const themeLabel=document.getElementById("themeLabel");
+if(themeToggleBtn)themeToggleBtn.addEventListener("click",()=>applyTheme(document.body.classList.contains("light-theme")?"dark":"light"));
+try{applyTheme(localStorage.getItem(THEME_KEY)||"dark");}catch{applyTheme("dark");}
