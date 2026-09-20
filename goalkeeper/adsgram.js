@@ -1,6 +1,6 @@
 (function(){
   "use strict";
-  const BLOCK_ID = "48887";
+  const BLOCK_ID = "48894";
   const REWARD_XP = 10;
   let controller = null;
   let initialized = false;
