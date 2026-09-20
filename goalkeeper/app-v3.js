@@ -215,9 +215,39 @@ let connectedWalletAddress = "";
 
 function setText(el, value) { if (el) el.textContent = translate(value); }
 
+function rawTonAddressToFriendly(address) {
+  if (!address || !/^-?\\d+:[0-9a-fA-F]{64}$/.test(address)) return address || "";
+  try {
+    const parts = address.split(":");
+    const workchain = Number(parts[0]);
+    const hashHex = parts[1];
+    if (workchain < -128 || workchain > 127) return address;
+    const bytes = new Uint8Array(34);
+    // Non-bounceable, user-friendly TON address (UQ...).
+    bytes[0] = 0x51;
+    bytes[1] = workchain < 0 ? workchain + 256 : workchain;
+    for (let i = 0; i < 32; i++) bytes[i + 2] = parseInt(hashHex.slice(i * 2, i * 2 + 2), 16);
+    let crc = 0xffff;
+    for (let i = 0; i < 34; i++) {
+      crc ^= bytes[i] << 8;
+      for (let j = 0; j < 8; j++) crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) & 0xffff : (crc << 1) & 0xffff;
+    }
+    const out = new Uint8Array(36);
+    out.set(bytes);
+    out[34] = (crc >> 8) & 0xff;
+    out[35] = crc & 0xff;
+    let binary = "";
+    for (let i = 0; i < out.length; i++) binary += String.fromCharCode(out[i]);
+    return btoa(binary).replace(/\\+/g, "-").replace(/\\//g, "_").replace(/=+$/, "");
+  } catch {
+    return address;
+  }
+}
+
 function shortAddress(address) {
   if (!address) return "";
-  return address.length > 18 ? address.slice(0, 10) + "..." + address.slice(-8) : address;
+  const friendly = rawTonAddressToFriendly(address);
+  return friendly.length > 18 ? friendly.slice(0, 10) + "..." + friendly.slice(-8) : friendly;
 }
 
 function getWalletAddress() {
@@ -443,7 +473,7 @@ function bindWalletButtons() {
 
 function updateProfileWallet() {
   const address = getWalletAddress();
-  setText(profileWallet, address ? shortAddress(address) : "Not connected");
+  setText(profileWallet, address ? rawTonAddressToFriendly(address) : "Not connected");
   setText(profileLinkStatus, localStorage.getItem("goalkeeperIdentityLink") ? "Identity Linked" : "Not linked");
 }
 
