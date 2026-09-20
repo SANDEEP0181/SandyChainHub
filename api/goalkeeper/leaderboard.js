@@ -1,4 +1,4 @@
-import { cors, redis } from "../_lib/goalkeeper.js";
+import { cors, redis, publicUserId } from "../_lib/goalkeeper.js";
 
 export default async function handler(req, res) {
   cors(res, "GET, OPTIONS");
@@ -6,11 +6,13 @@ export default async function handler(req, res) {
   if (req.method !== "GET") return res.status(405).json({ ok: false, error: "Method not allowed" });
 
   try {
+    const botToken = process.env.TELEGRAM_BOT_TOKEN;
+    if (!botToken) return res.status(500).json({ ok: false, error: "Server is not configured" });
     const raw = await redis(["ZREVRANGE", "gk:leaderboard", "0", "19", "WITHSCORES"]);
     const entries = [];
     for (let i = 0; i < raw.length; i += 2) {
       entries.push({
-        telegramUserId: String(raw[i]),
+        goalkeeperUserId: publicUserId(String(raw[i]), botToken),
         points: Number(raw[i + 1])
       });
     }
