@@ -809,3 +809,34 @@ const themeIcon=document.getElementById("themeIcon");
 const themeLabel=document.getElementById("themeLabel");
 if(themeToggleBtn)themeToggleBtn.addEventListener("click",()=>applyTheme(document.body.classList.contains("light-theme")?"dark":"light"));
 try{applyTheme(localStorage.getItem(THEME_KEY)||"dark");}catch{applyTheme("dark");}
+
+
+/* Goalkeeper Feature Pack v1 */
+(function(){
+  const GK_STORE={notes:"goalkeeperNotifications",notify:"goalkeeperNotificationsEnabled",sound:"goalkeeperSoundEnabled",ref:"goalkeeperReferralCode"};
+  const $=id=>document.getElementById(id);
+  function safeGet(k,d){try{return localStorage.getItem(k)||d}catch{return d}}
+  function safeSet(k,v){try{localStorage.setItem(k,v)}catch{}}
+  function currentPoints(){const el=$("pointsTotal");const m=(el?.textContent||"0").match(/\d+/);return m?Number(m[0]):0}
+  function currentUser(){return ($("goalkeeperUserId")?.textContent||"Goalkeeper").trim()||"Goalkeeper"}
+  function addNote(title,message,icon="✦"){if(safeGet(GK_STORE.notify,"on")!=="on")return;let arr=[];try{arr=JSON.parse(safeGet(GK_STORE.notes,"[]"))||[]}catch{};arr.unshift({title,message,icon,time:new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})});safeSet(GK_STORE.notes,JSON.stringify(arr.slice(0,12)));renderNotes()}
+  function renderNotes(){const box=$("notificationList");if(!box)return;let arr=[];try{arr=JSON.parse(safeGet(GK_STORE.notes,"[]"))||[]}catch{};if(!arr.length){box.innerHTML='<div class="empty-notification">No new activity yet.</div>';return}box.innerHTML=arr.map(n=>'<div class="notification-item"><span class="notification-icon">'+n.icon+'</span><div><strong>'+String(n.title).replace(/[<>]/g,"")+'</strong><small>'+String(n.message).replace(/[<>]/g,"")+'</small></div><span class="notification-time">'+n.time+'</span></div>').join("")}
+  function renderLeaderboard(){const rows=$("leaderboardRows"),me=$("leaderboardMe"),rank=$("myRank");if(!rows)return;const p=currentPoints(),name=currentUser();const base=[{n:"TON Guardian",p:980},{n:"Chain Defender",p:760},{n:"Keeper Pro",p:540},{n:"Web3 Sentinel",p:320}];const all=base.concat([{n:name,p}]).sort((a,b)=>b.p-a.p);const my=all.findIndex(x=>x.n===name&&x.p===p)+1;rank.textContent="#"+my;me.textContent=name+" • "+p+" XP";rows.innerHTML=all.slice(0,5).map((x,i)=>'<div class="leader-row"><span class="leader-rank">#'+(i+1)+'</span><div><strong>'+String(x.n).replace(/[<>]/g,"")+'</strong><small>Goalkeeper</small></div><b>'+x.p+' XP</b></div>').join("")}
+  function setBtn(id,on,onText,offText){const b=$(id);if(b)b.textContent=on?onText:offText}
+  function initFeaturePack(){
+    const nt=safeGet(GK_STORE.notify,"on")==="on", snd=safeGet(GK_STORE.sound,"off")==="on";
+    setBtn("notificationToggle",nt,"Enabled","Disabled");setBtn("soundToggle",snd,"On","Off");
+    const ref=safeGet(GK_STORE.ref,"GK-"+Math.random().toString(36).slice(2,8).toUpperCase());safeSet(GK_STORE.ref,ref);if($("referralCode"))$("referralCode").textContent=ref;
+    $("settingsThemeBtn")?.addEventListener("click",()=>{const b=$("themeToggleBtn");b?.click()});
+    $("notificationToggle")?.addEventListener("click",()=>{const on=safeGet(GK_STORE.notify,"on")!=="on";safeSet(GK_STORE.notify,on?"on":"off");setBtn("notificationToggle",on,"Enabled","Disabled")});
+    $("soundToggle")?.addEventListener("click",()=>{const on=safeGet(GK_STORE.sound,"off")!=="on";safeSet(GK_STORE.sound,on?"on":"off");setBtn("soundToggle",on,"On","Off")});
+    $("clearNotificationsBtn")?.addEventListener("click",()=>{safeSet(GK_STORE.notes,"[]");renderNotes()});
+    $("copyReferralBtn")?.addEventListener("click",async()=>{try{await navigator.clipboard.writeText(ref);addNote("Referral code copied","Your Goalkeeper invite code is ready.","↗")}catch{}});
+    $("shareGoalkeeperBtn")?.addEventListener("click",()=>{const text="Join me on Goalkeeper — a TON + Telegram Mini-App by SandyChainHub.";const url=location.href;const tg="https://t.me/share/url?url="+encodeURIComponent(url)+"&text="+encodeURIComponent(text);window.open(tg,"_blank","noopener");addNote("Goalkeeper shared","Invite link opened in Telegram.","↗")});
+    renderNotes();renderLeaderboard();
+    setInterval(renderLeaderboard,1500);
+    setTimeout(()=>addNote("Goalkeeper ready","Your dashboard is active.","✓"),1200);
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",initFeaturePack);else initFeaturePack();
+  window.addEventListener("goalkeeper:mission",e=>addNote("Mission update",e.detail?.message||"Mission progress updated.","◆"));
+})();
