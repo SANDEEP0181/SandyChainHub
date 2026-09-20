@@ -826,13 +826,13 @@ try{applyTheme(localStorage.getItem(THEME_KEY)||"dark");}catch{applyTheme("dark"
   function initFeaturePack(){
     const nt=safeGet(GK_STORE.notify,"on")==="on", snd=safeGet(GK_STORE.sound,"off")==="on";
     setBtn("notificationToggle",nt,"Enabled","Disabled");setBtn("soundToggle",snd,"On","Off");
-    const ref=safeGet(GK_STORE.ref,"GK-"+Math.random().toString(36).slice(2,8).toUpperCase());safeSet(GK_STORE.ref,ref);if($("referralCode"))$("referralCode").textContent=ref;
+    const ref=safeGet(GK_STORE.ref,"GK-"+Math.random().toString(36).slice(2,8).toUpperCase());safeSet(GK_STORE.ref,ref);if($("referralCode"))$("referralCode").textContent=ref;const referralUrl=location.origin+location.pathname+"?ref="+encodeURIComponent(ref);if($("referralLink"))$("referralLink").textContent=referralUrl;
     $("settingsThemeBtn")?.addEventListener("click",()=>{const b=$("themeToggleBtn");b?.click()});
     $("notificationToggle")?.addEventListener("click",()=>{const on=safeGet(GK_STORE.notify,"on")!=="on";safeSet(GK_STORE.notify,on?"on":"off");setBtn("notificationToggle",on,"Enabled","Disabled")});
     $("soundToggle")?.addEventListener("click",()=>{const on=safeGet(GK_STORE.sound,"off")!=="on";safeSet(GK_STORE.sound,on?"on":"off");setBtn("soundToggle",on,"On","Off")});
     $("clearNotificationsBtn")?.addEventListener("click",()=>{safeSet(GK_STORE.notes,"[]");renderNotes()});
-    $("copyReferralBtn")?.addEventListener("click",async()=>{try{await navigator.clipboard.writeText(ref);addNote("Referral code copied","Your Goalkeeper invite code is ready.","↗")}catch{}});
-    $("shareGoalkeeperBtn")?.addEventListener("click",()=>{const text="Join me on Goalkeeper — a TON + Telegram Mini-App by SandyChainHub.";const url=location.href;const tg="https://t.me/share/url?url="+encodeURIComponent(url)+"&text="+encodeURIComponent(text);window.open(tg,"_blank","noopener");addNote("Goalkeeper shared","Invite link opened in Telegram.","↗")});
+    $("copyReferralBtn")?.addEventListener("click",async()=>{try{await navigator.clipboard.writeText(referralUrl);addNote("Referral link copied","Your direct Goalkeeper invite URL is ready to share.","↗")}catch{}});
+    $("shareGoalkeeperBtn")?.addEventListener("click",async()=>{const text="Join me on Goalkeeper — a TON + Telegram Mini-App by SandyChainHub.";const tg="https://t.me/share/url?url="+encodeURIComponent(referralUrl)+"&text="+encodeURIComponent(text);try{if(navigator.share){await navigator.share({title:"Goalkeeper",text,url:referralUrl});}else{window.open(tg,"_blank","noopener");}addNote("Goalkeeper shared","Your referral URL was shared.","↗")}catch(error){if(error?.name!=="AbortError"){window.open(tg,"_blank","noopener");addNote("Goalkeeper shared","Invite link opened in Telegram.","↗")}}});
     renderNotes();renderLeaderboard();syncHeroPoints();
     setInterval(renderLeaderboard,1500);setInterval(syncHeroPoints,1000);
     setTimeout(()=>addNote("Goalkeeper ready","Your dashboard is active.","✓"),1200);
