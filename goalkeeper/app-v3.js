@@ -389,6 +389,21 @@ async function loadTonConnectLibrary() {
   return ok;
 }
 
+function clearGoalkeeperTonConnectStorage() {
+  try {
+    [localStorage, sessionStorage].forEach((store) => {
+      const keys = [];
+      for (let i = 0; i < store.length; i += 1) {
+        const key = store.key(i);
+        if (key && /tonconnect/i.test(key)) keys.push(key);
+      }
+      keys.forEach((key) => store.removeItem(key));
+    });
+  } catch (error) {
+    console.warn("TON Connect storage cleanup:", error);
+  }
+}
+
 async function ensureTonConnect() {
   if (tonConnectUI) return tonConnectUI;
   const loaded = await loadTonConnectLibrary();
@@ -445,25 +460,32 @@ async function ensureTonConnect() {
 async function connectNewWallet() {
   const button = connectBtn;
   if (button) button.disabled = true;
-  setText(walletStatus, "Opening new wallet connection...");
+  setText(walletStatus, "Preparing a completely fresh wallet connection...");
 
   try {
-    const ui = await ensureTonConnect();
-    if (!ui) throw new Error("TON Connect SDK unavailable.");
-
-    // Make absolutely sure any old session is gone before the new picker.
-    try { await ui.disconnect(); } catch (error) {
-      console.warn("Old TON session cleanup:", error);
+    if (tonConnectUI) {
+      try { await tonConnectUI.disconnect(); } catch (error) {
+        console.warn("Old TON session cleanup:", error);
+      }
+      try {
+        if (typeof tonConnectUI.destroy === "function") tonConnectUI.destroy();
+      } catch (error) {
+        console.warn("TON Connect destroy:", error);
+      }
     }
 
+    clearGoalkeeperTonConnectStorage();
+    tonConnectUI = null;
     connectedWalletAddress = "";
     updateWalletUI();
 
-    // Open the picker. The selected wallet is accepted only through
-    // onStatusChange(), which is the authoritative new connection event.
+    const ui = await ensureTonConnect();
+    if (!ui) throw new Error("TON Connect SDK unavailable.");
+
+    setText(walletStatus, "Select a new TON wallet...");
     await ui.openModal();
   } catch (error) {
-    console.error("New TON wallet connection error:", error);
+    console.error("Fresh TON wallet connection error:", error);
     const message = error?.message || error?.name || "Unknown TON Connect error";
     setText(walletStatus, "TON Connect error: " + message);
   } finally {
