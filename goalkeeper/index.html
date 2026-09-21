@@ -57,7 +57,11 @@
   <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
   <script defer src="adsgram.js?v=20260920-48894fix"></script>
   <script src="https://unpkg.com/@tonconnect/ui@3.0.2/dist/tonconnect-ui.min.js"></script>
-  <script>
+  <style id="goalkeeper-wallet-hardening">
+    .topbar,.account-actions,#connectBtn{position:relative;z-index:9999;pointer-events:auto}
+    #connectBtn{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+</style>
+<script>
     // Goalkeeper wallet bootstrap: keep wallet connection independent of app-v3.js.
     (function () {
       window.GoalkeeperConnectWallet = window.GoalkeeperConnectWallet || async function () {
@@ -96,6 +100,20 @@
           if (button) button.disabled = false;
         }
       };
+      // Capture the click before any other page handler can interfere.
+      document.addEventListener("click", function (event) {
+        const target = event.target && event.target.closest ? event.target.closest("#connectBtn") : null;
+        if (!target || target.disabled) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        window.GoalkeeperConnectWallet();
+      }, true);
+      document.addEventListener("pointerup", function (event) {
+        const target = event.target && event.target.closest ? event.target.closest("#connectBtn") : null;
+        if (target && !target.disabled) {
+          target.focus({preventScroll:true});
+        }
+      }, true);
     })();
   </script>
   <script src="backend-sync.js?v=20260920-redis1"></script>
