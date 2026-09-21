@@ -143,6 +143,7 @@ const walletStatus = $("walletStatus");
 const walletAddress = $("walletAddress");
 const telegramStatus = $("telegramStatus");
 const telegramUser = $("telegramUser");
+const telegramOpenBtn = $("telegramOpenBtn");
 const identityStatus = $("identityStatus");
 const identityMessage = $("identityMessage");
 const linkWalletBtn = $("linkWalletBtn");
@@ -552,6 +553,7 @@ async function validateTelegramSession(tg) {
     telegramVerified = false;
     setText(telegramStatus, "Browser mode");
     setText(telegramUser, "Open Goalkeeper inside Telegram to view user and session information.");
+    if (telegramOpenBtn) telegramOpenBtn.hidden = false;
     updateAuthButtons(); updateIdentityState(); updateRewards(); return;
   }
   try {
@@ -566,7 +568,7 @@ async function validateTelegramSession(tg) {
     const name = [user?.first_name, user?.last_name].filter(Boolean).join(" ");
     const username = user?.username ? "@" + user.username : "";
     setText(telegramUser, [name, username].filter(Boolean).join(" • ") || "Telegram user verified");
-    awardMission("telegram", 0);
+    if (telegramOpenBtn) telegramOpenBtn.hidden = true;
     updateAuthButtons(); updateIdentityState(); updateRewards();
     await loadProfileSession();
   } catch (error) {
@@ -574,6 +576,7 @@ async function validateTelegramSession(tg) {
     telegramVerified = false;
     setText(telegramStatus, "Telegram verification failed");
     setText(telegramUser, error.message || "Backend verification failed.");
+    if (telegramOpenBtn) telegramOpenBtn.hidden = false;
     updateAuthButtons(); updateIdentityState(); updateRewards();
   }
 }
@@ -584,9 +587,10 @@ async function initTelegram() {
   if (!loaded && !tg) {
     setText(telegramStatus, "Browser mode");
     setText(telegramUser, "Goalkeeper is open in browser. Open it inside Telegram to activate secure verification.");
+    if (telegramOpenBtn) telegramOpenBtn.hidden = false;
     updateAuthButtons(); return;
   }
-  if (!tg) return;
+  if (!tg) { if (telegramOpenBtn) telegramOpenBtn.hidden = false; return; }
   try { tg.ready(); tg.expand(); } catch (error) { console.warn("Telegram ready:", error); }
   await validateTelegramSession(tg);
 }
@@ -773,7 +777,7 @@ if(explorerBtn)explorerBtn.addEventListener("click",()=>{
 });
 
 if(shareGoalkeeperBtn)shareGoalkeeperBtn.addEventListener("click",()=>{
-  const url="https://t.me/GoalkeeperHubBot"; const text="Try Goalkeeper — TON + Telegram Mini-App by SandyChainHub.";
+  const url="https://t.me/GoalkeeperHubBot/goalkeeper"; const text="Try Goalkeeper — TON + Telegram Mini-App by SandyChainHub.";
   const shareUrl="https://t.me/share/url?url="+encodeURIComponent(url)+"&text="+encodeURIComponent(text); const tg=window.Telegram?.WebApp;
   if(tg?.openTelegramLink)tg.openTelegramLink(shareUrl);else window.open(shareUrl,"_blank","noopener,noreferrer");
 });
