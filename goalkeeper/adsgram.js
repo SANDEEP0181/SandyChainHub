@@ -3,8 +3,9 @@
    cannot silently overwrite or corrupt the Telegram/Redis score. */
 (function(){
   "use strict";
-  const BLOCK_ID = "48894";
+  const BLOCK_ID = "48894"; // Declined block; retained only as a reference.
   const REWARD_XP = 10;
+  const ADS_ENABLED = false;
   const AD_XP_KEY = "goalkeeperAdXp";
   let controller = null;
   let initialized = false;
@@ -72,6 +73,11 @@
     const b = $("watchRewardAdBtn");
     if (!b) return;
     b.disabled = true;
+    if (!ADS_ENABLED) {
+      status("Reward ads are temporarily unavailable. Core Goalkeeper features remain available without ads.");
+      b.disabled = false;
+      return;
+    }
     status("Loading rewarded ad…");
     try {
       const sdkReady = await waitForSDK(5000);
@@ -94,6 +100,10 @@
 
   function init() {
     const b = $("watchRewardAdBtn");
+    if (b && !ADS_ENABLED) {
+      b.disabled = true;
+      b.textContent = "Reward Ad Temporarily Unavailable";
+    }
     if (b && !b.dataset.adsgramBound) {
       b.dataset.adsgramBound = "1";
       b.addEventListener("click", show);
