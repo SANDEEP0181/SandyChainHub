@@ -429,7 +429,7 @@ async function ensureTonConnect() {
     // Telegram Mini App return URL uses the TON Connect TMA return strategy.
     try {
       tonConnectUI.uiOptions = {
-        twaReturnUrl: "https://t.me/GoalkeeperSandyBot"
+        twaReturnUrl: "https://t.me/GoalkeeperHubBot"
       };
     } catch (error) {
       console.warn("TON Connect TMA return strategy:", error);
@@ -756,7 +756,7 @@ if(explorerBtn)explorerBtn.addEventListener("click",()=>{
 });
 
 if(shareGoalkeeperBtn)shareGoalkeeperBtn.addEventListener("click",()=>{
-  const url="https://t.me/GoalkeeperSandyBot"; const text="Try Goalkeeper — TON + Telegram Mini-App by SandyChainHub.";
+  const url="https://t.me/GoalkeeperHubBot"; const text="Try Goalkeeper — TON + Telegram Mini-App by SandyChainHub.";
   const shareUrl="https://t.me/share/url?url="+encodeURIComponent(url)+"&text="+encodeURIComponent(text); const tg=window.Telegram?.WebApp;
   if(tg?.openTelegramLink)tg.openTelegramLink(shareUrl);else window.open(shareUrl,"_blank","noopener,noreferrer");
 });
