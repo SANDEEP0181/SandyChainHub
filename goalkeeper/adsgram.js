@@ -1,7 +1,11 @@
+/* Goalkeeper AdsGram — local session bonus only.
+   Server-authoritative mission points are kept separate so a rewarded-ad callback
+   cannot silently overwrite or corrupt the Telegram/Redis score. */
 (function(){
   "use strict";
   const BLOCK_ID = "48894";
   const REWARD_XP = 10;
+  const AD_XP_KEY = "goalkeeperAdXp";
   let controller = null;
   let initialized = false;
 
@@ -10,21 +14,32 @@
     const el = $("adsgramStatus");
     if (el) { el.textContent = msg; el.hidden = false; }
   };
-  const points = () => {
-    try { return Number(localStorage.getItem("goalkeeperPoints") || 0); } catch (e) { return 0; }
+  const serverPoints = () => {
+    try {
+      const raw = localStorage.getItem("goalkeeperServerPoints");
+      if (raw !== null) return Number(raw) || 0;
+      return Number(localStorage.getItem("goalkeeperPoints") || 0);
+    } catch (e) { return 0; }
   };
-  const setPoints = (n) => {
-    try { localStorage.setItem("goalkeeperPoints", String(n)); } catch (e) {}
+  const adXp = () => {
+    try { return Number(localStorage.getItem(AD_XP_KEY) || 0); } catch (e) { return 0; }
+  };
+  const totalDisplayPoints = () => serverPoints() + adXp();
+  const render = () => {
+    const n = totalDisplayPoints();
     ["pointsTotal","rewardPoints","heroPointsTotal"].forEach((id) => {
       const el = $(id);
       if (el) el.textContent = id === "heroPointsTotal" ? String(n) : String(n) + " Points";
     });
   };
   const reward = () => {
-    const n = points() + REWARD_XP;
-    setPoints(n);
-    status("Reward received: +" + REWARD_XP + " XP");
-    window.dispatchEvent(new CustomEvent("goalkeeper:mission", { detail: { message: "AdsGram reward received: +" + REWARD_XP + " XP" } }));
+    const n = adXp() + REWARD_XP;
+    try { localStorage.setItem(AD_XP_KEY, String(n)); } catch (e) {}
+    render();
+    status("Reward received: +" + REWARD_XP + " session XP");
+    window.dispatchEvent(new CustomEvent("goalkeeper:mission", {
+      detail: { message: "AdsGram reward received: +" + REWARD_XP + " session XP" }
+    }));
   };
 
   function initController() {
@@ -84,6 +99,7 @@
       b.addEventListener("click", show);
     }
     if (window.Adsgram) initController();
+    render();
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
