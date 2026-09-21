@@ -34,7 +34,7 @@
     </div></section>
     <section class="dashboard-grid">
       <article class="card wallet-card" id="wallet"><div class="card-top"><span>TON WALLET</span><span class="tiny-live">TESTNET</span></div><h3 id="walletStatus">Wallet not connected</h3><p id="walletAddress">Connect your testnet wallet to continue.</p><div class="wallet-tools"><button id="copyAddressBtn" class="secondary" type="button" disabled>Copy Address</button><button id="explorerBtn" class="secondary" type="button" disabled>Open Explorer</button><button id="disconnectWalletBtn" class="secondary" type="button" hidden>Disconnect Wallet</button></div></article>
-      <article class="card telegram-card"><div class="card-top"><span>TELEGRAM</span><span class="tg-mark">TG</span></div><h3 id="telegramStatus">Browser mode</h3><p id="telegramUser">Open Goalkeeper inside Telegram to view user and session information.</p></article>
+      <article class="card telegram-card"><div class="card-top"><span>TELEGRAM</span><span class="tg-mark">TG</span></div><h3 id="telegramStatus">Browser mode</h3><p id="telegramUser">Open Goalkeeper inside Telegram to view user and session information.</p><a id="telegramOpenBtn" class="primary full telegram-open-btn" href="https://t.me/GoalkeeperHubBot/goalkeeper" target="_blank" rel="noopener noreferrer">Open in Telegram</a></article>
       <article class="card identity-card"><div class="card-top"><span>IDENTITY</span><span class="shield">◆</span></div><h3 id="identityStatus">Wallet link pending</h3><p id="identityMessage">Link your Telegram identity after connecting a TON wallet.</p><button id="linkWalletBtn" class="primary full" type="button" disabled>Link TON Wallet</button></article>
       <article class="card reward-card ad-booster-card" id="ad-booster"><div class="card-top"><span>AD POINTS BOOSTER</span><span class="star">✦</span></div><div class="reward-number">+10 XP</div><p>Watch a rewarded ad to boost your Goalkeeper testnet points.</p><button id="watchRewardAdBtn" class="primary full" type="button">Watch Ad &amp; Earn +10 XP</button><div id="adsgramStatus" class="checkin-timer" hidden></div></article>
       <article class="card reward-card" id="rewards"><div class="card-top"><span>REWARDS</span><span class="star">✦</span></div><div class="reward-number" id="rewardPoints">0 Points</div><p id="pointsMessage">Testnet-only activity points. No real-money reward is issued.</p><button id="dailyCheckinBtn" class="primary full" type="button" onclick="window.GoalkeeperDailyCheckin&&window.GoalkeeperDailyCheckin()">Daily Check-in</button><div id="checkinTimer" class="checkin-timer" hidden>Next check-in in <strong id="checkinCountdown">—</strong></div><div class="mini-status"><span>Telegram <b id="missionTelegram">Pending</b></span><span>Wallet <b id="missionWallet">Pending</b></span><span>Identity <b id="missionIdentity">Pending</b></span><span>Check-in <b id="missionCheckin">Available</b></span></div></article>
@@ -57,65 +57,6 @@
   <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
   <script defer src="adsgram.js?v=20260920-48894fix"></script>
   <script src="https://unpkg.com/@tonconnect/ui@3.0.2/dist/tonconnect-ui.min.js?v=goalkeeper20260921" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@tonconnect/ui@3.0.2/dist/tonconnect-ui.min.js?v=goalkeeper20260921'"></script>
-  <style id="goalkeeper-wallet-hardening">
-    .topbar,.account-actions,#connectBtn{position:relative;z-index:9999;pointer-events:auto}
-    #connectBtn{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
-</style>
-<script>
-    // Goalkeeper wallet bootstrap: keep wallet connection independent of app-v3.js.
-    (function () {
-      window.GoalkeeperConnectWallet = window.GoalkeeperConnectWallet || async function () {
-        const button = document.getElementById("connectBtn");
-        const status = document.getElementById("walletStatus");
-        if (button) button.disabled = true;
-        if (status) status.textContent = "Opening TON wallet selector...";
-        try {
-          if (!window.TON_CONNECT_UI || !window.TON_CONNECT_UI.TonConnectUI) {
-            throw new Error("TON Connect SDK is not loaded");
-          }
-          if (!window.__goalkeeperTonConnectUI) {
-            window.__goalkeeperTonConnectUI = new window.TON_CONNECT_UI.TonConnectUI({
-              manifestUrl: "https://sandeep0181.github.io/SandyChainHub/goalkeeper/tonconnect-manifest.json",
-              restoreConnection: false,
-              uiPreferences: { theme: "DARK" }
-            });
-            try {
-              window.__goalkeeperTonConnectUI.uiOptions = { twaReturnUrl: "https://t.me/GoalkeeperHubBot" };
-            } catch (_) {}
-            window.__goalkeeperTonConnectUI.onStatusChange(function (wallet) {
-              const address = wallet && wallet.account ? wallet.account.address : "";
-              if (status) status.textContent = address ? "Wallet connected" : "Wallet not connected";
-              if (button) button.hidden = !!address;
-              if (address) {
-                const profileWallet = document.getElementById("profileWallet");
-                if (profileWallet) profileWallet.textContent = address;
-              }
-            });
-          }
-          await window.__goalkeeperTonConnectUI.openModal();
-        } catch (error) {
-          console.error("Goalkeeper wallet bootstrap:", error);
-          if (status) status.textContent = "TON Connect error: " + (error.message || "Unable to open wallet selector");
-        } finally {
-          if (button) button.disabled = false;
-        }
-      };
-      // Capture the click before any other page handler can interfere.
-      document.addEventListener("click", function (event) {
-        const target = event.target && event.target.closest ? event.target.closest("#connectBtn") : null;
-        if (!target || target.disabled) return;
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        window.GoalkeeperConnectWallet();
-      }, true);
-      document.addEventListener("pointerup", function (event) {
-        const target = event.target && event.target.closest ? event.target.closest("#connectBtn") : null;
-        if (target && !target.disabled) {
-          target.focus({preventScroll:true});
-        }
-      }, true);
-    })();
-  </script>
   <script src="backend-sync.js?v=20260920-redis1"></script>
   <script defer src="app-v3.js?v=20260920-invitefix2"></script>
 </body>
