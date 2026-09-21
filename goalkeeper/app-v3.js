@@ -687,9 +687,18 @@ function updateCheckinTimer(){
   checkinTimer.hidden=false; setText(checkinCountdown,formatCountdown(nextCheckinTimestamp()-Date.now()));
 }
 
+function getCurrentPoints(){
+  try {
+    const raw = localStorage.getItem(POINTS_KEY);
+    if (raw !== null) return Number(raw) || 0;
+    const text = document.getElementById("pointsTotal")?.textContent || "0";
+    return Number(text.match(/\d+/)?.[0] || 0);
+  } catch { return 0; }
+}
+
 function updateRewards(){
   const opened=getMissions(); if(!opened.open)awardMission("open",5);
-  const points=currentPoints(); const checked=localStorage.getItem(CHECKIN_KEY)===todayKey();
+  const points=getCurrentPoints(); const checked=localStorage.getItem(CHECKIN_KEY)===todayKey();
   setText(pointsTotal,points+" Points"); setText(rewardPoints,points+" Points"); updateLevel(points); updateStreakUI();
   setText(missionTelegram,telegramVerified?"Verified":"Pending"); setText(missionWallet,getWalletAddress()?"Connected":"Pending"); setText(missionIdentity,localStorage.getItem("goalkeeperIdentityLink")?"Linked":"Pending"); setText(missionCheckin,checked?"Completed today":"Available");
   updateCheckinTimer(); updateMissionUI(); updateAchievements();
