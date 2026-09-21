@@ -468,10 +468,15 @@ window.addEventListener("unhandledrejection",(event)=>{try{const el=document.get
 
 async function connectNewWallet() {
   const button = connectBtn;
-  if (button) button.disabled = true;
+  if (button) {
+    button.disabled = true;
+    button.setAttribute("aria-busy", "true");
+  }
   setText(walletStatus, "Opening TON wallet selector...");
 
   try {
+    // Initialize only when the user clicks. This avoids a startup failure
+    // preventing the wallet button from opening the selector.
     const ui = await ensureTonConnect();
     if (!ui) throw new Error("TON Connect SDK unavailable.");
 
@@ -485,7 +490,10 @@ async function connectNewWallet() {
     const message = error?.message || error?.name || "Unknown TON Connect error";
     setText(walletStatus, "TON Connect error: " + message);
   } finally {
-    if (button) button.disabled = false;
+    if (button) {
+      button.disabled = false;
+      button.removeAttribute("aria-busy");
+    }
   }
 }
 
@@ -769,7 +777,8 @@ updateRewards();
 applyLanguage(localStorage.getItem(LANGUAGE_KEY) || "en");
 
 window.addEventListener("load",()=>{
-  ensureTonConnect().catch((error)=>console.error("TON startup:",error));
+  // Telegram can initialize at startup, but TON Connect is initialized
+  // lazily from the Connect button to keep the UI responsive in Chrome.
   initTelegram().catch((error)=>console.error("Telegram startup:",error));
 });
 
