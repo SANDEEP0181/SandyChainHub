@@ -709,8 +709,38 @@ function updateRewards(){
   setText(pointsMessage,checked?"Today's testnet check-in is complete.":"Browser mode: daily testnet check-in is available. Telegram verification is optional.");
 }
 
-function handleDailyCheckin(){
+async function handleDailyCheckin(){
   if(localStorage.getItem(CHECKIN_KEY)===todayKey())return;
+
+  // Telegram sessions use the backend as the source of truth. This prevents
+  // a local click from creating points that are not recorded in Redis.
+  if(telegramVerified && window.GoalkeeperBackend?.mission){
+    if(dailyCheckinBtn){dailyCheckinBtn.disabled=true;dailyCheckinBtn.setAttribute("aria-busy","true");}
+    try{
+      const result=await window.GoalkeeperBackend.mission("checkin");
+      if(result?.ok){
+        if(result.state){
+          localStorage.setItem(POINTS_KEY,String(result.state.points||0));
+          localStorage.setItem("goalkeeperServerPoints",String(result.state.points||0));
+          localStorage.setItem(STREAK_KEY,String(result.state.streak||0));
+          localStorage.setItem(BEST_STREAK_KEY,String(result.state.bestStreak||0));
+          if(result.state.lastCheckin)localStorage.setItem(CHECKIN_KEY,result.state.lastCheckin);
+          localStorage.setItem(STREAK_DATE_KEY,String(result.state.lastCheckin||todayKey()));
+          localStorage.setItem(MISSIONS_KEY,JSON.stringify(result.state.missions||{}));
+        }
+        setText(profileActivity,result.awarded===false?"Session activity: Daily check-in already completed today.":"Session activity: Daily testnet check-in completed (+10 points).");
+        updateRewards();
+        if(window.GoalkeeperBackend.sync) await window.GoalkeeperBackend.sync();
+        return;
+      }
+    }catch(error){console.warn("Goalkeeper check-in:",error);}
+    finally{if(dailyCheckinBtn){dailyCheckinBtn.disabled=false;dailyCheckinBtn.removeAttribute("aria-busy");}}
+    setText(pointsMessage,"Check-in could not be confirmed by the Goalkeeper backend. No points were added.");
+    return;
+  }
+
+  // Browser/test mode fallback: keep the experience functional without
+  // pretending that local points are server-authoritative.
   const current=Number(localStorage.getItem(POINTS_KEY)||"0"); localStorage.setItem(POINTS_KEY,String(current+10));
   const today=todayKey(); const last=localStorage.getItem(STREAK_DATE_KEY); let streak=getStreak();
   if(last===previousDayKey())streak+=1; else if(last!==today)streak=1;
@@ -718,12 +748,7 @@ function handleDailyCheckin(){
   const missions=getMissions();
   missions.checkin={completedAt:new Date().toISOString(),points:10};
   saveMissions(missions);
-  try {
-    if (window.GoalkeeperBackend?.mission) {
-      window.GoalkeeperBackend.mission("checkin");
-    }
-  } catch {}
-  setText(profileActivity,"Session activity: Daily testnet check-in completed (+10 points)."); updateRewards();
+  setText(profileActivity,"Session activity: Browser testnet check-in completed (+10 points)."); updateRewards();
 }
 
 async function logoutSession(){
