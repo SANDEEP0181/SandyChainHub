@@ -35,6 +35,7 @@
   const screenMap = {
     home: ["hero", "quick-start", "level-card", "streak-strip", "overview", "pro-grid", "stats"],
     missions: ["missions"],
+    events: ["events"],
     team: ["team-screen", "leaderboard", "referral-stats"],
     wallet: ["wallet-screen"],
     profile: ["profile", "settings", "notifications", "support"]
