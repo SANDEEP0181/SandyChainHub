@@ -1,0 +1,12 @@
+{
+  "network": "ton-testnet",
+  "standard": "TEP-62",
+  "metadataStandard": "TEP-64",
+  "collectionName": "Goalkeeper Genesis",
+  "collectionDescription": "Goalkeeper Genesis Keeper achievement collection. Testnet/community achievement only.",
+  "collectionMetadataUrl": "https://sandeep0181.github.io/SandyChainHub/goalkeeper/nft/genesis-keeper.json",
+  "itemMetadataUrl": "https://sandeep0181.github.io/SandyChainHub/goalkeeper/nft/genesis-keeper.json",
+  "collectionAddress": "",
+  "deploymentStatus": "NOT_DEPLOYED",
+  "note": "Populate collectionAddress only after deploying a verified TEP-62 collection on TON Testnet. Never store a seed phrase or private key in this repository."
+}
