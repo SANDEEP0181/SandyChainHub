@@ -85,7 +85,8 @@ export function missionPoints(missionId) {
     open: 5,
     connect: 10,
     identity: 15,
-    checkin: 10
+    checkin: 10,
+    spin: 0
   };
   return points[missionId] ?? 0;
 }
@@ -95,6 +96,7 @@ export function validMission(missionId) {
     open: true,
     connect: true,
     identity: true,
-    checkin: true
+    checkin: true,
+    spin: true
   }, missionId);
 }
