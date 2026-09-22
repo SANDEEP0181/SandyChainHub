@@ -115,10 +115,10 @@
 </nav>
     <script src="backend-sync.js?v=20260920-redis1"></script>
   <script defer src="app-v3.js?v=20260923-gkfix4"></script>
-  <script defer src="pro-dashboard.js?v=20260923-pro4"></script>
+  <script defer src="pro-dashboard.js?v=20260923-pro5"></script>
 <script src="genesis-nft.js" defer></script>
 <script>
-/* Goalkeeper hard navigation v2 — isolated Mini-App screens */
+/* Goalkeeper hard navigation v3 — isolated Mini-App screens */
 (function(){
   const screens={
     home:["home",".quick-start",".level-card",".streak-strip","overview",".pro-grid",".stats"],
@@ -172,6 +172,7 @@
       const b=e.target.closest("[data-gk-nav],[data-gk-bottom]");
       if(!b)return;
       e.preventDefault();
+      e.stopImmediatePropagation();
       go(b.dataset.gkNav||b.dataset.gkBottom||"home");
     },true);
     const initial=location.hash.slice(1);
