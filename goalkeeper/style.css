@@ -120,3 +120,24 @@ button:focus-visible,a:focus-visible,select:focus-visible{outline:2px solid rgba
 .spin-mission button{min-width:68px}
 @keyframes spinWheel{0%{transform:rotate(0deg) scale(1)}45%{transform:rotate(720deg) scale(1.16)}100%{transform:rotate(1440deg) scale(1)}}
 @media(max-width:700px){.spin-mission{grid-template-columns:auto 1fr}.spin-mission button{grid-column:2;width:100%;margin-top:7px}}
+
+
+/* Goalkeeper Visual Spin Wheel v2 */
+.spin-mission{grid-template-columns:150px 1fr auto;align-items:center;gap:18px}
+.spin-wheel-wrap{position:relative;width:140px;height:140px;display:grid;place-items:center}
+.spin-wheel{position:relative;width:126px;height:126px;border-radius:50%;border:5px solid rgba(255,255,255,.14);background:conic-gradient(#8b6cff 0deg 72deg,#21d4fd 72deg 144deg,#65dfb2 144deg 216deg,#f7c65a 216deg 288deg,#ff7d9a 288deg 360deg);box-shadow:0 12px 35px rgba(0,0,0,.25),inset 0 0 0 4px rgba(0,0,0,.12);transition:transform 1.4s cubic-bezier(.12,.8,.18,1)}
+.spin-wheel.spinning{animation:wheelSpin 1.4s cubic-bezier(.12,.8,.18,1)}
+.spin-center{position:absolute;inset:37px;border-radius:50%;display:grid;place-items:center;background:#0b1020;border:2px solid rgba(255,255,255,.2);color:#fff;font-size:10px;font-weight:950;letter-spacing:.08em;z-index:3;box-shadow:0 4px 15px rgba(0,0,0,.25)}
+.spin-label{position:absolute;color:#fff;font-size:11px;font-weight:950;text-shadow:0 1px 4px rgba(0,0,0,.35)}
+.spin-l1{top:12px;left:57px}.spin-l2{top:45px;right:10px}.spin-l3{bottom:17px;right:30px}.spin-l4{bottom:17px;left:30px}.spin-l5{top:45px;left:10px}
+.spin-pointer{position:absolute;z-index:5;top:-1px;left:50%;transform:translateX(-50%);color:#fff;font-size:18px;text-shadow:0 2px 7px rgba(0,0,0,.45)}
+.spin-copy h3{margin:5px 0 4px}.spin-result{display:inline-block;margin-top:8px;font-size:9px;color:#65dfb2;font-weight:800}
+.spin-mission button{min-width:72px}
+@keyframes wheelSpin{from{transform:rotate(0deg)}to{transform:rotate(1440deg)}}
+@media(max-width:700px){
+ .spin-mission{grid-template-columns:110px 1fr;gap:12px}
+ .spin-wheel-wrap{width:105px;height:105px}.spin-wheel{width:94px;height:94px;border-width:4px}
+ .spin-center{inset:28px;font-size:8px}.spin-label{font-size:9px}.spin-l1{top:8px;left:43px}.spin-l2{top:34px;right:6px}.spin-l3{bottom:12px;right:22px}.spin-l4{bottom:12px;left:22px}.spin-l5{top:34px;left:6px}
+ .spin-pointer{top:-5px;font-size:15px}.spin-mission button{grid-column:1/-1;width:100%;margin-top:2px}
+}
+body.light-theme .spin-center{background:#fff;color:#172033;border-color:rgba(15,23,42,.12)}
