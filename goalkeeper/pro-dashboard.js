@@ -50,6 +50,8 @@
       overview: $("overview"),
       "pro-grid": document.querySelector(".pro-grid"),
       stats: document.querySelector(".stats"),
+      "genesis-nft": $("genesis-nft"),
+      "collection-achievements": $("collection-achievements"),
       missions: $("missions"),
       leaderboard: $("leaderboard"),
       "referral-stats": $("referral-stats"),
