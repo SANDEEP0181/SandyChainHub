@@ -916,6 +916,7 @@ renderNotes();renderLeaderboard();syncHeroPoints();captureReferral();renderRefer
     const done=localStorage.getItem(SPIN_KEY)===today();
     b.disabled=done;
     b.textContent=done?"SPUN ✓":"SPIN";
+    const result=document.getElementById("spinResult"); if(result&&done) result.textContent="Today's spin is complete. Come back tomorrow.";
     const mission=document.getElementById("spinMission");
     if(mission)mission.classList.toggle("spin-complete",done);
   }
@@ -931,8 +932,8 @@ renderNotes();renderLeaderboard();syncHeroPoints();captureReferral();renderRefer
     if(!b||localStorage.getItem(SPIN_KEY)===today())return;
     b.disabled=true;b.setAttribute("aria-busy","true");b.textContent="SPINNING…";
     const reward=REWARDS[Math.floor(Math.random()*REWARDS.length)];
-    const icon=document.querySelector("#spinMission .spin-icon");
-    if(icon){icon.classList.remove("spinning");void icon.offsetWidth;icon.classList.add("spinning");}
+    const wheel=document.getElementById("spinWheel");
+    if(wheel){wheel.classList.remove("spinning");void wheel.offsetWidth;wheel.classList.add("spinning");}
     setTimeout(()=>{
       localStorage.setItem(SPIN_KEY,today());
       addSpinXp(reward);
@@ -941,6 +942,7 @@ renderNotes();renderLeaderboard();syncHeroPoints();captureReferral();renderRefer
       saveMissions(missions);
       updateRewards();
       updateSpinUI();
+      setText(document.getElementById("spinResult"),"You won +"+reward+" testnet XP today.");
       setText(profileActivity,"Session activity: Daily Spin completed (+"+reward+" testnet XP).");
       window.dispatchEvent(new CustomEvent("goalkeeper:mission",{detail:{message:"Daily Spin awarded +"+reward+" testnet XP."}}));
       b.removeAttribute("aria-busy");
