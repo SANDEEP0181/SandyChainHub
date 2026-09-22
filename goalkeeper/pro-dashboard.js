@@ -16,7 +16,7 @@
     if ($("proStreak")) $("proStreak").textContent = streak + "d";
     if ($("proMissions")) $("proMissions").textContent = completed + "/4";
     if ($("proWallet")) $("proWallet").textContent = shortWallet();
-    if ($("proUpdated")) $("proUpdated").textContent = "Updated " + new Date().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
+    if ($("proUpdated")) $("proUpdated").textContent = "LIVE";
   }
 
   function addActivity(title, text) {
@@ -32,24 +32,86 @@
     while (box.children.length > 6) box.lastElementChild.remove();
   }
 
+  const screenMap = {
+    home: ["hero", "quick-start", "level-card", "streak-strip", "overview", "pro-grid", "stats"],
+    missions: ["missions"],
+    team: ["leaderboard", "referral-stats"],
+    wallet: ["wallet-screen"],
+    profile: ["profile", "settings", "notifications", "support"]
+  };
+
+  function tagScreens() {
+    const map = {
+      hero: document.querySelector(".hero"),
+      "quick-start": document.querySelector(".quick-start"),
+      "level-card": document.querySelector(".level-card"),
+      "streak-strip": document.querySelector(".streak-strip"),
+      overview: $("overview"),
+      "pro-grid": document.querySelector(".pro-grid"),
+      stats: document.querySelector(".stats"),
+      missions: $("missions"),
+      leaderboard: $("leaderboard"),
+      "referral-stats": $("referral-stats"),
+      profile: $("profile"),
+      settings: $("settings"),
+      notifications: $("notifications"),
+      support: $("support")
+    };
+    Object.entries(map).forEach(([id, el]) => el && el.setAttribute("data-gk-section", id));
+
+    const grid = document.querySelector(".dashboard-grid");
+    if (grid) {
+      grid.setAttribute("data-gk-section", "wallet-screen");
+      grid.querySelector(".wallet-card")?.setAttribute("data-gk-wallet-card", "1");
+      grid.querySelector(".telegram-card")?.setAttribute("data-gk-profile-card", "1");
+      grid.querySelector(".identity-card")?.setAttribute("data-gk-wallet-card", "1");
+      grid.querySelector(".reward-card")?.setAttribute("data-gk-reward-card", "1");
+    }
+    document.querySelector(".roadmap")?.setAttribute("data-gk-section", "roadmap");
+  }
+
+  function showScreen(screen, updateHash = true) {
+    tagScreens();
+    const allowed = new Set(screenMap[screen] || screenMap.home);
+
+    document.querySelectorAll("[data-gk-section]").forEach(el => {
+      el.hidden = !allowed.has(el.getAttribute("data-gk-section"));
+    });
+
+    const grid = document.querySelector(".dashboard-grid");
+    if (grid) {
+      grid.hidden = screen !== "wallet";
+      grid.querySelectorAll("[data-gk-wallet-card]").forEach(el => el.hidden = screen !== "wallet");
+      grid.querySelectorAll("[data-gk-profile-card]").forEach(el => el.hidden = screen === "wallet");
+      grid.querySelectorAll("[data-gk-reward-card]").forEach(el => el.hidden = true);
+    }
+
+    document.querySelector(".roadmap")?.setAttribute("hidden", "");
+    document.querySelector("footer")?.setAttribute("hidden", "");
+
+    document.querySelectorAll("[data-gk-nav]").forEach(btn => btn.classList.toggle("active", btn.dataset.gkNav === screen));
+    document.querySelectorAll("[data-gk-bottom]").forEach(btn => btn.classList.toggle("active", btn.dataset.gkBottom === screen));
+
+    if (updateHash) history.replaceState(null, "", "#" + screen);
+    window.scrollTo({top: 0, behavior: "smooth"});
+    syncProStats();
+  }
+
   function setupNav() {
-    document.querySelectorAll("[data-gk-nav]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const target = $(btn.dataset.gkNav);
-        if (target) target.scrollIntoView({behavior:"smooth", block:"start"});
-        document.querySelectorAll("[data-gk-nav]").forEach(x => x.classList.remove("active"));
-        btn.classList.add("active");
-      });
+    document.querySelectorAll("[data-gk-nav]").forEach(btn => btn.addEventListener("click", () => showScreen(btn.dataset.gkNav)));
+    document.querySelectorAll("[data-gk-bottom]").forEach(btn => btn.addEventListener("click", e => { e.preventDefault(); showScreen(btn.dataset.gkBottom); }));
+    const initial = location.hash.replace("#", "");
+    showScreen(screenMap[initial] ? initial : "home", false);
+    window.addEventListener("hashchange", () => {
+      const next = location.hash.replace("#", "");
+      if (screenMap[next]) showScreen(next, false);
     });
   }
 
   function setupQuickActions() {
-    $("proConnectBtn")?.addEventListener("click", () => {
-      window.GoalkeeperConnectWallet?.();
-      addActivity("Wallet action", "TON wallet selector opened.");
-    });
-    $("proMissionBtn")?.addEventListener("click", () => $("missions")?.scrollIntoView({behavior:"smooth"}));
-    $("proShareBtn")?.addEventListener("click", () => $("shareGoalkeeperBtn")?.click());
+    $("proConnectBtn")?.addEventListener("click", () => { window.GoalkeeperConnectWallet?.(); addActivity("Wallet action", "TON wallet selector opened."); });
+    $("proMissionBtn")?.addEventListener("click", () => showScreen("missions"));
+    $("proShareBtn")?.addEventListener("click", () => showScreen("team"));
     $("proCheckinBtn")?.addEventListener("click", () => window.GoalkeeperDailyCheckin?.());
   }
 
@@ -57,12 +119,9 @@
     setupNav();
     setupQuickActions();
     syncProStats();
-    addActivity("Goalkeeper ready", "Secure testnet dashboard initialized.");
+    addActivity("Goalkeeper ready", "App-style navigation initialized.");
     setInterval(syncProStats, 3000);
-    window.addEventListener("goalkeeper:mission", e => {
-      addActivity("Mission completed", e.detail?.message || "Mission progress updated.");
-      syncProStats();
-    });
+    window.addEventListener("goalkeeper:mission", e => { addActivity("Mission completed", e.detail?.message || "Mission progress updated."); syncProStats(); });
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
