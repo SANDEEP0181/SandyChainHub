@@ -109,3 +109,14 @@ button:focus-visible,a:focus-visible,select:focus-visible{outline:2px solid rgba
 @media(prefers-reduced-motion:reduce){
   .pro-nav-item:active,.bottom-nav button:active,.primary:active,.secondary:active{transform:none}
 }
+
+
+/* Goalkeeper Daily Spin Wheel */
+.spin-mission{grid-template-columns:auto 1fr auto;align-items:center}
+.spin-mission .spin-icon{font-size:22px;display:grid;place-items:center;transition:transform .2s ease}
+.spin-mission .spin-icon.spinning{animation:spinWheel 1.4s cubic-bezier(.2,.8,.2,1)}
+.spin-mission.spin-complete{border-color:rgba(80,227,164,.24)}
+.spin-mission.spin-complete .spin-icon{color:#65dfb2}
+.spin-mission button{min-width:68px}
+@keyframes spinWheel{0%{transform:rotate(0deg) scale(1)}45%{transform:rotate(720deg) scale(1.16)}100%{transform:rotate(1440deg) scale(1)}}
+@media(max-width:700px){.spin-mission{grid-template-columns:auto 1fr}.spin-mission button{grid-column:2;width:100%;margin-top:7px}}
