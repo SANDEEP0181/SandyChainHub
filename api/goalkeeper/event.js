@@ -36,11 +36,11 @@ export default async function handler(req, res) {
   if (!auth.ok) return res.status(401).json(auth);
 
   const action = typeof body.action === "string" ? body.action.trim().toLowerCase() : "";
-  const allowed = new Set(["join", "daily", "core", "spin"]);
+  const allowed = new Set(["join", "daily", "core", "spin", "badge"]);
   if (!allowed.has(action)) return res.status(400).json({ ok: false, error: "Invalid event action" });
 
   const now = Date.now();
-  if (now < Date.parse(EVENT_START) || now >= Date.parse(EVENT_END)) {
+  if (action !== "badge" && (now < Date.parse(EVENT_START) || now >= Date.parse(EVENT_END))) {
     return res.status(400).json({ ok: false, error: "Genesis Event is not active" });
   }
 
@@ -57,8 +57,18 @@ export default async function handler(req, res) {
 
     const today = todayUtc();
     const dayIndex = eventDayIndex(today);
-    if (dayIndex < 0 || dayIndex >= EVENT_DAYS) {
+    if (action !== "badge" && (dayIndex < 0 || dayIndex >= EVENT_DAYS)) {
       return res.status(400).json({ ok: false, error: "Invalid event day" });
+    }
+
+    if (action === "badge") {
+      const expectedDays = Array.from({length: EVENT_DAYS}, (_, i) => new Date(Date.parse(EVENT_START) + i * 86400000).toISOString().slice(0,10));
+      const completed = expectedDays.every(day => state.event.daily.includes(day));
+      if (!completed) return res.status(400).json({ ok: false, eligible: false, error: "Complete all 7 event days first" });
+      if (state.event.badgeClaimedAt) return res.status(200).json({ ok: true, eligible: true, claimed: true, event: state.event, state });
+      state.event.badgeClaimedAt = new Date().toISOString();
+      await redis(["SET", key, JSON.stringify(state)]);
+      return res.status(200).json({ ok: true, eligible: true, claimed: true, event: state.event, state });
     }
 
     let xp = 0;
