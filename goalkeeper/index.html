@@ -118,7 +118,7 @@
   <script defer src="pro-dashboard.js?v=20260923-pro4"></script>
 <script src="genesis-nft.js" defer></script>
 <script>
-/* Goalkeeper hard navigation guard — runs after every app script */
+/* Goalkeeper hard navigation v2 — isolated Mini-App screens */
 (function(){
   const screens={
     home:["home",".quick-start",".level-card",".streak-strip","overview",".pro-grid",".stats"],
@@ -128,45 +128,37 @@
     wallet:["wallet-screen"],
     profile:["profile","genesis-nft","collection-achievements","settings","notifications","support"]
   };
-  const selectors=[
+  const all=[
     "#home",".quick-start",".level-card",".streak-strip","#overview",".pro-grid",".stats",
     "#profile","#missions","#genesis-nft","#events",".dashboard-grid","#collection-achievements",
     "#team-screen","#leaderboard","#settings","#referral-stats","#notifications","#support",".roadmap","footer"
   ];
-  function elByKey(key){
-    if(key[0]==="#") return document.querySelector(key);
-    if(key[0]===".") return document.querySelector(key);
-    return document.getElementById(key);
-  }
-  function hide(el){
+  function get(sel){return document.querySelector(sel)}
+  function setVisible(el,on){
     if(!el)return;
-    el.hidden=true;
-    el.style.setProperty("display","none","important");
-  }
-  function show(el){
-    if(!el)return;
-    el.hidden=false;
-    el.style.removeProperty("display");
+    el.classList.toggle("gk-screen-hidden",!on);
+    el.hidden=!on;
+    if(on) el.style.removeProperty("display");
+    else el.style.setProperty("display","none","important");
   }
   function render(screen){
     const allowed=new Set(screens[screen]||screens.home);
-    selectors.forEach(sel=>{
-      const el=document.querySelector(sel);
-      if(!el)return;
+    all.forEach(sel=>{
+      const el=get(sel); if(!el)return;
       const key=el.id||sel;
-      if(allowed.has(key)) show(el); else hide(el);
+      setVisible(el,allowed.has(key));
     });
-    const grid=document.querySelector(".dashboard-grid");
+    const grid=get(".dashboard-grid");
     if(grid){
       if(screen==="wallet"){
-        show(grid);
-        grid.querySelectorAll(".wallet-card").forEach(show);
-        grid.querySelectorAll(".telegram-card,.identity-card,.reward-card").forEach(hide);
+        setVisible(grid,true);
+        grid.querySelectorAll(".wallet-card").forEach(x=>setVisible(x,true));
+        grid.querySelectorAll(".telegram-card,.identity-card,.reward-card").forEach(x=>setVisible(x,false));
       }else if(screen==="profile"){
-        show(grid);
-        grid.querySelectorAll(".wallet-card,.identity-card,.reward-card").forEach(hide);
-        grid.querySelectorAll(".telegram-card").forEach(show);
-      }else hide(grid);
+        setVisible(grid,true);
+        grid.querySelectorAll(".wallet-card,.identity-card,.reward-card").forEach(x=>setVisible(x,false));
+        grid.querySelectorAll(".telegram-card").forEach(x=>setVisible(x,true));
+      }else setVisible(grid,false);
     }
     document.querySelectorAll("[data-gk-nav]").forEach(b=>b.classList.toggle("active",b.dataset.gkNav===screen));
     document.querySelectorAll("[data-gk-bottom]").forEach(b=>b.classList.toggle("active",b.dataset.gkBottom===screen));
@@ -180,7 +172,6 @@
       const b=e.target.closest("[data-gk-nav],[data-gk-bottom]");
       if(!b)return;
       e.preventDefault();
-      e.stopImmediatePropagation();
       go(b.dataset.gkNav||b.dataset.gkBottom||"home");
     },true);
     const initial=location.hash.slice(1);
