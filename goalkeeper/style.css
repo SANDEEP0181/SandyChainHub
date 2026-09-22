@@ -60,3 +60,22 @@ body.light-theme .leaderboard-me,body.light-theme .leader-row,body.light-theme .
 @media(max-width:520px){.topbar{gap:8px}.brand strong{font-size:16px}.account-actions{gap:5px}.language-select,.theme-toggle{display:none}.hero{display:block}.hero-ball{margin:24px auto 0}.stats{grid-template-columns:1fr}.pro-command{padding:17px}.pro-command h2{font-size:21px}.pro-actions button{flex:1}.bottom-nav{display:flex}}
 body.light-theme .pro-nav,body.light-theme .pro-command,body.light-theme .pro-grid .card{background:rgba(255,255,255,.82);color:#172033}
 body.light-theme .pro-nav-item{color:#677187}body.light-theme .pro-nav-item.active{color:#32246e;background:rgba(124,92,255,.12)}body.light-theme .pro-command p,body.light-theme .pro-activity-item small{color:#68738a}
+
+
+/* Goalkeeper App Shell v2 — in-app screens */
+[data-gk-section][hidden], .dashboard-grid[hidden], .roadmap[hidden], footer[hidden] { display:none !important; }
+.pro-nav { border:1px solid var(--line); box-shadow:0 10px 30px rgba(0,0,0,.16); }
+.pro-nav-item { min-height:42px; display:flex; align-items:center; justify-content:center; gap:6px; }
+.pro-nav-item span { font-size:10px; }
+.pro-nav-item.active { box-shadow:inset 0 0 0 1px rgba(124,92,255,.18), 0 5px 18px rgba(124,92,255,.12); }
+.bottom-nav { grid-template-columns:repeat(5,1fr); }
+.bottom-nav a.active { color:#fff; background:rgba(124,92,255,.14); border-radius:12px; }
+@media(max-width:520px){
+  .app { padding-bottom:88px; }
+  .pro-nav { position:sticky; top:6px; margin:8px 0 10px; padding:5px; }
+  .pro-nav-item { min-width:0; min-height:40px; padding:7px 4px; font-size:13px; }
+  .pro-nav-item span { display:block; font-size:8px; }
+  .bottom-nav { display:grid; position:fixed; left:10px; right:10px; bottom:10px; z-index:100; padding:7px; gap:3px; }
+  .bottom-nav a { min-height:50px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; }
+  .bottom-nav a small { font-size:8px; }
+}
