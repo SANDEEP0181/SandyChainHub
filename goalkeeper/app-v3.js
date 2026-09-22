@@ -955,3 +955,96 @@ renderNotes();renderLeaderboard();syncHeroPoints();captureReferral();renderRefer
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",initSpin);else initSpin();
   setInterval(updateSpinUI,1000);
 })();
+
+
+/* Goalkeeper Genesis Event v1 — testnet/community XP only */
+(function(){
+  const EVENT_START = "2026-09-23T00:00:00Z";
+  const EVENT_END = "2026-09-30T00:00:00Z";
+  const JOIN_KEY="goalkeeperGenesisJoined";
+  const DAILY_KEY="goalkeeperGenesisDaily";
+  const BONUS_KEY="goalkeeperGenesisBonuses";
+  const TOTAL_MAX=120;
+  const start=new Date(EVENT_START), end=new Date(EVENT_END);
+  const $=id=>document.getElementById(id);
+  const dayKey=()=>new Date().toISOString().slice(0,10);
+  const active=()=>{const n=Date.now();return n>=start.getTime()&&n<end.getTime()};
+  const readBonuses=()=>{try{return JSON.parse(localStorage.getItem(BONUS_KEY)||"{}")||{}}catch{return{}}};
+  const saveBonuses=x=>localStorage.setItem(BONUS_KEY,JSON.stringify(x));
+  function addEventXp(amount){
+    const base=Number(localStorage.getItem(POINTS_KEY)||"0")||0;
+    localStorage.setItem(POINTS_KEY,String(base+amount));
+    localStorage.setItem("goalkeeperServerPoints",String(base+amount));
+  }
+  function joined(){return localStorage.getItem(JOIN_KEY)==="1"}
+  function eventDaysDone(){try{return JSON.parse(localStorage.getItem(DAILY_KEY)||"[]")||[]}catch{return[]}}
+  function renderDays(){
+    const box=$("eventDays"); if(!box)return;
+    const days=[]; for(let i=0;i<7;i++){const d=new Date(start.getTime()+i*86400000);days.push(d.toISOString().slice(0,10))}
+    const done=eventDaysDone(); const today=dayKey();
+    box.innerHTML=days.map((d,i)=>'<span class="'+(done.includes(d)?"done ":"")+(d===today?"today":"")+'"><b>D'+(i+1)+'</b><small>'+d.slice(5).replace("-","/")+'</small></span>').join("");
+  }
+  function coreComplete(){
+    try{const m=JSON.parse(localStorage.getItem("goalkeeperMissions")||"{}")||{};return ["open","connect","link","checkin"].filter(k=>m[k]).length>=3}catch{return false}
+  }
+  function eventXp(){
+    const b=readBonuses(), daily=eventDaysDone();
+    return (b.join?10:0)+(daily.length*10)+(b.core?25:0)+(b.spin?15:0);
+  }
+  function markDone(id){
+    $(id)?.classList.add("event-done");
+  }
+  function refresh(){
+    const status=$("eventStatus"), activeNow=active();
+    if(status){status.textContent=activeNow?"LIVE":"ENDED";status.classList.toggle("event-ended",!activeNow)}
+    const joinedNow=joined(), bonuses=readBonuses(), daily=eventDaysDone(), total=Math.min(TOTAL_MAX,eventXp()), pct=Math.round(total/TOTAL_MAX*100);
+    if($("eventProgressText"))$("eventProgressText").textContent=total+" / "+TOTAL_MAX+" XP";
+    if($("eventProgressPct"))$("eventProgressPct").textContent=pct+"%";
+    if($("eventProgressBar"))$("eventProgressBar").style.width=pct+"%";
+    const jb=$("eventJoinBtn"); if(jb){jb.disabled=!activeNow||joinedNow;jb.textContent=joinedNow?"JOINED ✓":"JOIN";}
+    const db=$("eventDailyBtn"); if(db){const done=daily.includes(dayKey());db.disabled=!activeNow||!joinedNow||done;db.textContent=done?"CHECKED ✓":"CHECK IN";}
+    const cb=$("eventCoreBtn"); if(cb){const done=!!bonuses.core;cb.disabled=!activeNow||!joinedNow||done;cb.textContent=done?"CLAIMED ✓":"CHECK";}
+    const sb=$("eventSpinBtn"); if(sb){const spinDone=localStorage.getItem("goalkeeperSpinDate")===dayKey(),done=!!bonuses.spin;sb.disabled=!activeNow||!joinedNow||!spinDone||done;sb.textContent=done?"CLAIMED ✓":spinDone?"CLAIM +15":"CHECK";}
+    if($("eventCountdown")){const ms=Math.max(0,end.getTime()-Date.now());const h=Math.floor(ms/3600000),m=Math.floor(ms/60000)%60,s=Math.floor(ms/1000)%60;$("eventCountdown").textContent=activeNow?h+"h "+m+"m "+s+"s":"Event ended";}
+    markDone("eventJoinMission"); if(joinedNow)$( "eventJoinMission")?.classList.add("event-done");
+    if(daily.includes(dayKey()))$("eventDailyMission")?.classList.add("event-done");
+    if(bonuses.core)$("eventCoreMission")?.classList.add("event-done");
+    if(bonuses.spin)$("eventSpinMission")?.classList.add("event-done");
+    renderDays();
+  }
+  function join(){
+    if(!active()||joined())return;
+    localStorage.setItem(JOIN_KEY,"1"); addEventXp(10);
+    const b=readBonuses();b.join=true;saveBonuses(b);
+    window.dispatchEvent(new CustomEvent("goalkeeper:mission",{detail:{message:"Genesis Event joined (+10 testnet XP)."}}));
+    refresh();
+  }
+  function daily(){
+    if(!active()||!joined())return;
+    const d=eventDaysDone(),today=dayKey();if(d.includes(today))return;
+    d.push(today);localStorage.setItem(DAILY_KEY,JSON.stringify(d));addEventXp(10);
+    window.dispatchEvent(new CustomEvent("goalkeeper:mission",{detail:{message:"Genesis Event daily check-in (+10 testnet XP)."}}));
+    refresh();
+  }
+  function core(){
+    const b=readBonuses();if(!active()||!joined()||b.core||!coreComplete())return;
+    b.core=true;saveBonuses(b);addEventXp(25);
+    window.dispatchEvent(new CustomEvent("goalkeeper:mission",{detail:{message:"Genesis Event 3-mission challenge claimed (+25 testnet XP)."}}));
+    refresh();
+  }
+  function spin(){
+    const b=readBonuses();if(!active()||!joined()||b.spin||localStorage.getItem("goalkeeperSpinDate")!==dayKey())return;
+    b.spin=true;saveBonuses(b);addEventXp(15);
+    window.dispatchEvent(new CustomEvent("goalkeeper:mission",{detail:{message:"Genesis Event spin bonus claimed (+15 testnet XP)."}}));
+    refresh();
+  }
+  function init(){
+    $("eventJoinBtn")?.addEventListener("click",join);
+    $("eventDailyBtn")?.addEventListener("click",daily);
+    $("eventCoreBtn")?.addEventListener("click",core);
+    $("eventSpinBtn")?.addEventListener("click",spin);
+    refresh();setInterval(refresh,1000);
+    window.addEventListener("goalkeeper:mission",refresh);
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
+})();
