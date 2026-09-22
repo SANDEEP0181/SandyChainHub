@@ -1,33 +1,47 @@
 # Goalkeeper Genesis NFT — TON Testnet
 
-This folder defines the on-chain integration target for the **Genesis Keeper** achievement.
+This folder contains the **testnet-only** NFT collection/mint integration for Goalkeeper Genesis Keeper.
 
-## Standard
+## On-chain model
 
-- NFT interface: TEP-62
-- Metadata: TEP-64
-- Network: TON Testnet only
-- Collection: Goalkeeper Genesis
-- Item: Genesis Keeper
+Goalkeeper uses the standard TON NFT architecture: a collection contract plus individual NFT item contracts. The collection is the source of truth for item addresses and collection metadata; each item stores its owner and individual metadata. citeturn1search3
 
-TON's NFT model uses a collection contract plus individual NFT item contracts. The collection exposes item addresses and metadata, while each item stores its owner and individual content. See the official TEP-62 specification and TON reference implementation.
+## Files
 
-## Deployment status
+- `collection-config.json` — deployment state and collection metadata.
+- `genesis-keeper.json` — TEP-64 item metadata.
+- `genesis-keeper.svg` — achievement artwork.
+- `package.json` — isolated NFT deployment package.
+- `deploy-collection.mjs` — creates the Goalkeeper Genesis collection on TON Testnet.
+- `mint-genesis.mjs` — mints Genesis Keeper item #0 to an explicitly supplied testnet address.
+- `.env.example` — local environment template only.
 
-The repository intentionally does **not** contain a private key, mnemonic, or deployed collection address.
+The deployment helpers use the TON Community Assets SDK, which supports creating NFT collections, opening collections, and minting NFT items on testnet. citeturn3search0
 
-Before the claim button can submit an on-chain mint transaction:
+## Safe deployment flow
 
-1. Deploy a TEP-62-compatible collection to TON Testnet using the official TON NFT reference implementation.
-2. Verify the collection and item interfaces.
-3. Put the resulting **testnet collection address** into `collection-config.json`.
-4. Connect Goalkeeper to that collection.
-5. Keep the final wallet transaction behind an explicit user confirmation.
+1. Use a **TON Testnet** wallet only.
+2. Keep the wallet mnemonic in a local ignored `.env` file. Never put it in GitHub or chat.
+3. Deploy the collection.
+4. Verify the returned collection address on a TON Testnet explorer.
+5. Put the verified collection address into `collection-config.json`.
+6. Mint Genesis Keeper item #0 to a testnet recipient.
+7. Verify the NFT item on-chain.
+8. Only after on-chain confirmation should the Goalkeeper frontend record the NFT as **minted**.
+
+TON documentation recommends presenting a transaction preview before sending blockchain transactions. citeturn0search1
 
 ## Important
 
-Testnet transactions can still require testnet TON for network fees. Goalkeeper must never request a seed phrase/private key and must not silently submit a wallet transaction.
+- This integration is **TON Testnet only**.
+- Testnet transactions can still require testnet TON for network fees.
+- No real-money reward is issued.
+- Goalkeeper must never request a user's seed phrase/private key.
+- The frontend must not mark an NFT as minted merely because eligibility was verified.
+- The collection address remains blank until an actual testnet deployment is verified.
 
 Official references:
-- TEP-62 NFT Standard: https://github.com/ton-blockchain/TEPs/blob/master/text/0062-nft-standard.md
-- TON NFT reference implementation: https://github.com/ton-blockchain/nft-contract
+- TON NFT architecture: https://github.com/ton-blockchain/docs/blob/main/content/contracts/standard/tokens/nft/how-it-works.mdx
+- TON TEP-62: https://github.com/ton-blockchain/TEPs/blob/master/text/0062-nft-standard.md
+- TON NFT reference contracts: https://github.com/ton-blockchain/nft-contract
+- TON Community Assets SDK: https://github.com/ton-community/assets-sdk
