@@ -142,6 +142,8 @@
     $("proCheckinBtn")?.addEventListener("click", () => window.GoalkeeperDailyCheckin?.());
   }
 
+  window.GoalkeeperShowScreen = showScreen;
+
   function init() {
     setupNav();
     setupQuickActions();
