@@ -122,3 +122,11 @@ body.light-theme .event-days span,body.light-theme .event-mission{background:rgb
 
 /* Goalkeeper Genesis Event v2 state polish */
 .event-upcoming{color:#f3c66d!important;border-color:rgba(243,198,109,.25)!important;background:rgba(243,198,109,.06)!important}.event-ended{color:#ff9a9a!important;border-color:rgba(255,120,120,.2)!important;background:rgba(255,120,120,.06)!important}.event-mission button:disabled{opacity:.62;cursor:not-allowed}.genesis-profile-badge.badge-unlocked{border-color:rgba(80,227,164,.32);box-shadow:0 0 0 1px rgba(80,227,164,.08),0 16px 40px rgba(0,0,0,.18)}.genesis-nft-status{line-height:1.5}.genesis-nft-card{min-width:0}@media(max-width:600px){.genesis-nft-copy .primary.compact{width:100%}}
+
+/* Goalkeeper navigation isolation fix */
+.pro-nav{width:100%;box-sizing:border-box;overflow:hidden}
+.pro-nav-item{width:auto!important;min-width:0!important;flex:1 1 0!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pro-nav-item span{pointer-events:none}
+.app [data-gk-section][hidden],.app .dashboard-grid[hidden],.app .roadmap[hidden],.app footer[hidden]{display:none!important;visibility:hidden!important;height:0!important;min-height:0!important;margin:0!important;padding:0!important;overflow:hidden!important}
+.event-mission button{width:100%!important}
+@media(max-width:520px){.pro-nav{overflow-x:auto;overflow-y:hidden}.pro-nav-item{flex:0 0 68px!important;width:68px!important}.pro-nav-item span{font-size:8px}}
