@@ -94,7 +94,6 @@
     document.querySelectorAll("[data-gk-bottom]").forEach(btn => btn.classList.toggle("active", btn.dataset.gkBottom === screen));
 
     if (updateHash) history.replaceState(null, "", "#" + screen);
-    window.scrollTo({top: 0, behavior: "smooth"});
     syncProStats();
     syncTeam();
   }
