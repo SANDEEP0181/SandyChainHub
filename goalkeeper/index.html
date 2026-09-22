@@ -117,5 +117,78 @@
   <script defer src="app-v3.js?v=20260923-gkfix4"></script>
   <script defer src="pro-dashboard.js?v=20260923-pro4"></script>
 <script src="genesis-nft.js" defer></script>
+<script>
+/* Goalkeeper hard navigation guard — runs after every app script */
+(function(){
+  const screens={
+    home:["home",".quick-start",".level-card",".streak-strip","overview",".pro-grid",".stats"],
+    missions:["missions"],
+    events:["events"],
+    team:["team-screen","leaderboard","referral-stats"],
+    wallet:["wallet-screen"],
+    profile:["profile","genesis-nft","collection-achievements","settings","notifications","support"]
+  };
+  const selectors=[
+    "#home",".quick-start",".level-card",".streak-strip","#overview",".pro-grid",".stats",
+    "#profile","#missions","#genesis-nft","#events",".dashboard-grid","#collection-achievements",
+    "#team-screen","#leaderboard","#settings","#referral-stats","#notifications","#support",".roadmap","footer"
+  ];
+  function elByKey(key){
+    if(key[0]==="#") return document.querySelector(key);
+    if(key[0]===".") return document.querySelector(key);
+    return document.getElementById(key);
+  }
+  function hide(el){
+    if(!el)return;
+    el.hidden=true;
+    el.style.setProperty("display","none","important");
+  }
+  function show(el){
+    if(!el)return;
+    el.hidden=false;
+    el.style.removeProperty("display");
+  }
+  function render(screen){
+    const allowed=new Set(screens[screen]||screens.home);
+    selectors.forEach(sel=>{
+      const el=document.querySelector(sel);
+      if(!el)return;
+      const key=el.id||sel;
+      if(allowed.has(key)) show(el); else hide(el);
+    });
+    const grid=document.querySelector(".dashboard-grid");
+    if(grid){
+      if(screen==="wallet"){
+        show(grid);
+        grid.querySelectorAll(".wallet-card").forEach(show);
+        grid.querySelectorAll(".telegram-card,.identity-card,.reward-card").forEach(hide);
+      }else if(screen==="profile"){
+        show(grid);
+        grid.querySelectorAll(".wallet-card,.identity-card,.reward-card").forEach(hide);
+        grid.querySelectorAll(".telegram-card").forEach(show);
+      }else hide(grid);
+    }
+    document.querySelectorAll("[data-gk-nav]").forEach(b=>b.classList.toggle("active",b.dataset.gkNav===screen));
+    document.querySelectorAll("[data-gk-bottom]").forEach(b=>b.classList.toggle("active",b.dataset.gkBottom===screen));
+  }
+  function go(screen){
+    render(screen);
+    try{history.replaceState(null,"","#"+screen)}catch(e){}
+  }
+  function init(){
+    document.addEventListener("click",function(e){
+      const b=e.target.closest("[data-gk-nav],[data-gk-bottom]");
+      if(!b)return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      go(b.dataset.gkNav||b.dataset.gkBottom||"home");
+    },true);
+    const initial=location.hash.slice(1);
+    go(screens[initial]?initial:"home");
+    window.GoalkeeperHardNav=go;
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
+})();
+</script>
 </body>
 </html>
