@@ -2,15 +2,20 @@
 (function(){
   const ENDPOINT="https://sandy-chain-hub.vercel.app/api/goalkeeper/event";
   const STATUS_ID="genesisNftStatus", BTN_ID="genesisNftClaimBtn";
+  const ELIGIBLE_KEY="goalkeeperGenesisNftEligible";
+  const VERIFY_KEY="goalkeeperGenesisNftVerifiedAt";
+  const MINTED_KEY="goalkeeperGenesisNftMinted";
   const DAYS=["2026-09-23","2026-09-24","2026-09-25","2026-09-26","2026-09-27","2026-09-28","2026-09-29"];
   const dayList=()=>{try{return JSON.parse(localStorage.getItem("goalkeeperGenesisDaily")||"[]")||[]}catch{return[]}};
   const eligible=()=>DAYS.every(d=>dayList().includes(d));
   const initData=()=>window.Telegram&&window.Telegram.WebApp?window.Telegram.WebApp.initData:"";
   const set=(s,b,disabled)=>{const x=document.getElementById(STATUS_ID),y=document.getElementById(BTN_ID);if(x)x.textContent=s;if(y){y.disabled=disabled;y.textContent=b}};
   function refresh(){
-    const claimed=localStorage.getItem("goalkeeperGenesisNftClaimed")==="1";
-    if(claimed)return set("Genesis Keeper testnet NFT claim recorded for this profile.","CLAIM RECORDED ✓",true);
-    if(eligible())return set("Eligibility verified locally. Server verification is required before any claim.","VERIFY ELIGIBILITY",false);
+    const minted=localStorage.getItem(MINTED_KEY)==="1";
+    const verified=localStorage.getItem(ELIGIBLE_KEY)==="1";
+    if(minted)return set("Genesis Keeper testnet NFT is marked minted for this profile.","MINTED ✓",true);
+    if(verified)return set("Genesis Keeper eligibility is server-verified. A wallet transaction is still required to mint the NFT.","CLAIM TESTNET NFT",false);
+    if(eligible())return set("Eligibility appears complete locally. Server verification is required before minting.","VERIFY ELIGIBILITY",false);
     set("Complete all 7 Genesis Event days to unlock the claim.","CLAIM TESTNET NFT",true);
   }
   async function verify(){
@@ -21,10 +26,10 @@
       const r=await fetch(ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({initData:i,action:"badge"})});
       const j=await r.json();
       if(!j.ok||!j.eligible)return set("Server verification did not confirm eligibility yet.","TRY AGAIN",false);
-      set("Server verified. NFT mint/transfer is intentionally not automatic; a wallet transaction would require explicit confirmation.","TESTNET CLAIM READY",true);
-      localStorage.setItem("goalkeeperGenesisNftClaimed","1");
-      localStorage.setItem("goalkeeperGenesisNftVerifiedAt",new Date().toISOString());
-      window.dispatchEvent(new CustomEvent("goalkeeper:mission",{detail:{message:"Genesis Keeper achievement server-verified for testnet NFT claim."}}));
+      localStorage.setItem(ELIGIBLE_KEY,"1");
+      localStorage.setItem(VERIFY_KEY,new Date().toISOString());
+      set("Server verified. The NFT is not minted yet; an explicit TON Testnet wallet transaction is required.","CLAIM TESTNET NFT",false);
+      window.dispatchEvent(new CustomEvent("goalkeeper:mission",{detail:{message:"Genesis Keeper eligibility server-verified for testnet NFT claim."}}));
     }catch(e){console.warn("Genesis NFT verification:",e);set("Verification service is unavailable. Try again later.","TRY AGAIN",false)}
   }
   function init(){refresh();document.getElementById(BTN_ID)?.addEventListener("click",verify);window.addEventListener("goalkeeper:mission",refresh);setInterval(refresh,5000)}
