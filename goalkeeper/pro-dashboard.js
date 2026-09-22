@@ -38,7 +38,7 @@
     events: ["events"],
     team: ["team-screen", "leaderboard", "referral-stats"],
     wallet: ["wallet-screen"],
-    profile: ["profile", "settings", "notifications", "support"]
+    profile: ["profile", "genesis-nft", "collection-achievements", "settings", "notifications", "support"]
   };
 
   function tagScreens() {
