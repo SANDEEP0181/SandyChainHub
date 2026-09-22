@@ -964,7 +964,7 @@ renderNotes();renderLeaderboard();syncHeroPoints();captureReferral();renderRefer
   const JOIN_KEY="goalkeeperGenesisJoined";
   const DAILY_KEY="goalkeeperGenesisDaily";
   const BONUS_KEY="goalkeeperGenesisBonuses";
-  const TOTAL_MAX=120;
+  const TOTAL_MAX=120; const BADGE_KEY="goalkeeperGenesisBadge";
   const start=new Date(EVENT_START), end=new Date(EVENT_END);
   const $=id=>document.getElementById(id);
   const dayKey=()=>new Date().toISOString().slice(0,10);
@@ -994,6 +994,10 @@ renderNotes();renderLeaderboard();syncHeroPoints();captureReferral();renderRefer
   function markDone(id){
     $(id)?.classList.add("event-done");
   }
+  function sevenDayComplete(){const d=eventDaysDone();return [0,1,2,3,4,5,6].every(i=>d.includes(new Date(start.getTime()+i*86400000).toISOString().slice(0,10)))}
+  function badgeClaimed(){return localStorage.getItem(BADGE_KEY)==="1"}
+  function refreshBadge(){const complete=sevenDayComplete(),claimed=badgeClaimed(),btn=$("claimGenesisBadgeBtn"),status=$("genesisBadgeStatus"),card=$("genesisBadgeCard"),eventStatus=$("eventCompletionStatus");if(btn){btn.disabled=!complete||claimed;btn.textContent=claimed?"CLAIMED ✓":"CLAIM BADGE"}if(status)status.textContent=claimed?"Unlocked • Genesis Keeper badge active.":complete?"7/7 days complete. Your badge is ready to claim.":"Complete all 7 event days to unlock your badge.";if(card)card.classList.toggle("badge-unlocked",claimed);if(eventStatus)eventStatus.textContent=claimed?"✓ 7/7 days complete • Genesis Keeper unlocked":complete?"✓ 7/7 days complete • Badge ready to claim":"Complete all 7 event days to unlock Genesis Keeper."}
+  function claimBadge(){if(!active()||!sevenDayComplete()||badgeClaimed())return;localStorage.setItem(BADGE_KEY,"1");window.dispatchEvent(new CustomEvent("goalkeeper:mission",{detail:{message:"Genesis Keeper badge unlocked after completing all 7 event days."}}));refreshBadge();}
   function refresh(){
     const status=$("eventStatus"), activeNow=active();
     if(status){status.textContent=activeNow?"LIVE":"ENDED";status.classList.toggle("event-ended",!activeNow)}
@@ -1010,7 +1014,7 @@ renderNotes();renderLeaderboard();syncHeroPoints();captureReferral();renderRefer
     if(daily.includes(dayKey()))$("eventDailyMission")?.classList.add("event-done");
     if(bonuses.core)$("eventCoreMission")?.classList.add("event-done");
     if(bonuses.spin)$("eventSpinMission")?.classList.add("event-done");
-    renderDays();
+    renderDays(); refreshBadge();
   }
   function join(){
     if(!active()||joined())return;
@@ -1042,7 +1046,7 @@ renderNotes();renderLeaderboard();syncHeroPoints();captureReferral();renderRefer
     $("eventJoinBtn")?.addEventListener("click",join);
     $("eventDailyBtn")?.addEventListener("click",daily);
     $("eventCoreBtn")?.addEventListener("click",core);
-    $("eventSpinBtn")?.addEventListener("click",spin);
+    $("eventSpinBtn")?.addEventListener("click",spin); $("claimGenesisBadgeBtn")?.addEventListener("click",claimBadge);
     refresh();setInterval(refresh,1000);
     window.addEventListener("goalkeeper:mission",refresh);
   }
