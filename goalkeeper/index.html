@@ -24,6 +24,7 @@
     <div class="pro-nav card" aria-label="Goalkeeper navigation">
   <button class="pro-nav-item active" data-gk-nav="home">⌂ <span>Home</span></button>
   <button class="pro-nav-item" data-gk-nav="missions">◈ <span>Missions</span></button>
+  <button class="pro-nav-item" data-gk-nav="events">★ <span>Events</span></button>
   <button class="pro-nav-item" data-gk-nav="team">👥 <span>Team</span></button>
   <button class="pro-nav-item" data-gk-nav="wallet">◎ <span>Wallet</span></button>
   <button class="pro-nav-item" data-gk-nav="profile">◉ <span>Profile</span></button>
@@ -56,6 +57,16 @@
       <article class="mission card"><div class="mission-icon">03</div><div><small>IDENTITY</small><h3>Link Identity</h3><p>Link Telegram and TON.</p></div><b id="missionLink">+15</b></article>
       <article class="mission card"><div class="mission-icon">04</div><div><small>DAILY</small><h3>Daily Check-in</h3><p>Return each UTC day.</p></div><b id="missionDaily">+10</b></article>
     </div></section>
+    <section class="section" id="events"><div class="section-head"><div><span>COMMUNITY EVENT</span><h2>Genesis Event</h2></div><span id="eventStatus" class="live-label">LIVE</span></div>
+<article class="card event-hero-card"><div class="event-hero-main"><div class="event-icon">★</div><div><small>GOALKEEPER GENESIS EVENT</small><h3>7 Days • Testnet XP • Community Badge</h3><p>Complete event activities and build your Goalkeeper profile. XP is testnet/community progress only.</p></div></div><div class="event-countdown"><small>EVENT ENDS IN</small><strong id="eventCountdown">—</strong></div></article>
+<article class="card event-progress-card"><div class="event-progress-head"><div><small>YOUR EVENT PROGRESS</small><strong id="eventProgressText">0 / 120 XP</strong></div><span id="eventProgressPct">0%</span></div><div class="progress-track"><i id="eventProgressBar"></i></div><div class="event-days" id="eventDays"></div></article>
+<div class="event-mission-grid">
+<article class="card event-mission" id="eventJoinMission"><span class="event-mission-icon">01</span><div><small>JOIN</small><h3>Enter Genesis Event</h3><p>Activate your event profile.</p></div><b>+10 XP</b><button id="eventJoinBtn" class="primary compact" type="button">JOIN</button></article>
+<article class="card event-mission" id="eventDailyMission"><span class="event-mission-icon">02</span><div><small>DAILY</small><h3>Event Check-in</h3><p>Check in once each event day.</p></div><b>+10 XP/day</b><button id="eventDailyBtn" class="primary compact" type="button">CHECK IN</button></article>
+<article class="card event-mission" id="eventCoreMission"><span class="event-mission-icon">03</span><div><small>CHALLENGE</small><h3>Complete 3 Core Missions</h3><p>Finish any 3 of the main Goalkeeper missions.</p></div><b>+25 XP</b><button id="eventCoreBtn" class="primary compact" type="button">CHECK</button></article>
+<article class="card event-mission" id="eventSpinMission"><span class="event-mission-icon">04</span><div><small>LUCKY BONUS</small><h3>Complete Daily Spin</h3><p>Finish today's Spin Wheel for an event bonus.</p></div><b>+15 XP</b><button id="eventSpinBtn" class="primary compact" type="button">CHECK</button></article>
+</div><p class="feature-note">Event rewards are activity XP only. No cash, token payout, purchase, deposit, or payment is required.</p></section>
+
     <section class="dashboard-grid">
       <article class="card wallet-card" id="wallet"><div class="card-top"><span>TON WALLET</span><span class="tiny-live">TESTNET</span></div><h3 id="walletStatus">Wallet not connected</h3><p id="walletAddress">Connect your testnet wallet to continue.</p><div class="wallet-tools"><button id="copyAddressBtn" class="secondary" type="button" disabled>Copy Address</button><button id="explorerBtn" class="secondary" type="button" disabled>Open Explorer</button><button id="disconnectWalletBtn" class="secondary" type="button" hidden>Disconnect Wallet</button></div></article>
       <article class="card telegram-card"><div class="card-top"><span>TELEGRAM</span><span class="tg-mark">TG</span></div><h3 id="telegramStatus">Browser mode</h3><p id="telegramUser">Open Goalkeeper inside Telegram to view user and session information.</p><a id="telegramOpenBtn" class="primary full telegram-open-btn" href="https://t.me/GoalkeeperHubBot/goalkeeper" target="_blank" rel="noopener noreferrer">Open in Telegram</a></article>
@@ -80,6 +91,7 @@
   <nav class="bottom-nav" aria-label="Goalkeeper app navigation">
   <button type="button" data-gk-bottom="home">⌂<small>Home</small></button>
   <button type="button" data-gk-bottom="missions">◈<small>Missions</small></button>
+  <button type="button" data-gk-bottom="events">★<small>Events</small></button>
   <button type="button" data-gk-bottom="team">👥<small>Team</small></button>
   <button type="button" data-gk-bottom="wallet">◎<small>Wallet</small></button>
   <button type="button" data-gk-bottom="profile">◉<small>Profile</small></button>
@@ -87,6 +99,7 @@
   <script src="https://telegram.org/js/telegram-web-app.js?63"></script>
     <script src="https://unpkg.com/@tonconnect/ui@3.0.2/dist/tonconnect-ui.min.js?v=goalkeeper20260921" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/@tonconnect/ui@3.0.2/dist/tonconnect-ui.min.js?v=goalkeeper20260921'"></script>
   <script src="backend-sync.js?v=20260920-redis1"></script>
-  <script defer src="app-v3.js?v=20260920-invitefix2"></script>\n  <script defer src="pro-dashboard.js?v=20260923-pro1"></script>
+  <script defer src="app-v3.js?v=20260920-invitefix2"></script>\n  <script defer src="pro-dashboard.js?v=20260923-pro2"></script>
+  <script defer src="app-v3.js?v=20260920-invitefix2"></script>
 </body>
 </html>
