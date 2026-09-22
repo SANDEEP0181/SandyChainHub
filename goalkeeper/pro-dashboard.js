@@ -35,7 +35,7 @@
   const screenMap = {
     home: ["hero", "quick-start", "level-card", "streak-strip", "overview", "pro-grid", "stats"],
     missions: ["missions"],
-    team: ["leaderboard", "referral-stats"],
+    team: ["team-screen", "leaderboard", "referral-stats"],
     wallet: ["wallet-screen"],
     profile: ["profile", "settings", "notifications", "support"]
   };
@@ -52,6 +52,7 @@
       missions: $("missions"),
       leaderboard: $("leaderboard"),
       "referral-stats": $("referral-stats"),
+      "team-screen": $("team-screen"),
       profile: $("profile"),
       settings: $("settings"),
       notifications: $("notifications"),
@@ -95,6 +96,7 @@
     if (updateHash) history.replaceState(null, "", "#" + screen);
     window.scrollTo({top: 0, behavior: "smooth"});
     syncProStats();
+    syncTeam();
   }
 
   function setupNav() {
@@ -108,6 +110,31 @@
     });
   }
 
+
+  function syncTeam() {
+    const code = safe(() => localStorage.getItem("goalkeeperReferralCode") || "GK-LOCAL", "GK-LOCAL");
+    const invites = Number($("referralCount")?.textContent || 0);
+    const bonus = Number($("referralBonus")?.textContent || 0);
+    const level = Math.floor(invites / 5) + 1, progress = invites % 5, pct = Math.round(progress / 5 * 100);
+    if ($("teamReferralCode")) $("teamReferralCode").textContent = code;
+    if ($("teamInvites")) $("teamInvites").textContent = invites;
+    if ($("teamBonus")) $("teamBonus").textContent = bonus;
+    if ($("teamLevel")) $("teamLevel").textContent = level;
+    if ($("teamLevelText")) $("teamLevelText").textContent = level === 1 ? "Starter" : level === 2 ? "Builder" : level === 3 ? "Guardian" : "Elite";
+    if ($("teamProgressLabel")) $("teamProgressLabel").textContent = progress + " / 5 direct invites";
+    if ($("teamProgressPct")) $("teamProgressPct").textContent = pct + "%";
+    if ($("teamProgressBar")) $("teamProgressBar").style.width = pct + "%";
+    if ($("teamProgressNote")) $("teamProgressNote").textContent = invites >= 5 ? "Next Team Level is unlocked by another 5 direct invites." : "Invite " + (5-progress) + " more people to reach Team Level " + (level+1) + ".";
+    if ($("teamInviteLink")) $("teamInviteLink").textContent = location.origin + location.pathname + "?ref=" + encodeURIComponent(code);
+    if ($("teamReferralStatus")) $("teamReferralStatus").textContent = $("referralStatus")?.textContent || "Ready to share.";
+  }
+  function setupTeam() {
+    $("teamShareBtn")?.addEventListener("click", () => window.GoalkeeperShareInvite?.());
+    $("teamCopyBtn")?.addEventListener("click", () => window.GoalkeeperCopyInvite?.());
+    $("teamLinkCopyBtn")?.addEventListener("click", () => window.GoalkeeperCopyInvite?.());
+    syncTeam();
+  }
+
   function setupQuickActions() {
     $("proConnectBtn")?.addEventListener("click", () => { window.GoalkeeperConnectWallet?.(); addActivity("Wallet action", "TON wallet selector opened."); });
     $("proMissionBtn")?.addEventListener("click", () => showScreen("missions"));
@@ -118,6 +145,7 @@
   function init() {
     setupNav();
     setupQuickActions();
+    setupTeam();
     syncProStats();
     addActivity("Goalkeeper ready", "App-style navigation initialized.");
     setInterval(syncProStats, 3000);
