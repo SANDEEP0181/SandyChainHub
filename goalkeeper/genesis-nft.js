@@ -14,9 +14,9 @@
     const minted=localStorage.getItem(MINTED_KEY)==="1";
     const verified=localStorage.getItem(ELIGIBLE_KEY)==="1";
     if(minted)return set("Genesis Keeper testnet NFT is marked minted for this profile.","MINTED ✓",true);
-    if(verified)return set("Genesis Keeper eligibility is server-verified. A wallet transaction is still required to mint the NFT.","CLAIM TESTNET NFT",false);
-    if(eligible())return set("Eligibility appears complete locally. Server verification is required before minting.","VERIFY ELIGIBILITY",false);
-    set("Complete all 7 Genesis Event days to unlock the claim.","CLAIM TESTNET NFT",true);
+    if(verified)return set("Eligibility is server-verified, but the Goalkeeper Genesis collection is not deployed yet. No NFT mint transaction is available.","DEPLOYMENT PENDING",true);
+    if(eligible())return set("Eligibility appears complete locally. Verify the 7-day achievement first.","VERIFY ELIGIBILITY",false);
+    set("Complete all 7 Genesis Event days to unlock eligibility verification.","VERIFY ELIGIBILITY",true);
   }
   async function verify(){
     const i=initData();
@@ -28,7 +28,7 @@
       if(!j.ok||!j.eligible)return set("Server verification did not confirm eligibility yet.","TRY AGAIN",false);
       localStorage.setItem(ELIGIBLE_KEY,"1");
       localStorage.setItem(VERIFY_KEY,new Date().toISOString());
-      set("Server verified. The NFT is not minted yet; an explicit TON Testnet wallet transaction is required.","CLAIM TESTNET NFT",false);
+      set("Eligibility verified. NFT minting is disabled until the Goalkeeper Genesis collection is deployed on TON Testnet.","DEPLOYMENT PENDING",true);
       window.dispatchEvent(new CustomEvent("goalkeeper:mission",{detail:{message:"Genesis Keeper eligibility server-verified for testnet NFT claim."}}));
     }catch(e){console.warn("Genesis NFT verification:",e);set("Verification service is unavailable. Try again later.","TRY AGAIN",false)}
   }
