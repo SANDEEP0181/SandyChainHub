@@ -81,9 +81,9 @@
 
     const grid = document.querySelector(".dashboard-grid");
     if (grid) {
-      grid.hidden = screen !== "wallet";
+      grid.hidden = !["wallet", "profile"].includes(screen);
       grid.querySelectorAll("[data-gk-wallet-card]").forEach(el => el.hidden = screen !== "wallet");
-      grid.querySelectorAll("[data-gk-profile-card]").forEach(el => el.hidden = screen === "wallet");
+      grid.querySelectorAll("[data-gk-profile-card]").forEach(el => el.hidden = screen !== "profile");
       grid.querySelectorAll("[data-gk-reward-card]").forEach(el => el.hidden = true);
     }
 
