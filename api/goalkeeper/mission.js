@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import {
   cors, validateTelegramInitData, redis, userKey, missionPoints,
   validMission, todayUtc
@@ -39,7 +40,21 @@ export default async function handler(req, res) {
 
     state.missions = state.missions || {};
 
-    if (state.missions[missionId]) {
+    if (missionId === "checkin") {
+      const today = todayUtc();
+      if (state.missions.checkin?.date === today) {
+        return res.status(200).json({ ok: true, awarded: false, points: state.points, state });
+      }
+      const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+      state.streak = state.lastCheckin === yesterday ? Number(state.streak || 0) + 1 : 1;
+      state.bestStreak = Math.max(Number(state.bestStreak || 0), state.streak);
+      state.lastCheckin = today;
+    } else if (missionId === "spin") {
+      const today = todayUtc();
+      if (state.missions.spin?.date === today) {
+        return res.status(200).json({ ok: true, awarded: false, points: state.points, state });
+      }
+    } else if (state.missions[missionId]) {
       return res.status(200).json({ ok: true, awarded: false, points: state.points, state });
     }
 
@@ -54,9 +69,9 @@ export default async function handler(req, res) {
       state.lastCheckin = today;
     }
 
-    const points = missionPoints(missionId);
+    const points = missionId === "spin" ? [5, 10, 15, 25, 50][crypto.randomInt(0, 5)] : missionPoints(missionId);
     state.points = Number(state.points || 0) + points;
-    state.missions[missionId] = { completedAt: new Date().toISOString(), points };
+    state.missions[missionId] = { completedAt: new Date().toISOString(), points, ...(missionId === "checkin" || missionId === "spin" ? { date: todayUtc() } : {}) };
 
     await redis(["SET", key, JSON.stringify(state)]);
     await redis(["ZADD", "gk:leaderboard", state.points, String(auth.user.id)]);
