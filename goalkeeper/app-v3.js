@@ -903,3 +903,53 @@ renderNotes();renderLeaderboard();syncHeroPoints();captureReferral();renderRefer
     return false;
   };
 })();
+
+/* Goalkeeper Daily Spin Wheel v1 — testnet/community XP only */
+(function(){
+  const SPIN_KEY="goalkeeperSpinDate";
+  const SPIN_XP_KEY="goalkeeperSpinXp";
+  const REWARDS=[5,10,15,25,50];
+  const btn=()=>document.getElementById("spinWheelBtn");
+  const today=()=>todayKey();
+  function updateSpinUI(){
+    const b=btn(); if(!b)return;
+    const done=localStorage.getItem(SPIN_KEY)===today();
+    b.disabled=done;
+    b.textContent=done?"SPUN ✓":"SPIN";
+    const mission=document.getElementById("spinMission");
+    if(mission)mission.classList.toggle("spin-complete",done);
+  }
+  function addSpinXp(amount){
+    const base=Number(localStorage.getItem(POINTS_KEY)||"0")||0;
+    localStorage.setItem(POINTS_KEY,String(base+amount));
+    localStorage.setItem("goalkeeperServerPoints",String(base+amount));
+    const total=Number(localStorage.getItem(SPIN_XP_KEY)||"0")||0;
+    localStorage.setItem(SPIN_XP_KEY,String(total+amount));
+  }
+  function spin(){
+    const b=btn();
+    if(!b||localStorage.getItem(SPIN_KEY)===today())return;
+    b.disabled=true;b.setAttribute("aria-busy","true");b.textContent="SPINNING…";
+    const reward=REWARDS[Math.floor(Math.random()*REWARDS.length)];
+    const icon=document.querySelector("#spinMission .spin-icon");
+    if(icon){icon.classList.remove("spinning");void icon.offsetWidth;icon.classList.add("spinning");}
+    setTimeout(()=>{
+      localStorage.setItem(SPIN_KEY,today());
+      addSpinXp(reward);
+      const missions=getMissions();
+      missions.spin={completedAt:new Date().toISOString(),points:reward};
+      saveMissions(missions);
+      updateRewards();
+      updateSpinUI();
+      setText(profileActivity,"Session activity: Daily Spin completed (+"+reward+" testnet XP).");
+      window.dispatchEvent(new CustomEvent("goalkeeper:mission",{detail:{message:"Daily Spin awarded +"+reward+" testnet XP."}}));
+      b.removeAttribute("aria-busy");
+    },1400);
+  }
+  function initSpin(){
+    updateSpinUI();
+    btn()?.addEventListener("click",spin);
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",initSpin);else initSpin();
+  setInterval(updateSpinUI,1000);
+})();
