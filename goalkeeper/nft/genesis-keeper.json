@@ -1,0 +1,23 @@
+{
+  "name": "Genesis Keeper",
+  "description": "Achievement badge for completing the 7-day Goalkeeper Genesis Event. Testnet/community achievement only.",
+  "image": "https://sandeep0181.github.io/SandyChainHub/goalkeeper/nft/genesis-keeper.svg",
+  "attributes": [
+    {
+      "trait_type": "Collection",
+      "value": "Goalkeeper Genesis"
+    },
+    {
+      "trait_type": "Achievement",
+      "value": "7-Day Event Completion"
+    },
+    {
+      "trait_type": "Network",
+      "value": "TON Testnet"
+    },
+    {
+      "trait_type": "Reward Type",
+      "value": "Community Achievement"
+    }
+  ]
+}
