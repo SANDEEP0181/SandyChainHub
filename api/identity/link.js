@@ -48,20 +48,6 @@ function isValidTonAddress(address) {
   return /^(?:0:[0-9a-fA-F]{64}|EQ[A-Za-z0-9_-]{46}|UQ[A-Za-z0-9_-]{46})$/.test(address.trim());
 }
 
-function createLinkToken(user, walletAddress) {
-  const now = Math.floor(Date.now() / 1000);
-  const payload = {
-    telegramUserId: user.id,
-    telegramUsername: user.username ?? null,
-    walletAddress,
-    iat: now,
-    exp: now + LINK_TOKEN_TTL_SECONDS
-  };
-  const encoded = Buffer.from(JSON.stringify(payload)).toString("base64url");
-  const signature = crypto.createHmac("sha256", process.env.TELEGRAM_BOT_TOKEN).update(encoded).digest("base64url");
-  return encoded + "." + signature;
-}
-
 export default async function handler(req, res) {
   setCors(res);
   if (req.method === "OPTIONS") return res.status(204).end();
@@ -86,13 +72,10 @@ export default async function handler(req, res) {
   if (!telegram.ok) return res.status(401).json(telegram);
   if (!telegram.user?.id) return res.status(401).json({ ok: false, error: "Telegram user identity missing" });
 
-  const linkToken = createLinkToken(telegram.user, walletAddress);
   return res.status(200).json({
     ok: true,
     status: "linked",
     walletAddress,
-    telegramUserId: telegram.user.id,
-    linkToken,
-    expiresInSeconds: LINK_TOKEN_TTL_SECONDS
+    telegramUserId: telegram.user.id
   });
 }
