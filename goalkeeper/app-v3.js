@@ -985,11 +985,11 @@ renderNotes();renderLeaderboard();syncHeroPoints();captureReferral();renderRefer
     box.innerHTML=days.map((d,i)=>'<span class="'+(done.includes(d)?"done ":"")+(d===today?"today":"")+'"><b>D'+(i+1)+'</b><small>'+d.slice(5).replace("-","/")+'</small></span>').join("");
   }
   function coreComplete(){
-    try{const m=JSON.parse(localStorage.getItem("goalkeeperMissions")||"{}")||{};return ["open","connect","link","checkin"].filter(k=>m[k]).length>=3}catch{return false}
+    try{const m=JSON.parse(localStorage.getItem("goalkeeperMissions")||"{}")||{};return ["open","connect","identity"].filter(k=>m[k]).length>=3}catch{return false}
   }
   function eventXp(){
-    const b=readBonuses(), daily=eventDaysDone();
-    return (b.join?10:0)+(daily.length*10)+(b.core?25:0)+(b.spin?15:0);
+    const b=readBonuses(), daily=eventDaysDone(), spinBonus=!!b["spin:"+dayKey()];
+    return (b.join?10:0)+(daily.length*10)+(b.core?25:0)+((spinBonus||b.spin)?15:0);
   }
   function markDone(id){
     $(id)?.classList.add("event-done");
@@ -1015,7 +1015,7 @@ renderNotes();renderLeaderboard();syncHeroPoints();captureReferral();renderRefer
     const jb=$("eventJoinBtn"); if(jb){jb.disabled=!activeNow||joinedNow;jb.textContent=joinedNow?"JOINED ✓":"JOIN";}
     const db=$("eventDailyBtn"); if(db){const done=daily.includes(dayKey());db.disabled=!activeNow||!joinedNow||done;db.textContent=done?"CHECKED ✓":"CHECK IN";}
     const cb=$("eventCoreBtn"); if(cb){const done=!!bonuses.core;cb.disabled=!activeNow||!joinedNow||done;cb.textContent=done?"CLAIMED ✓":"CHECK";}
-    const sb=$("eventSpinBtn"); if(sb){const spinDone=localStorage.getItem("goalkeeperSpinDate")===dayKey(),done=!!bonuses.spin;sb.disabled=!activeNow||!joinedNow||!spinDone||done;sb.textContent=done?"CLAIMED ✓":spinDone?"CLAIM +15":"CHECK";}
+    const sb=$("eventSpinBtn"); if(sb){const spinDone=localStorage.getItem("goalkeeperSpinDate")===dayKey(),done=!!bonuses["spin:"+dayKey()]||!!bonuses.spin;sb.disabled=!activeNow||!joinedNow||!spinDone||done;sb.textContent=done?"CLAIMED ✓":spinDone?"CLAIM +15":"CHECK";}
     if($("eventCountdown")){
       const target=beforeStart?start.getTime():end.getTime();
       const ms=Math.max(0,target-Date.now());
@@ -1025,7 +1025,7 @@ renderNotes();renderLeaderboard();syncHeroPoints();captureReferral();renderRefer
     markDone("eventJoinMission"); if(joinedNow)$( "eventJoinMission")?.classList.add("event-done");
     if(daily.includes(dayKey()))$("eventDailyMission")?.classList.add("event-done");
     if(bonuses.core)$("eventCoreMission")?.classList.add("event-done");
-    if(bonuses.spin)$("eventSpinMission")?.classList.add("event-done");
+    if(bonuses["spin:"+dayKey()]||bonuses.spin)$("eventSpinMission")?.classList.add("event-done");
     renderDays(); refreshBadge();
   }
   async function claimEventAction(action, message){
@@ -1066,7 +1066,7 @@ renderNotes();renderLeaderboard();syncHeroPoints();captureReferral();renderRefer
   }
   function spin(){
     const b=readBonuses();
-    if(!active()||!joined()||b.spin||localStorage.getItem("goalkeeperSpinDate")!==dayKey())return;
+    if(!active()||!joined()||(b["spin:"+dayKey()]||b.spin)||localStorage.getItem("goalkeeperSpinDate")!==dayKey())return;
     claimEventAction("spin","Genesis Event spin bonus claimed (+15 testnet XP).");
   }
   function init(){
