@@ -430,7 +430,9 @@ async function ensureTonConnect() {
     // Telegram Mini App return URL uses the TON Connect TMA return strategy.
     try {
       tonConnectUI.uiOptions = {
-        twaReturnUrl: "https://t.me/GoalkeeperHubBot"
+        actionsConfiguration: {
+          twaReturnUrl: "https://t.me/GoalkeeperHubBot/goalkeeper"
+        }
       };
     } catch (error) {
       console.warn("TON Connect TMA return strategy:", error);
