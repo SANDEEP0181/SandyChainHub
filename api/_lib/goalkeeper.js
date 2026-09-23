@@ -101,3 +101,13 @@ export function validMission(missionId) {
     spin: true
   }, missionId);
 }
+
+
+export async function rateLimit(telegramId, action, limit = 20, windowSeconds = 60) {
+  const key = "gk:rate:" + String(telegramId) + ":" + action;
+  const created = await redis(["SET", key, "1", "NX", "EX", String(windowSeconds)]);
+  if (created === "OK") return { ok: true, remaining: limit - 1 };
+  const count = Number(await redis(["INCR", key]));
+  if (count > limit) return { ok: false, remaining: 0 };
+  return { ok: true, remaining: Math.max(0, limit - count) };
+}
