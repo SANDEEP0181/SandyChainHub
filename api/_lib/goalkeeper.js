@@ -103,6 +103,37 @@ export function validMission(missionId) {
 }
 
 
+export async function recordXpLedger(telegramId, eventId, entry) {
+  const key = "gk:xp-ledger:" + String(telegramId) + ":" + String(eventId);
+  const payload = JSON.stringify({
+    userId: String(telegramId),
+    eventId: String(eventId),
+    ...entry,
+    recordedAt: new Date().toISOString()
+  });
+  const created = await redis(["SET", key, payload, "NX", "EX", "31536000"]);
+  return created === "OK";
+}
+
+export async function addRiskFlag(telegramId, flag, details = {}) {
+  const key = userKey(telegramId);
+  const raw = await redis(["GET", key]);
+  const state = raw ? JSON.parse(raw) : {
+    points: 0, streak: 0, bestStreak: 0, lastCheckin: null, missions: {}
+  };
+  const flags = Array.isArray(state.riskFlags) ? state.riskFlags : [];
+  if (!flags.some(x => x?.code === flag)) {
+    flags.push({
+      code: String(flag),
+      details,
+      detectedAt: new Date().toISOString()
+    });
+    state.riskFlags = flags.slice(-20);
+    await redis(["SET", key, JSON.stringify(state)]);
+  }
+  return state.riskFlags || [];
+}
+
 export async function rateLimit(telegramId, action, limit = 20, windowSeconds = 60) {
   const key = "gk:rate:" + String(telegramId) + ":" + action;
   const created = await redis(["SET", key, "1", "NX", "EX", String(windowSeconds)]);
