@@ -328,7 +328,7 @@ function updateWalletUI() {
   const address = getWalletAddress();
   const connected = Boolean(address);
 
-  if (connectedWalletChip) connectedWalletChip.hidden = !connected;
+  if (connectedWalletChip) { connectedWalletChip.hidden = true; connectedWalletChip.setAttribute("aria-hidden","true"); }
   setText(connectedWalletAddressEl, connected ? shortAddress(address) : "—");
 
   if (connectBtn) connectBtn.hidden = connected;
