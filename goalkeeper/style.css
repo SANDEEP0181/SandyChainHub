@@ -144,3 +144,52 @@ body.light-theme .event-days span,body.light-theme .event-mission{background:rgb
   .account-actions #connectBtn,.account-actions #disconnectBtn{display:none}
 }
 @media(max-width:380px){.brand small{display:none}.brand strong{font-size:14px}.language-select{width:48px;min-width:48px}}
+
+/* Goalkeeper Light Green + White Theme v1 */
+:root{
+  --bg:#f7fff9;--panel:#ffffff;--panel2:#f1fbf4;--line:rgba(34,120,72,.14);
+  --muted:#668071;--text:#173323;--accent:#35b86b;--accent2:#8be0a9;--green:#25a95d;
+}
+body{
+  background:radial-gradient(circle at 85% 0%,rgba(139,224,169,.28),transparent 30%),
+             radial-gradient(circle at 0% 35%,rgba(53,184,107,.12),transparent 28%),var(--bg);
+  color:var(--text);
+}
+.ambient-one{background:#72d89a}.ambient-two{background:#b8efca}
+.card,.stats>div{
+  background:linear-gradient(145deg,rgba(255,255,255,.98),rgba(244,253,247,.98));
+  border-color:var(--line);box-shadow:0 8px 28px rgba(38,110,66,.07),inset 0 1px 0 rgba(255,255,255,.9);
+}
+.hero{
+  background:linear-gradient(135deg,rgba(139,224,169,.30),rgba(255,255,255,.98) 52%,rgba(213,247,224,.55));
+  border-color:rgba(53,184,107,.20);
+}
+.hero h1 em{background:linear-gradient(90deg,#173323,#35a963,#16894a);background-clip:text;-webkit-background-clip:text;color:transparent}
+.hero p,.card p{color:#557163}
+.primary{
+  background:linear-gradient(135deg,#49c979,#25a95d);
+  color:#fff;box-shadow:0 10px 26px rgba(37,169,93,.20);
+}
+.secondary,.language-select{
+  background:#fff;color:#28533a;border-color:rgba(34,120,72,.16);
+}
+.secondary:hover:not(:disabled){background:#effbf3;border-color:rgba(53,184,107,.35)}
+.language-select option{background:#fff;color:#173323}
+.logo,.avatar-mini,.profile-avatar,.ball,.level-orb{
+  background:linear-gradient(135deg,#58d482,#22a85e);
+  box-shadow:0 8px 24px rgba(37,169,93,.18);
+}
+.progress-track{background:rgba(34,120,72,.09)}
+.progress-track i{background:linear-gradient(90deg,#35b86b,#8be0a9);box-shadow:0 0 14px rgba(53,184,107,.25)}
+.mission-icon,.badge-icon,.big-flame{background:rgba(53,184,107,.10);color:#229653}
+.mission b,.level-points b,.level-badge,.streak-meta b,.checkin-timer strong{color:#229653}
+.network-pill,.live-label,.tiny-live{background:#fff;color:#4e725e;border-color:rgba(34,120,72,.14)}
+.section-head>div>span,.card-top>span,.roadmap>div>span,.eyebrow{color:#5b7868}
+.bottom-nav{
+  background:rgba(255,255,255,.94);border-color:rgba(34,120,72,.14);
+  box-shadow:0 10px 35px rgba(38,110,66,.14);
+}
+.bottom-nav a,.bottom-nav button{color:#5b7868}
+.bottom-nav a:hover,.bottom-nav button:hover{color:#229653}
+.pro-live,.status-dot,.live-label{color:#229653}
+.streak-strip{background:linear-gradient(100deg,rgba(139,224,169,.25),rgba(255,255,255,.9))}
