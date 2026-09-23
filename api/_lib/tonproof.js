@@ -46,6 +46,19 @@ async function getOnchainPublicKey(rawAddress) {
   return typeof data.public_key === "string" ? data.public_key : (typeof data.publicKey === "string" ? data.publicKey : null);
 }
 
+async function getStateInitAccountInfo(stateInit) {
+  if (typeof stateInit !== "string" || stateInit.length < 20 || stateInit.length > 20000) return null;
+  const response = await fetch(TONAPI_BASE + "/tonconnect/stateinit", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify({ state_init: stateInit })
+  });
+  if (!response.ok) return null;
+  const data = await response.json();
+  if (!data || typeof data.address !== "string" || typeof data.public_key !== "string") return null;
+  return data;
+}
+
 export async function verifyTonProof(input) {
   try {
     if (!input || input.network !== "-3") return { ok: false, error: "Wrong TON network" };
@@ -64,6 +77,17 @@ export async function verifyTonProof(input) {
     const domainBytes = Buffer.from(String(domain.value || ""), "utf8");
     if (domain.value !== ALLOWED_DOMAIN || Number(domain.lengthBytes) !== domainBytes.length) return { ok: false, error: "TON proof domain mismatch" };
     if (typeof proof.payload !== "string" || proof.payload.length < 16 || proof.payload.length > 512) return { ok: false, error: "Invalid TON proof payload" };
+
+    // TON Connect requires the walletStateInit to bind to the claimed address.
+    // TonAPI's stateinit endpoint derives the account address/public key from the
+    // submitted StateInit; reject if either differs from the wallet response.
+    const stateInitInfo = await getStateInitAccountInfo(input.stateInit);
+    if (!stateInitInfo) return { ok: false, error: "Invalid or unavailable wallet state init" };
+    const stateInitRaw = friendlyToRaw(stateInitInfo.address);
+    if (stateInitRaw !== rawAddress) return { ok: false, error: "Wallet state init does not match the claimed address" };
+    if (stateInitInfo.public_key.toLowerCase() !== String(input.publicKey || "").toLowerCase()) {
+      return { ok: false, error: "Wallet state init public key does not match the wallet response" };
+    }
 
     const expectedKey = await getOnchainPublicKey(rawAddress);
     if (!expectedKey || expectedKey.toLowerCase() !== String(input.publicKey || "").toLowerCase()) return { ok: false, error: "TON wallet public key does not match the address" };
