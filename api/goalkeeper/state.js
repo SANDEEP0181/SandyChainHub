@@ -1,4 +1,4 @@
-import { cors, validateTelegramInitData, redis, userKey, publicUserId, todayUtc } from "../_lib/goalkeeper.js";
+import { cors, validateTelegramInitData, redis, userKey, publicUserId, todayUtc, rateLimit, addRiskFlag } from "../_lib/goalkeeper.js";
 
 export default async function handler(req, res) {
   cors(res);
@@ -19,6 +19,11 @@ export default async function handler(req, res) {
   if (!auth.ok) return res.status(401).json(auth);
 
   try {
+    const limiter = await rateLimit(auth.user.id, "state", 30, 60);
+    if (!limiter.ok) {
+      await addRiskFlag(auth.user.id, "STATE_RATE_LIMIT", { limit: 30, windowSeconds: 60 }).catch(() => {});
+      return res.status(429).json({ ok: false, error: "Too many requests", retryable: true });
+    }
     const raw = await redis(["GET", userKey(auth.user.id)]);
     const state = raw ? JSON.parse(raw) : {
       points: 0,
