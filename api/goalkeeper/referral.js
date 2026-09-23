@@ -54,9 +54,6 @@ export default async function handler(req, res) {
     const claimKey = "gk:refclaim:" + me;
     const rewardKey = "gk:ref-reward:" + me;
 
-    // The reward marker is the canonical idempotency guard for the bonus.
-    // Once inviter state is persisted, never remove this marker just because
-    // a secondary leaderboard/audit write fails.
     const claimed = await redis(["SET", claimKey, code, "NX"]);
     if (claimed !== "OK") {
       const existing = await redis(["GET", claimKey]);
@@ -79,6 +76,18 @@ export default async function handler(req, res) {
       return res.status(409).json({ ok: false, error: "Referral reward is being processed. Try again shortly." });
     }
 
+    // Share the same per-user mutation lock used by missions and identity.
+    // This prevents referral rewards from overwriting a concurrent state update.
+    const mutationKey = "gk:user-mutation-lock:" + String(inviter);
+    const mutationLock = await redis(["SET", mutationKey, me, "NX", "EX", "20"]);
+    if (mutationLock !== "OK") {
+      await redis(["DEL", inviterLockKey]);
+      await redis(["DEL", claimKey]);
+      await redis(["DEL", rewardKey]);
+      try { await addRiskFlag(me, "REFERRAL_USER_MUTATION_BUSY", { inviter: hashId(inviter) }); } catch {}
+      return res.status(409).json({ ok: false, error: "The inviter account is being updated. Try again shortly.", retryable: true });
+    }
+
     const inviterKey = userKey(inviter);
     let statePersisted = false;
 
@@ -93,8 +102,6 @@ export default async function handler(req, res) {
       await redis(["SET", inviterKey, JSON.stringify(state)]);
       statePersisted = true;
 
-      // Leaderboard and audit are secondary. A failure here must not roll back
-      // the already-persisted reward or allow a retry to grant it twice.
       let leaderboardSynced = true;
       try {
         await redis(["ZADD", "gk:leaderboard", state.points, inviter]);
@@ -128,7 +135,8 @@ export default async function handler(req, res) {
       }
       throw error;
     } finally {
-      await redis(["DEL", inviterLockKey]);
+      try { await redis(["DEL", mutationKey]); } catch {}
+      try { await redis(["DEL", inviterLockKey]); } catch {}
     }
   } catch (error) {
     return res.status(503).json({ ok: false, error: error.message || "Storage unavailable" });
