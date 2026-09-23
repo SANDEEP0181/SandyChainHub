@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { redis, userKey, validateTelegramInitData } from "../_lib/goalkeeper.js";
+import { redis, userKey, validateTelegramInitData, rateLimit } from "../_lib/goalkeeper.js";
 import { verifyTonProof, normalizeTonAddress } from "../_lib/tonproof.js";
 
 const ALLOWED_ORIGIN = "https://sandeep0181.github.io";
@@ -27,6 +27,9 @@ export default async function handler(req, res) {
   let body;
   try { body = typeof req.body === "string" ? JSON.parse(req.body || "{}") : (req.body || {}); }
   catch { return res.status(400).json({ ok: false, error: "Invalid JSON body" }); }
+
+  const limiter = await rateLimit(telegram.user.id, "identity", 5, 60);
+  if (!limiter.ok) return res.status(429).json({ ok: false, error: "Too many identity requests. Try again shortly." });
 
   const walletAddress = typeof body.walletAddress === "string" ? body.walletAddress.trim() : "";
   if (!isValidTonAddress(walletAddress)) return res.status(400).json({ ok: false, error: "Invalid TON wallet address" });
