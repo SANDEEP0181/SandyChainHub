@@ -837,7 +837,7 @@ const themeToggleBtn=document.getElementById("themeToggleBtn");
 const themeIcon=document.getElementById("themeIcon");
 const themeLabel=document.getElementById("themeLabel");
 if(themeToggleBtn)themeToggleBtn.addEventListener("click",()=>applyTheme(document.body.classList.contains("light-theme")?"dark":"light"));
-try{applyTheme(localStorage.getItem(THEME_KEY)||"dark");}catch{applyTheme("dark");}
+try{applyTheme(localStorage.getItem(THEME_KEY)||"light");}catch{applyTheme("dark");}
 
 
 /* Goalkeeper Feature Pack v1 */
@@ -1041,7 +1041,7 @@ renderNotes();renderLeaderboard();syncHeroPoints();captureReferral();renderRefer
         return;
       }
       if(result.awarded){
-        window.dispatchEvent(new CustomEvent("goalkeeper:mission",{detail:{message}});
+        window.dispatchEvent(new CustomEvent("goalkeeper:mission",{detail:{message}}));
       }
       refresh();
     }catch(error){
