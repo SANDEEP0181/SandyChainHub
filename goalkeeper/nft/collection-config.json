@@ -7,6 +7,8 @@
   "collectionMetadataUrl": "https://sandeep0181.github.io/SandyChainHub/goalkeeper/nft/genesis-keeper.json",
   "itemMetadataUrl": "https://sandeep0181.github.io/SandyChainHub/goalkeeper/nft/genesis-keeper.json",
   "collectionAddress": "",
-  "deploymentStatus": "READY_FOR_TESTNET_DEPLOYMENT",
-  "note": "The collection address stays blank until a real TON Testnet deployment is verified. Never store a seed phrase or private key in this repository."
+  "deploymentStatus": "PENDING_VERIFIED_TESTNET_DEPLOYMENT",
+  "note": "Collection address stays blank until an actual TON Testnet deployment is independently verified. Never store a seed phrase or private key in this repository.",
+  "chainId": -3,
+  "explorerBaseUrl": "https://testnet.tonscan.org"
 }
