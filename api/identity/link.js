@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import { redis, userKey } from "../_lib/goalkeeper.js";
 
 const MAX_AUTH_AGE_SECONDS = 24 * 60 * 60;
 const ALLOWED_ORIGIN = "https://sandeep0181.github.io";
@@ -71,6 +72,22 @@ export default async function handler(req, res) {
   const telegram = validateTelegramInitData(body.initData, botToken);
   if (!telegram.ok) return res.status(401).json(telegram);
   if (!telegram.user?.id) return res.status(401).json({ ok: false, error: "Telegram user identity missing" });
+
+  try {
+    const key = userKey(telegram.user.id);
+    const raw = await redis(["GET", key]);
+    const state = raw ? JSON.parse(raw) : { points: 0, streak: 0, bestStreak: 0, lastCheckin: null, missions: {} };
+    state.missions = state.missions || {};
+    if (!state.missions.identity) {
+      state.points = Number(state.points || 0) + 15;
+      state.missions.identity = { completedAt: new Date().toISOString(), points: 15 };
+    }
+    state.walletAddress = walletAddress;
+    await redis(["SET", key, JSON.stringify(state)]);
+    await redis(["ZADD", "gk:leaderboard", state.points, String(telegram.user.id)]);
+  } catch (error) {
+    return res.status(503).json({ ok: false, error: error.message || "Storage unavailable" });
+  }
 
   return res.status(200).json({
     ok: true,
