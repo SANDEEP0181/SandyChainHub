@@ -36,6 +36,7 @@ export default async function handler(req, res) {
 
   const walletAddress = typeof body.walletAddress === "string" ? body.walletAddress.trim() : "";
   if (!isValidTonAddress(walletAddress)) return res.status(400).json({ ok: false, error: "Invalid TON wallet address" });
+  const normalizedWallet = normalizeTonAddress(walletAddress);
 
   const proof = body.tonProof && typeof body.tonProof === "object" ? body.tonProof : null;
   const publicKey = typeof body.publicKey === "string" ? body.publicKey.trim() : "";
@@ -80,7 +81,6 @@ export default async function handler(req, res) {
     const raw = await redis(["GET", key]);
     const state = raw ? JSON.parse(raw) : { points: 0, streak: 0, bestStreak: 0, lastCheckin: null, missions: {} };
 
-    const normalizedWallet = normalizeTonAddress(walletAddress);
     if (state.walletAddress && state.walletAddress !== normalizedWallet) {
       return res.status(409).json({ ok: false, error: "Wallet change requires security review. Your existing verified wallet remains linked." });
     }
