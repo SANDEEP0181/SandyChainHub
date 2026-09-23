@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { cors, validateTelegramInitData, redis, userKey } from "../_lib/goalkeeper.js";
+import { cors, validateTelegramInitData, redis, userKey, rateLimit } from "../_lib/goalkeeper.js";
 
 const CODE_RE = /^GK-[A-Z0-9]{6}$/;
 const REFERRAL_BONUS = 20;
@@ -22,6 +22,9 @@ export default async function handler(req, res) {
 
   const auth = validateTelegramInitData(body.initData, botToken);
   if (!auth.ok) return res.status(401).json(auth);
+
+  const limiter = await rateLimit(auth.user.id, "referral", 10, 60);
+  if (!limiter.ok) return res.status(429).json({ ok: false, error: "Too many referral requests. Try again shortly." });
 
   const code = typeof body.referralCode === "string" ? body.referralCode.trim().toUpperCase() : "";
   const action = body.action === "claim" ? "claim" : "register";
