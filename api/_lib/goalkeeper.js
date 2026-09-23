@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 
 export const ALLOWED_ORIGIN = "https://sandeep0181.github.io";
-export const MAX_AUTH_AGE_SECONDS = 24 * 60 * 60;
+export const MAX_AUTH_AGE_SECONDS = 60 * 60;
 
 export function cors(res, methods = "POST, OPTIONS") {
   res.setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
