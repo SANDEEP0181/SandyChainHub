@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import {
   cors, validateTelegramInitData, redis, userKey, missionPoints,
-  validMission, todayUtc
+  validMission, todayUtc, rateLimit
 } from "../_lib/goalkeeper.js";
 
 export default async function handler(req, res) {
@@ -21,6 +21,9 @@ export default async function handler(req, res) {
 
   const auth = validateTelegramInitData(body.initData, botToken);
   if (!auth.ok) return res.status(401).json(auth);
+
+  const limiter = await rateLimit(auth.user.id, "mission", 12, 60);
+  if (!limiter.ok) return res.status(429).json({ ok: false, error: "Too many mission requests. Try again shortly." });
 
   const missionId = typeof body.missionId === "string" ? body.missionId.trim() : "";
   if (!validMission(missionId)) {
