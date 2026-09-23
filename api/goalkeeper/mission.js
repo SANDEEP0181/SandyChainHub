@@ -1,8 +1,23 @@
 import crypto from "node:crypto";
 import {
   cors, validateTelegramInitData, redis, userKey, missionPoints,
-  validMission, todayUtc
+  validMission, todayUtc, rateLimit, recordXpLedger, addRiskFlag
 } from "../_lib/goalkeeper.js";
+
+function defaultState() {
+  return {
+    points: 0,
+    streak: 0,
+    bestStreak: 0,
+    lastCheckin: null,
+    missions: {}
+  };
+}
+
+function parseState(raw) {
+  try { return raw ? JSON.parse(raw) : defaultState(); }
+  catch { return defaultState(); }
+}
 
 export default async function handler(req, res) {
   cors(res);
@@ -22,6 +37,12 @@ export default async function handler(req, res) {
   const auth = validateTelegramInitData(body.initData, botToken);
   if (!auth.ok) return res.status(401).json(auth);
 
+  const limiter = await rateLimit(auth.user.id, "mission", 12, 60);
+  if (!limiter.ok) {
+    try { await addRiskFlag(auth.user.id, "MISSION_RATE_LIMIT", { windowSeconds: 60, limit: 12 }); } catch {}
+    return res.status(429).json({ ok: false, error: "Too many mission requests. Try again shortly." });
+  }
+
   const missionId = typeof body.missionId === "string" ? body.missionId.trim() : "";
   if (!validMission(missionId)) {
     return res.status(400).json({ ok: false, error: "Invalid mission" });
@@ -29,54 +50,110 @@ export default async function handler(req, res) {
 
   try {
     const key = userKey(auth.user.id);
-    const raw = await redis(["GET", key]);
-    const state = raw ? JSON.parse(raw) : {
-      points: 0,
-      streak: 0,
-      bestStreak: 0,
-      lastCheckin: null,
-      missions: {}
+    const today = todayUtc();
+    const eventId = missionId === "checkin" || missionId === "spin"
+      ? missionId + ":" + today
+      : missionId + ":once";
+
+    // Event-level idempotency blocks duplicate submissions of the same mission.
+    const requestKey = "gk:mission-lock:" + String(auth.user.id) + ":" + eventId;
+    const lock = await redis(["SET", requestKey, "1", "NX", "EX", "30"]);
+    if (lock !== "OK") {
+      return res.status(200).json({ ok: true, awarded: false, duplicateRequest: true });
+    }
+
+    // User-level mutation lock prevents different missions from reading the same
+    // old JSON state and overwriting each other's points/streak/mission changes.
+    const mutationKey = "gk:user-mutation-lock:" + String(auth.user.id);
+    const mutationLock = await redis(["SET", mutationKey, "1", "NX", "EX", "10"]);
+    if (mutationLock !== "OK") {
+      return res.status(409).json({
+        ok: false,
+        error: "Another mission update is in progress. Please retry shortly.",
+        retryable: true
+      });
+    }
+
+    const releaseMutationLock = async () => {
+      try { await redis(["DEL", mutationKey]); } catch {}
     };
 
+    const raw = await redis(["GET", key]);
+    const state = parseState(raw);
     state.missions = state.missions || {};
 
-    if (missionId === "checkin") {
-      const today = todayUtc();
-      if (state.missions.checkin?.date === today) {
-        return res.status(200).json({ ok: true, awarded: false, points: state.points, state });
-      }
-      const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-      state.streak = state.lastCheckin === yesterday ? Number(state.streak || 0) + 1 : 1;
-      state.bestStreak = Math.max(Number(state.bestStreak || 0), state.streak);
-      state.lastCheckin = today;
-    } else if (missionId === "spin") {
-      const today = todayUtc();
-      if (state.missions.spin?.date === today) {
-        return res.status(200).json({ ok: true, awarded: false, points: state.points, state });
-      }
-    } else if (state.missions[missionId]) {
+    if (missionId === "identity" && !state.missions.identity) {
+      await releaseMutationLock();
+      return res.status(400).json({ ok: false, error: "Identity must be linked through the identity endpoint first" });
+    }
+
+    if (missionId === "checkin" && state.missions.checkin?.date === today) {
+      await releaseMutationLock();
+      return res.status(200).json({ ok: true, awarded: false, points: state.points, state });
+    }
+
+    if (missionId === "spin" && state.missions.spin?.date === today) {
+      await releaseMutationLock();
+      return res.status(200).json({ ok: true, awarded: false, points: state.points, state });
+    }
+
+    if (missionId !== "checkin" && missionId !== "spin" && state.missions[missionId]) {
+      await releaseMutationLock();
       return res.status(200).json({ ok: true, awarded: false, points: state.points, state });
     }
 
     if (missionId === "checkin") {
-      const today = todayUtc();
-      if (state.lastCheckin === today) {
-        return res.status(200).json({ ok: true, awarded: false, points: state.points, state });
-      }
       const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
       state.streak = state.lastCheckin === yesterday ? Number(state.streak || 0) + 1 : 1;
       state.bestStreak = Math.max(Number(state.bestStreak || 0), state.streak);
       state.lastCheckin = today;
     }
 
-    const points = missionId === "spin" ? [5, 10, 15, 25, 50][crypto.randomInt(0, 5)] : missionPoints(missionId);
+    const points = missionId === "spin"
+      ? [5, 10, 15, 25, 50][crypto.randomInt(0, 5)]
+      : missionPoints(missionId);
+
     state.points = Number(state.points || 0) + points;
-    state.missions[missionId] = { completedAt: new Date().toISOString(), points, ...(missionId === "checkin" || missionId === "spin" ? { date: todayUtc() } : {}) };
+    state.missions[missionId] = {
+      completedAt: new Date().toISOString(),
+      points,
+      ...(missionId === "checkin" || missionId === "spin" ? { date: today } : {})
+    };
 
+    // User state is canonical. Leaderboard is a secondary projection and must
+    // not make an already-persisted reward look like a failed transaction.
     await redis(["SET", key, JSON.stringify(state)]);
-    await redis(["ZADD", "gk:leaderboard", state.points, String(auth.user.id)]);
 
-    return res.status(200).json({ ok: true, awarded: true, points, state });
+    let leaderboardSynced = true;
+    try {
+      await redis(["ZADD", "gk:leaderboard", state.points, String(auth.user.id)]);
+    } catch {
+      leaderboardSynced = false;
+      try {
+        await addRiskFlag(auth.user.id, "MISSION_LEADERBOARD_SYNC", { missionId });
+      } catch {}
+    }
+
+    try {
+      await recordXpLedger(auth.user.id, eventId, {
+        type: "mission",
+        missionId,
+        points,
+        source: "goalkeeper-mission"
+      });
+    } catch {
+      // The user state remains canonical; ledger recording is best-effort audit data.
+    }
+
+    await releaseMutationLock();
+
+    return res.status(200).json({
+      ok: true,
+      awarded: true,
+      points,
+      leaderboardSynced,
+      state
+    });
   } catch (error) {
     return res.status(503).json({ ok: false, error: error.message || "Storage unavailable" });
   }

@@ -1,7 +1,9 @@
 import crypto from "node:crypto";
 
 export const ALLOWED_ORIGIN = "https://sandeep0181.github.io";
-export const MAX_AUTH_AGE_SECONDS = 24 * 60 * 60;
+export const MAX_AUTH_AGE_SECONDS = 60 * 60;
+export const TON_PROOF_TTL_SECONDS = 15 * 60;
+export const MAX_TELEGRAM_INIT_DATA_LENGTH = 8192;
 
 export function cors(res, methods = "POST, OPTIONS") {
   res.setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
@@ -12,10 +14,18 @@ export function cors(res, methods = "POST, OPTIONS") {
 
 export function validateTelegramInitData(initData, botToken) {
   if (!initData || !botToken) return { ok: false, error: "Missing Telegram session" };
+  if (typeof initData !== "string" || initData.length > MAX_TELEGRAM_INIT_DATA_LENGTH) {
+    return { ok: false, error: "Invalid Telegram session size" };
+  }
+
   const params = new URLSearchParams(initData);
   const receivedHash = params.get("hash");
-  const authDate = Number(params.get("auth_date"));
-  if (!receivedHash || !Number.isFinite(authDate)) return { ok: false, error: "Invalid Telegram session" };
+  const authDateRaw = params.get("auth_date");
+  const authDate = Number(authDateRaw);
+
+  if (!receivedHash || !authDateRaw || !Number.isSafeInteger(authDate) || authDate <= 0) {
+    return { ok: false, error: "Invalid Telegram session" };
+  }
 
   const age = Math.floor(Date.now() / 1000) - authDate;
   if (age < -60 || age > MAX_AUTH_AGE_SECONDS) {
@@ -32,7 +42,10 @@ export function validateTelegramInitData(initData, botToken) {
   const expectedHash = crypto.createHmac("sha256", secretKey).update(dataCheckString).digest("hex");
 
   if (!/^[0-9a-f]{64}$/i.test(receivedHash)) return { ok: false, error: "Invalid hash" };
-  if (!crypto.timingSafeEqual(Buffer.from(expectedHash, "hex"), Buffer.from(receivedHash, "hex"))) {
+  const receivedHashBuffer = Buffer.from(receivedHash, "hex");
+  const expectedHashBuffer = Buffer.from(expectedHash, "hex");
+  if (receivedHashBuffer.length !== expectedHashBuffer.length ||
+      !crypto.timingSafeEqual(expectedHashBuffer, receivedHashBuffer)) {
     return { ok: false, error: "Telegram signature check failed" };
   }
 
@@ -43,7 +56,10 @@ export function validateTelegramInitData(initData, botToken) {
     return { ok: false, error: "Invalid Telegram user data" };
   }
 
-  if (!user?.id) return { ok: false, error: "Telegram user identity missing" };
+  if (!user || !/^[0-9]+$/.test(String(user.id || ""))) {
+    return { ok: false, error: "Telegram user identity missing" };
+  }
+
   return { ok: true, user, authDate };
 }
 
@@ -99,4 +115,44 @@ export function validMission(missionId) {
     checkin: true,
     spin: true
   }, missionId);
+}
+
+export async function recordXpLedger(telegramId, eventId, entry) {
+  const key = "gk:xp-ledger:" + String(telegramId) + ":" + String(eventId);
+  const payload = JSON.stringify({
+    userId: String(telegramId),
+    eventId: String(eventId),
+    ...entry,
+    recordedAt: new Date().toISOString()
+  });
+  const created = await redis(["SET", key, payload, "NX", "EX", "31536000"]);
+  return created === "OK";
+}
+
+export async function addRiskFlag(telegramId, flag, details = {}) {
+  const key = userKey(telegramId);
+  const raw = await redis(["GET", key]);
+  const state = raw ? JSON.parse(raw) : {
+    points: 0, streak: 0, bestStreak: 0, lastCheckin: null, missions: {}
+  };
+  const flags = Array.isArray(state.riskFlags) ? state.riskFlags : [];
+  if (!flags.some(x => x?.code === flag)) {
+    flags.push({
+      code: String(flag),
+      details,
+      detectedAt: new Date().toISOString()
+    });
+    state.riskFlags = flags.slice(-20);
+    await redis(["SET", key, JSON.stringify(state)]);
+  }
+  return state.riskFlags || [];
+}
+
+export async function rateLimit(telegramId, action, limit = 20, windowSeconds = 60) {
+  const key = "gk:rate:" + String(telegramId) + ":" + action;
+  const created = await redis(["SET", key, "1", "NX", "EX", String(windowSeconds)]);
+  if (created === "OK") return { ok: true, remaining: limit - 1 };
+  const count = Number(await redis(["INCR", key]));
+  if (count > limit) return { ok: false, remaining: 0 };
+  return { ok: true, remaining: Math.max(0, limit - count) };
 }
