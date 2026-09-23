@@ -29,6 +29,9 @@ export default async function handler(req, res) {
 
   try {
     const key = userKey(auth.user.id);
+    const requestKey = "gk:mission-lock:" + String(auth.user.id) + ":" + missionId + ":" + (missionId === "checkin" || missionId === "spin" ? todayUtc() : "once");
+    const lock = await redis(["SET", requestKey, "1", "NX", "EX", "30"]);
+    if (lock !== "OK") return res.status(200).json({ ok: true, awarded: false, duplicateRequest: true });
     const raw = await redis(["GET", key]);
     const state = raw ? JSON.parse(raw) : {
       points: 0,
