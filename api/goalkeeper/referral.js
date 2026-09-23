@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { cors, validateTelegramInitData, redis, userKey, rateLimit } from "../_lib/goalkeeper.js";
+import { cors, validateTelegramInitData, redis, userKey, rateLimit, addRiskFlag } from "../_lib/goalkeeper.js";
 
 const CODE_RE = /^GK-[A-Z0-9]{6}$/;
 const REFERRAL_BONUS = 20;
@@ -54,16 +54,30 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true, awarded: false, alreadyClaimed: true, referralCode: existing || code });
     }
 
+    const inviterLockKey = "gk:ref-lock:" + String(inviter);
+    const lock = await redis(["SET", inviterLockKey, me, "NX", "EX", "30"]);
+    if (lock !== "OK") {
+      await redis(["DEL", claimKey]);
+      try { await addRiskFlag(me, "REFERRAL_CONCURRENCY", { inviter: crypto.createHash("sha256").update(String(inviter)).digest("hex").slice(0, 8) }); } catch {}
+      return res.status(409).json({ ok: false, error: "Referral reward is being processed. Try again shortly." });
+    }
+
     const inviterKey = userKey(inviter);
     const raw = await redis(["GET", inviterKey]);
     const state = safeJson(raw, { points: 0, streak: 0, bestStreak: 0, lastCheckin: null, missions: {} });
     state.points = Number(state.points || 0) + REFERRAL_BONUS;
     state.referrals = Number(state.referrals || 0) + 1;
     state.referralBonus = Number(state.referralBonus || 0) + REFERRAL_BONUS;
-    await redis(["SET", inviterKey, JSON.stringify(state)]);
-    await redis(["ZADD", "gk:leaderboard", state.points, inviter]);
-
-    return res.status(200).json({ ok: true, awarded: true, bonus: REFERRAL_BONUS, inviter: crypto.createHash("sha256").update(inviter).digest("hex").slice(0, 8).toUpperCase() });
+    try {
+      await redis(["SET", inviterKey, JSON.stringify(state)]);
+      await redis(["ZADD", "gk:leaderboard", state.points, inviter]);
+      return res.status(200).json({ ok: true, awarded: true, bonus: REFERRAL_BONUS, inviter: crypto.createHash("sha256").update(inviter).digest("hex").slice(0, 8).toUpperCase() });
+    } catch (error) {
+      await redis(["DEL", claimKey]);
+      throw error;
+    } finally {
+      await redis(["DEL", inviterLockKey]);
+    }
   } catch (error) {
     return res.status(503).json({ ok: false, error: error.message || "Storage unavailable" });
   }
