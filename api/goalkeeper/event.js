@@ -62,9 +62,10 @@ export default async function handler(req, res) {
     }
 
     if (action === "badge") {
-      const expectedDays = Array.from({length: EVENT_DAYS}, (_, i) => new Date(Date.parse(EVENT_START) + i * 86400000).toISOString().slice(0,10));
-      const completed = expectedDays.every(day => state.event.daily.includes(day));
-      if (!completed) return res.status(400).json({ ok: false, eligible: false, error: "Complete all 7 event days first" });
+      const streak = Math.max(Number(state.streak || 0), Number(state.bestStreak || 0));
+      if (streak < 30) {
+        return res.status(400).json({ ok: false, eligible: false, streak, requiredStreak: 30, error: "Reach a 30-day Keeper Streak first" });
+      }
       if (state.event.badgeClaimedAt) return res.status(200).json({ ok: true, eligible: true, claimed: true, event: state.event, state });
       state.event.badgeClaimedAt = new Date().toISOString();
       await redis(["SET", key, JSON.stringify(state)]);
