@@ -40,6 +40,10 @@ export default async function handler(req, res) {
 
     state.missions = state.missions || {};
 
+    if (missionId === "identity" && !state.missions.identity) {
+      return res.status(400).json({ ok: false, error: "Identity must be linked through the identity endpoint first" });
+    }
+
     if (missionId === "checkin") {
       const today = todayUtc();
       if (state.missions.checkin?.date === today) {
