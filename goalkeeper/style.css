@@ -193,3 +193,24 @@ body{
 .bottom-nav a:hover,.bottom-nav button:hover{color:#229653}
 .pro-live,.status-dot,.live-label{color:#229653}
 .streak-strip{background:linear-gradient(100deg,rgba(139,224,169,.25),rgba(255,255,255,.9))}
+
+
+/* Goalkeeper FINAL HEADER CONTROLS v2 */
+@media(max-width:520px){
+  .topbar{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:6px!important;flex-wrap:nowrap!important}
+  .brand{flex:1 1 auto!important;min-width:0!important}
+  .account-actions{display:flex!important;align-items:center!important;justify-content:flex-end!important;flex:0 0 auto!important;flex-wrap:nowrap!important;gap:5px!important;visibility:visible!important;opacity:1!important}
+  .account-actions .theme-toggle{display:inline-flex!important;visibility:visible!important;opacity:1!important;width:auto!important;min-width:70px!important;height:34px!important;min-height:34px!important;padding:0 8px!important;align-items:center!important;justify-content:center!important;gap:4px!important;border-radius:9px!important;white-space:nowrap!important}
+  .account-actions .theme-toggle #themeIcon{display:inline!important;font-size:13px!important;line-height:1!important}
+  .account-actions .theme-toggle #themeLabel{display:inline!important;font-size:9px!important;font-weight:800!important;line-height:1!important}
+  .account-actions .language-select{display:block!important;visibility:visible!important;opacity:1!important;width:46px!important;min-width:46px!important;height:34px!important;padding:0 3px!important;border-radius:9px!important;font-size:9px!important}
+  .account-actions #connectBtn{display:inline-flex!important;visibility:visible!important;opacity:1!important;width:auto!important;min-width:92px!important;height:34px!important;min-height:34px!important;padding:7px 9px!important;border-radius:9px!important;font-size:9px!important;white-space:nowrap!important}
+  .account-actions #disconnectBtn{display:none!important}
+}
+@media(max-width:390px){
+  .account-actions{gap:3px!important}
+  .account-actions .theme-toggle{min-width:62px!important;width:62px!important;padding:0 5px!important}
+  .account-actions .theme-toggle #themeLabel{font-size:8px!important}
+  .account-actions .language-select{width:40px!important;min-width:40px!important;font-size:8px!important}
+  .account-actions #connectBtn{min-width:78px!important;padding:7px 6px!important;font-size:8px!important}
+}
