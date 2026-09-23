@@ -1,5 +1,5 @@
 import {
-  cors, validateTelegramInitData, redis, userKey, todayUtc, rateLimit
+  cors, validateTelegramInitData, redis, userKey, todayUtc, rateLimit, recordXpLedger
 } from "../_lib/goalkeeper.js";
 
 const EVENT_START = "2026-09-23T00:00:00Z";
@@ -38,6 +38,7 @@ export default async function handler(req, res) {
   const action = typeof body.action === "string" ? body.action.trim().toLowerCase() : "";
   const limiter = await rateLimit(auth.user.id, "event", 12, 60);
   if (!limiter.ok) return res.status(429).json({ ok: false, error: "Too many event requests. Try again shortly." });
+
   const allowed = new Set(["join", "daily", "core", "spin", "badge"]);
   if (!allowed.has(action)) return res.status(400).json({ ok: false, error: "Invalid event action" });
 
@@ -47,15 +48,17 @@ export default async function handler(req, res) {
   }
 
   try {
-    const key = userKey(auth.user.id);
+    const telegramId = String(auth.user.id);
+    const key = userKey(telegramId);
     const eventLockId = action === "daily" || action === "spin"
       ? action + ":" + todayUtc()
       : action;
-    const eventLockKey = "gk:event-lock:" + String(auth.user.id) + ":" + eventLockId;
+    const eventLockKey = "gk:event-lock:" + telegramId + ":" + eventLockId;
     const eventLock = await redis(["SET", eventLockKey, "1", "NX", "EX", "30"]);
     if (eventLock !== "OK") {
       return res.status(200).json({ ok: true, awarded: false, duplicateRequest: true });
     }
+
     const raw = await redis(["GET", key]);
     const state = safeJson(raw, {
       points: 0, streak: 0, bestStreak: 0, lastCheckin: null, missions: {}
@@ -74,9 +77,14 @@ export default async function handler(req, res) {
     if (action === "badge") {
       const streak = Math.max(Number(state.streak || 0), Number(state.bestStreak || 0));
       if (streak < 30) {
-        return res.status(400).json({ ok: false, eligible: false, streak, requiredStreak: 30, error: "Reach a 30-day Keeper Streak first" });
+        return res.status(400).json({
+          ok: false, eligible: false, streak, requiredStreak: 30,
+          error: "Reach a 30-day Keeper Streak first"
+        });
       }
-      if (state.event.badgeClaimedAt) return res.status(200).json({ ok: true, eligible: true, claimed: true, event: state.event, state });
+      if (state.event.badgeClaimedAt) {
+        return res.status(200).json({ ok: true, eligible: true, claimed: true, event: state.event, state });
+      }
       state.event.badgeClaimedAt = new Date().toISOString();
       await redis(["SET", key, JSON.stringify(state)]);
       return res.status(200).json({ ok: true, eligible: true, claimed: true, event: state.event, state });
@@ -128,18 +136,56 @@ export default async function handler(req, res) {
       awarded = true;
     }
 
+    // MAX_XP is a real event-wide reward ceiling, not only a display value.
+    const currentEventXp = Math.max(0, Number(state.event.xp || 0));
+    const remainingXp = Math.max(0, MAX_XP - currentEventXp);
+    if (awarded && remainingXp === 0) {
+      return res.status(200).json({
+        ok: true,
+        awarded: false,
+        xp: 0,
+        maxXpReached: true,
+        event: state.event,
+        state
+      });
+    }
+
     if (awarded) {
-      const currentEventXp = Number(state.event.xp || 0);
-      state.event.xp = Math.min(MAX_XP, currentEventXp + xp);
+      xp = Math.min(xp, remainingXp);
+      state.event.xp = currentEventXp + xp;
       state.points = Number(state.points || 0) + xp;
       await redis(["SET", key, JSON.stringify(state)]);
-      await redis(["ZADD", "gk:leaderboard", state.points, String(auth.user.id)]);
+
+      let leaderboardSynced = true;
+      try {
+        await redis(["ZADD", "gk:leaderboard", state.points, telegramId]);
+      } catch {
+        leaderboardSynced = false;
+      }
+
+      try {
+        await recordXpLedger(telegramId, "genesis:" + eventLockId, {
+          source: "genesis_event",
+          action,
+          xp,
+          eventDay: dayIndex
+        });
+      } catch {}
+
+      return res.status(200).json({
+        ok: true,
+        awarded: true,
+        xp,
+        leaderboardSynced,
+        event: state.event,
+        state
+      });
     }
 
     return res.status(200).json({
       ok: true,
-      awarded,
-      xp: awarded ? xp : 0,
+      awarded: false,
+      xp: 0,
       event: state.event,
       state
     });
