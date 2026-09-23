@@ -5,6 +5,7 @@
   const ELIGIBLE_KEY="goalkeeperGenesisNftEligible";
   const VERIFY_KEY="goalkeeperGenesisNftVerifiedAt";
   const MINTED_KEY="goalkeeperGenesisNftMinted";
+  const BADGE_KEY="goalkeeperGenesisBadge";
   const DAYS=["2026-09-23","2026-09-24","2026-09-25","2026-09-26","2026-09-27","2026-09-28","2026-09-29"];
   const dayList=()=>{try{return JSON.parse(localStorage.getItem("goalkeeperGenesisDaily")||"[]")||[]}catch{return[]}};
   const eligible=()=>DAYS.every(d=>dayList().includes(d));
@@ -13,6 +14,7 @@
   function refresh(){
     const minted=localStorage.getItem(MINTED_KEY)==="1";
     const verified=localStorage.getItem(ELIGIBLE_KEY)==="1";
+    if(localStorage.getItem(BADGE_KEY)==="1"&&!verified)localStorage.setItem(ELIGIBLE_KEY,"1");
     if(minted)return set("Genesis Keeper testnet NFT is marked minted for this profile.","MINTED ✓",true);
     if(verified)return set("Eligibility is server-verified, but the Goalkeeper Genesis collection is not deployed yet. No NFT mint transaction is available.","DEPLOYMENT PENDING",true);
     if(eligible())return set("Eligibility appears complete locally. Verify the 7-day achievement first.","VERIFY ELIGIBILITY",false);
@@ -27,6 +29,7 @@
       const j=await r.json();
       if(!j.ok||!j.eligible)return set("Server verification did not confirm eligibility yet.","TRY AGAIN",false);
       localStorage.setItem(ELIGIBLE_KEY,"1");
+      if(j.claimed)localStorage.setItem(BADGE_KEY,"1");
       localStorage.setItem(VERIFY_KEY,new Date().toISOString());
       set("Eligibility verified. NFT minting is disabled until the Goalkeeper Genesis collection is deployed on TON Testnet.","DEPLOYMENT PENDING",true);
       window.dispatchEvent(new CustomEvent("goalkeeper:mission",{detail:{message:"Genesis Keeper eligibility server-verified for testnet NFT claim."}}));
