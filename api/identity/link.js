@@ -63,12 +63,14 @@ export default async function handler(req, res) {
     if (!proofResult.ok) return res.status(401).json({ ok: false, error: proofResult.error || "TON ownership proof failed" });
 
     const walletKey = "gk:wallet-owner:" + normalizedWallet;
+    let walletClaimedHere = false;
     const owner = await redis(["GET", walletKey]);
     if (owner && String(owner) !== String(telegram.user.id)) {
       return res.status(409).json({ ok: false, error: "This TON wallet is already linked to another Goalkeeper account" });
     }
     if (!owner) {
       const claimed = await redis(["SET", walletKey, String(telegram.user.id), "NX"]);
+      if (claimed === "OK") walletClaimedHere = true;
       if (claimed !== "OK") {
         const raceOwner = await redis(["GET", walletKey]);
         if (String(raceOwner) !== String(telegram.user.id)) {
@@ -93,9 +95,16 @@ export default async function handler(req, res) {
     state.walletVerifiedAt = new Date().toISOString();
     state.walletProofVerified = true;
 
-    await redis(["SET", key, JSON.stringify(state)]);
-    await redis(["DEL", payloadKey]);
-    await redis(["ZADD", "gk:leaderboard", state.points, String(telegram.user.id)]);
+    try {
+      await redis(["SET", key, JSON.stringify(state)]);
+      await redis(["DEL", payloadKey]);
+      await redis(["ZADD", "gk:leaderboard", state.points, String(telegram.user.id)]);
+    } catch (error) {
+      if (walletClaimedHere) {
+        try { await redis(["DEL", walletKey]); } catch {}
+      }
+      throw error;
+    }
 
     return res.status(200).json({ ok: true, status: "linked", walletAddress: state.walletAddress, telegramUserId: telegram.user.id, proofVerified: true });
   } catch (error) {
