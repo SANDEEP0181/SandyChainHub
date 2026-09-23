@@ -63,6 +63,15 @@ export default async function handler(req, res) {
     if (owner && String(owner) !== String(telegram.user.id)) {
       return res.status(409).json({ ok: false, error: "This TON wallet is already linked to another Goalkeeper account" });
     }
+    if (!owner) {
+      const claimed = await redis(["SET", walletKey, String(telegram.user.id), "NX"]);
+      if (claimed !== "OK") {
+        const raceOwner = await redis(["GET", walletKey]);
+        if (String(raceOwner) !== String(telegram.user.id)) {
+          return res.status(409).json({ ok: false, error: "This TON wallet is already linked to another Goalkeeper account" });
+        }
+      }
+    }
 
     const key = userKey(telegram.user.id);
     const raw = await redis(["GET", key]);
@@ -77,7 +86,6 @@ export default async function handler(req, res) {
     state.walletProofVerified = true;
 
     await redis(["SET", key, JSON.stringify(state)]);
-    await redis(["SET", walletKey, String(telegram.user.id), "NX"]);
     await redis(["DEL", payloadKey]);
     await redis(["ZADD", "gk:leaderboard", state.points, String(telegram.user.id)]);
 
