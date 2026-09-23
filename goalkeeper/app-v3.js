@@ -1028,31 +1028,46 @@ renderNotes();renderLeaderboard();syncHeroPoints();captureReferral();renderRefer
     if(bonuses.spin)$("eventSpinMission")?.classList.add("event-done");
     renderDays(); refreshBadge();
   }
+  async function claimEventAction(action, message){
+    if(!active()||!joined()&&action!=="join")return;
+    const btns={join:"eventJoinBtn",daily:"eventDailyBtn",core:"eventCoreBtn",spin:"eventSpinBtn"};
+    const btn=$(btns[action]);
+    if(btn){btn.disabled=true;btn.textContent="VERIFYING…";}
+    try{
+      const result=window.GoalkeeperBackend?.event?await window.GoalkeeperBackend.event(action):null;
+      if(!result?.ok){
+        if($("profileActivity"))$("profileActivity").textContent="Event verification failed. Please try again.";
+        refresh();
+        return;
+      }
+      if(result.awarded){
+        window.dispatchEvent(new CustomEvent("goalkeeper:mission",{detail:{message}});
+      }
+      refresh();
+    }catch(error){
+      console.warn("Genesis Event action:",error);
+      if($("profileActivity"))$("profileActivity").textContent="Event verification unavailable. Please try again.";
+      refresh();
+    }
+  }
   function join(){
     if(!active()||joined())return;
-    localStorage.setItem(JOIN_KEY,"1"); addEventXp(10);
-    const b=readBonuses();b.join=true;saveBonuses(b);
-    window.dispatchEvent(new CustomEvent("goalkeeper:mission",{detail:{message:"Genesis Event joined (+10 testnet XP)."}}));
-    refresh();
+    claimEventAction("join","Genesis Event joined (+10 testnet XP).");
   }
   function daily(){
-    if(!active()||!joined())return;
-    const d=eventDaysDone(),today=dayKey();if(d.includes(today))return;
-    d.push(today);localStorage.setItem(DAILY_KEY,JSON.stringify(d));addEventXp(10);
-    window.dispatchEvent(new CustomEvent("goalkeeper:mission",{detail:{message:"Genesis Event daily check-in (+10 testnet XP)."}}));
-    refresh();
+    const today=dayKey(),d=eventDaysDone();
+    if(!active()||!joined()||d.includes(today))return;
+    claimEventAction("daily","Genesis Event daily check-in (+10 testnet XP).");
   }
   function core(){
-    const b=readBonuses();if(!active()||!joined()||b.core||!coreComplete())return;
-    b.core=true;saveBonuses(b);addEventXp(25);
-    window.dispatchEvent(new CustomEvent("goalkeeper:mission",{detail:{message:"Genesis Event 3-mission challenge claimed (+25 testnet XP)."}}));
-    refresh();
+    const b=readBonuses();
+    if(!active()||!joined()||b.core||!coreComplete())return;
+    claimEventAction("core","Genesis Event 3-mission challenge claimed (+25 testnet XP).");
   }
   function spin(){
-    const b=readBonuses();if(!active()||!joined()||b.spin||localStorage.getItem("goalkeeperSpinDate")!==dayKey())return;
-    b.spin=true;saveBonuses(b);addEventXp(15);
-    window.dispatchEvent(new CustomEvent("goalkeeper:mission",{detail:{message:"Genesis Event spin bonus claimed (+15 testnet XP)."}}));
-    refresh();
+    const b=readBonuses();
+    if(!active()||!joined()||b.spin||localStorage.getItem("goalkeeperSpinDate")!==dayKey())return;
+    claimEventAction("spin","Genesis Event spin bonus claimed (+15 testnet XP).");
   }
   function init(){
     $("eventJoinBtn")?.addEventListener("click",join);
