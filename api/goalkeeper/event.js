@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import {
   cors, validateTelegramInitData, redis, userKey, todayUtc, rateLimit, recordXpLedger, addRiskFlag
 } from "../_lib/goalkeeper.js";
