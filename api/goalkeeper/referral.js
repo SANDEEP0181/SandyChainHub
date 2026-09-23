@@ -1,11 +1,15 @@
 import crypto from "node:crypto";
-import { cors, validateTelegramInitData, redis, userKey, rateLimit, addRiskFlag } from "../_lib/goalkeeper.js";
+import { cors, validateTelegramInitData, redis, userKey, rateLimit, addRiskFlag, recordXpLedger } from "../_lib/goalkeeper.js";
 
 const CODE_RE = /^GK-[A-Z0-9]{6}$/;
 const REFERRAL_BONUS = 20;
 
 function safeJson(raw, fallback) {
   try { return raw ? JSON.parse(raw) : fallback; } catch { return fallback; }
+}
+
+function hashId(value) {
+  return crypto.createHash("sha256").update(String(value)).digest("hex").slice(0, 8).toUpperCase();
 }
 
 export default async function handler(req, res) {
@@ -48,32 +52,80 @@ export default async function handler(req, res) {
     if (String(inviter) === me) return res.status(400).json({ ok: false, error: "Self referral is not allowed" });
 
     const claimKey = "gk:refclaim:" + me;
+    const rewardKey = "gk:ref-reward:" + me;
+
+    // The reward marker is the canonical idempotency guard for the bonus.
+    // Once inviter state is persisted, never remove this marker just because
+    // a secondary leaderboard/audit write fails.
     const claimed = await redis(["SET", claimKey, code, "NX"]);
     if (claimed !== "OK") {
       const existing = await redis(["GET", claimKey]);
       return res.status(200).json({ ok: true, awarded: false, alreadyClaimed: true, referralCode: existing || code });
     }
 
+    const rewardReserved = await redis(["SET", rewardKey, JSON.stringify({ code, inviter: String(inviter), reservedAt: Date.now() }), "NX", "EX", 31536000]);
+    if (rewardReserved !== "OK") {
+      const existing = await redis(["GET", rewardKey]);
+      await redis(["SET", claimKey, code]);
+      return res.status(200).json({ ok: true, awarded: false, alreadyClaimed: true, referralCode: existing ? code : code });
+    }
+
     const inviterLockKey = "gk:ref-lock:" + String(inviter);
     const lock = await redis(["SET", inviterLockKey, me, "NX", "EX", "30"]);
     if (lock !== "OK") {
       await redis(["DEL", claimKey]);
-      try { await addRiskFlag(me, "REFERRAL_CONCURRENCY", { inviter: crypto.createHash("sha256").update(String(inviter)).digest("hex").slice(0, 8) }); } catch {}
+      await redis(["DEL", rewardKey]);
+      try { await addRiskFlag(me, "REFERRAL_CONCURRENCY", { inviter: hashId(inviter) }); } catch {}
       return res.status(409).json({ ok: false, error: "Referral reward is being processed. Try again shortly." });
     }
 
     const inviterKey = userKey(inviter);
-    const raw = await redis(["GET", inviterKey]);
-    const state = safeJson(raw, { points: 0, streak: 0, bestStreak: 0, lastCheckin: null, missions: {} });
-    state.points = Number(state.points || 0) + REFERRAL_BONUS;
-    state.referrals = Number(state.referrals || 0) + 1;
-    state.referralBonus = Number(state.referralBonus || 0) + REFERRAL_BONUS;
+    let statePersisted = false;
+
     try {
+      const raw = await redis(["GET", inviterKey]);
+      const state = safeJson(raw, { points: 0, streak: 0, bestStreak: 0, lastCheckin: null, missions: {} });
+
+      state.points = Number(state.points || 0) + REFERRAL_BONUS;
+      state.referrals = Number(state.referrals || 0) + 1;
+      state.referralBonus = Number(state.referralBonus || 0) + REFERRAL_BONUS;
+
       await redis(["SET", inviterKey, JSON.stringify(state)]);
-      await redis(["ZADD", "gk:leaderboard", state.points, inviter]);
-      return res.status(200).json({ ok: true, awarded: true, bonus: REFERRAL_BONUS, inviter: crypto.createHash("sha256").update(inviter).digest("hex").slice(0, 8).toUpperCase() });
+      statePersisted = true;
+
+      // Leaderboard and audit are secondary. A failure here must not roll back
+      // the already-persisted reward or allow a retry to grant it twice.
+      let leaderboardSynced = true;
+      try {
+        await redis(["ZADD", "gk:leaderboard", state.points, inviter]);
+      } catch {
+        leaderboardSynced = false;
+        try { await addRiskFlag(inviter, "REFERRAL_LEADERBOARD_SYNC", { referral: hashId(me) }); } catch {}
+      }
+
+      try {
+        await recordXpLedger(inviter, "referral:" + me, {
+          source: "referral",
+          bonus: REFERRAL_BONUS,
+          referral: hashId(me),
+          code
+        });
+      } catch {}
+
+      return res.status(200).json({
+        ok: true,
+        awarded: true,
+        bonus: REFERRAL_BONUS,
+        leaderboardSynced,
+        inviter: hashId(inviter)
+      });
     } catch (error) {
-      await redis(["DEL", claimKey]);
+      if (!statePersisted) {
+        await redis(["DEL", claimKey]);
+        await redis(["DEL", rewardKey]);
+      } else {
+        try { await addRiskFlag(inviter, "REFERRAL_STATE_PERSISTED_SECONDARY_FAILURE", { referral: hashId(me) }); } catch {}
+      }
       throw error;
     } finally {
       await redis(["DEL", inviterLockKey]);
