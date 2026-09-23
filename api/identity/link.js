@@ -28,14 +28,14 @@ export default async function handler(req, res) {
   try { body = typeof req.body === "string" ? JSON.parse(req.body || "{}") : (req.body || {}); }
   catch { return res.status(400).json({ ok: false, error: "Invalid JSON body" }); }
 
+  const telegram = validateTelegramInitData(body.initData, botToken);
+  if (!telegram.ok) return res.status(401).json(telegram);
+
   const limiter = await rateLimit(telegram.user.id, "identity", 5, 60);
   if (!limiter.ok) return res.status(429).json({ ok: false, error: "Too many identity requests. Try again shortly." });
 
   const walletAddress = typeof body.walletAddress === "string" ? body.walletAddress.trim() : "";
   if (!isValidTonAddress(walletAddress)) return res.status(400).json({ ok: false, error: "Invalid TON wallet address" });
-
-  const telegram = validateTelegramInitData(body.initData, botToken);
-  if (!telegram.ok) return res.status(401).json(telegram);
 
   const proof = body.tonProof && typeof body.tonProof === "object" ? body.tonProof : null;
   const publicKey = typeof body.publicKey === "string" ? body.publicKey.trim() : "";
@@ -53,7 +53,7 @@ export default async function handler(req, res) {
     }
 
     const proofResult = await verifyTonProof({
-      address: normalizeTonAddress(walletAddress),
+      address: normalizedWallet,
       network,
       publicKey,
       stateInit,
@@ -61,7 +61,7 @@ export default async function handler(req, res) {
     });
     if (!proofResult.ok) return res.status(401).json({ ok: false, error: proofResult.error || "TON ownership proof failed" });
 
-    const walletKey = "gk:wallet-owner:" + normalizeTonAddress(walletAddress);
+    const walletKey = "gk:wallet-owner:" + normalizedWallet;
     const owner = await redis(["GET", walletKey]);
     if (owner && String(owner) !== String(telegram.user.id)) {
       return res.status(409).json({ ok: false, error: "This TON wallet is already linked to another Goalkeeper account" });
@@ -79,12 +79,17 @@ export default async function handler(req, res) {
     const key = userKey(telegram.user.id);
     const raw = await redis(["GET", key]);
     const state = raw ? JSON.parse(raw) : { points: 0, streak: 0, bestStreak: 0, lastCheckin: null, missions: {} };
+
+    const normalizedWallet = normalizeTonAddress(walletAddress);
+    if (state.walletAddress && state.walletAddress !== normalizedWallet) {
+      return res.status(409).json({ ok: false, error: "Wallet change requires security review. Your existing verified wallet remains linked." });
+    }
     state.missions = state.missions || {};
     if (!state.missions.identity) {
       state.points = Number(state.points || 0) + 15;
       state.missions.identity = { completedAt: new Date().toISOString(), points: 15 };
     }
-    state.walletAddress = normalizeTonAddress(walletAddress);
+    state.walletAddress = normalizedWallet;
     state.walletVerifiedAt = new Date().toISOString();
     state.walletProofVerified = true;
 
