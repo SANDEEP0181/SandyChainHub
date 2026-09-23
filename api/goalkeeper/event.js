@@ -1,5 +1,5 @@
 import {
-  cors, validateTelegramInitData, redis, userKey, todayUtc, rateLimit, recordXpLedger
+  cors, validateTelegramInitData, redis, userKey, todayUtc, rateLimit, recordXpLedger, addRiskFlag
 } from "../_lib/goalkeeper.js";
 
 const EVENT_START = "2026-09-23T00:00:00Z";
@@ -59,6 +59,23 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true, awarded: false, duplicateRequest: true });
     }
 
+    // Share the same user mutation lock as missions, referrals, and identity.
+    // All reward-changing endpoints now serialize writes to one JSON state.
+    const mutationKey = "gk:user-mutation-lock:" + telegramId;
+    const mutationLock = await redis(["SET", mutationKey, crypto.randomUUID(), "NX", "EX", "20"]);
+    if (mutationLock !== "OK") {
+      try { await redis(["DEL", eventLockKey]); } catch {}
+      return res.status(409).json({
+        ok: false,
+        error: "Another account update is in progress. Please retry shortly.",
+        retryable: true
+      });
+    }
+
+    const releaseMutationLock = async () => {
+      try { await redis(["DEL", mutationKey]); } catch {}
+    };
+
     const raw = await redis(["GET", key]);
     const state = safeJson(raw, {
       points: 0, streak: 0, bestStreak: 0, lastCheckin: null, missions: {}
@@ -71,22 +88,26 @@ export default async function handler(req, res) {
     const today = todayUtc();
     const dayIndex = eventDayIndex(today);
     if (action !== "badge" && (dayIndex < 0 || dayIndex >= EVENT_DAYS)) {
+      await releaseMutationLock();
       return res.status(400).json({ ok: false, error: "Invalid event day" });
     }
 
     if (action === "badge") {
       const streak = Math.max(Number(state.streak || 0), Number(state.bestStreak || 0));
       if (streak < 30) {
+        await releaseMutationLock();
         return res.status(400).json({
           ok: false, eligible: false, streak, requiredStreak: 30,
           error: "Reach a 30-day Keeper Streak first"
         });
       }
       if (state.event.badgeClaimedAt) {
+        await releaseMutationLock();
         return res.status(200).json({ ok: true, eligible: true, claimed: true, event: state.event, state });
       }
       state.event.badgeClaimedAt = new Date().toISOString();
       await redis(["SET", key, JSON.stringify(state)]);
+      await releaseMutationLock();
       return res.status(200).json({ ok: true, eligible: true, claimed: true, event: state.event, state });
     }
 
@@ -95,6 +116,7 @@ export default async function handler(req, res) {
 
     if (action === "join") {
       if (state.event.joined) {
+        await releaseMutationLock();
         return res.status(200).json({ ok: true, awarded: false, event: state.event, state });
       }
       state.event.joined = true;
@@ -103,8 +125,12 @@ export default async function handler(req, res) {
     }
 
     if (action === "daily") {
-      if (!state.event.joined) return res.status(400).json({ ok: false, error: "Join the event first" });
+      if (!state.event.joined) {
+        await releaseMutationLock();
+        return res.status(400).json({ ok: false, error: "Join the event first" });
+      }
       if (state.event.daily.includes(today)) {
+        await releaseMutationLock();
         return res.status(200).json({ ok: true, awarded: false, event: state.event, state });
       }
       state.event.daily.push(today);
@@ -114,21 +140,35 @@ export default async function handler(req, res) {
     }
 
     if (action === "core") {
-      if (!state.event.joined) return res.status(400).json({ ok: false, error: "Join the event first" });
+      if (!state.event.joined) {
+        await releaseMutationLock();
+        return res.status(400).json({ ok: false, error: "Join the event first" });
+      }
       const coreDone = ["open", "connect", "identity"].filter(id => state.missions[id]).length;
-      if (coreDone < 3) return res.status(400).json({ ok: false, error: "Complete 3 core missions first" });
-      if (state.event.bonuses.core) return res.status(200).json({ ok: true, awarded: false, event: state.event, state });
+      if (coreDone < 3) {
+        await releaseMutationLock();
+        return res.status(400).json({ ok: false, error: "Complete 3 core missions first" });
+      }
+      if (state.event.bonuses.core) {
+        await releaseMutationLock();
+        return res.status(200).json({ ok: true, awarded: false, event: state.event, state });
+      }
       state.event.bonuses.core = new Date().toISOString();
       xp = 25;
       awarded = true;
     }
 
     if (action === "spin") {
-      if (!state.event.joined) return res.status(400).json({ ok: false, error: "Join the event first" });
+      if (!state.event.joined) {
+        await releaseMutationLock();
+        return res.status(400).json({ ok: false, error: "Join the event first" });
+      }
       if (state.missions.spin?.date !== today) {
+        await releaseMutationLock();
         return res.status(400).json({ ok: false, error: "Complete today's server-verified spin first" });
       }
       if (state.event.bonuses["spin:" + today]) {
+        await releaseMutationLock();
         return res.status(200).json({ ok: true, awarded: false, event: state.event, state });
       }
       state.event.bonuses["spin:" + today] = new Date().toISOString();
@@ -136,10 +176,10 @@ export default async function handler(req, res) {
       awarded = true;
     }
 
-    // MAX_XP is a real event-wide reward ceiling, not only a display value.
     const currentEventXp = Math.max(0, Number(state.event.xp || 0));
     const remainingXp = Math.max(0, MAX_XP - currentEventXp);
     if (awarded && remainingXp === 0) {
+      await releaseMutationLock();
       return res.status(200).json({
         ok: true,
         awarded: false,
@@ -161,6 +201,7 @@ export default async function handler(req, res) {
         await redis(["ZADD", "gk:leaderboard", state.points, telegramId]);
       } catch {
         leaderboardSynced = false;
+        try { await addRiskFlag(telegramId, "EVENT_LEADERBOARD_SYNC", { action }); } catch {}
       }
 
       try {
@@ -172,6 +213,8 @@ export default async function handler(req, res) {
         });
       } catch {}
 
+      await releaseMutationLock();
+
       return res.status(200).json({
         ok: true,
         awarded: true,
@@ -182,6 +225,7 @@ export default async function handler(req, res) {
       });
     }
 
+    await releaseMutationLock();
     return res.status(200).json({
       ok: true,
       awarded: false,
