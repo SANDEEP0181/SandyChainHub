@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { redis, validateTelegramInitData, TON_PROOF_TTL_SECONDS } from "../_lib/goalkeeper.js";
+import { redis, validateTelegramInitData, TON_PROOF_TTL_SECONDS, rateLimit } from "../_lib/goalkeeper.js";
 
 const ALLOWED_ORIGIN = "https://sandeep0181.github.io";
 
@@ -15,6 +15,9 @@ export default async function handler(req, res) {
   if (!botToken) return res.status(500).json({ ok: false, error: "Server is not configured" });
 
   let body;
+  const limiter = await rateLimit(auth.user.id, "tonproof", 5, 60);
+  if (!limiter.ok) return res.status(429).json({ ok: false, error: "Too many proof requests. Try again shortly." });
+
   try { body = typeof req.body === "string" ? JSON.parse(req.body || "{}") : (req.body || {}); }
   catch { return res.status(400).json({ ok: false, error: "Invalid JSON body" }); }
 
