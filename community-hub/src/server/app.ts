@@ -25,11 +25,15 @@ type AsyncHandler = (req: express.Request, res: express.Response, next: express.
 const asyncRoute = (fn: AsyncHandler): express.RequestHandler =>
   (req, res, next) => { void fn(req, res, next).catch(next); };
 
-app.get("/api/health", (_req, res) => res.json({
-  status: "ok",
-  service: "interlink-community-hub",
-  identityConfigured: Boolean(process.env.INTERLINK_JWKS_URL && process.env.INTERLINK_ISSUER && process.env.INTERLINK_AUDIENCE),
-  databaseConfigured: Boolean(process.env.DATABASE_URL)
+app.get("/api/health", asyncRoute(async (_req, res) => {
+  let databaseConnected = false;
+  try { await prisma.$queryRaw`SELECT 1`; databaseConnected = true; } catch { databaseConnected = false; }
+  res.status(databaseConnected ? 200 : 503).json({
+    status: databaseConnected ? "ok" : "degraded",
+    service: "interlink-community-hub",
+    identityConfigured: Boolean(process.env.INTERLINK_JWKS_URL && process.env.INTERLINK_ISSUER && process.env.INTERLINK_AUDIENCE),
+    databaseConnected
+  });
 }));
 
 app.get("/api/posts", asyncRoute(async (req, res) => {
