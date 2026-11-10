@@ -13,7 +13,8 @@
     "db:seed": "tsx prisma/seed.ts",
     "typecheck": "tsc -b",
     "typecheck:server": "tsc --noEmit -p tsconfig.server.json",
-    "test": "tsx --test tests/*.test.ts"
+    "test": "tsx --test tests/*.test.ts",
+    "db:validate": "prisma validate"
   },
   "dependencies": {
     "@prisma/client": "6.19.0",
