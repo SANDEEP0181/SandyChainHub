@@ -25,9 +25,10 @@ Run locally or from a trusted migration environment:
 ```bash
 npm install
 npx prisma generate
-npx prisma db push
+npm run db:migrate
 npm run db:seed
 ```
+The initial SQL migration is committed under `prisma/migrations/`. Review it and take a database backup before applying it to an existing database.
 For production, commit reviewed Prisma migrations and use `npm run db:migrate`. Do not use `db push` as an ongoing production migration process.
 
 ## Preview limitations
