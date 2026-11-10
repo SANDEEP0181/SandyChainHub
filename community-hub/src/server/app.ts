@@ -6,7 +6,7 @@ import { z } from "zod";
 import { prisma } from "./prisma";
 import { requireAdminToken, requireIdentity } from "./auth";
 import {
-  createCommentSchema, createInquirySchema, createPostSchema,
+  createCommentSchema, createPostSchema,
   createReportSchema, progressSchema, reportStatusSchema, moderatePostSchema
 } from "../lib/validation";
 
@@ -117,15 +117,7 @@ app.get("/api/listings", asyncRoute(async (req, res) => {
   res.json({ items });
 }));
 
-app.post("/api/inquiries", requireIdentity, asyncRoute(async (req, res) => {
-  const input = createInquirySchema.parse(req.body);
-  const listing = await prisma.listing.findFirst({ where: { id: input.listingId, status: "PUBLISHED" } });
-  if (!listing) return res.status(404).json({ error: "Listing not found." });
-  const item = await prisma.inquiry.create({
-    data: { ...input, userId: req.communityUser!.id }
-  });
-  res.status(201).json({ item: { id: item.id, createdAt: item.createdAt } });
-}));
+app.post("/api/inquiries", (_req, res) => res.status(403).json({ error: "Direct contact and marketplace enquiry features are not available in this release." }));
 
 app.get("/api/courses", asyncRoute(async (_req, res) => {
   const items = await prisma.course.findMany({
