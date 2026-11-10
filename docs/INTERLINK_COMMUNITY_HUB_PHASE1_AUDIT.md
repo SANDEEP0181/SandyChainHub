@@ -1,63 +1,62 @@
-# InterLink Community Hub — Repository Audit & Phase 1 Plan
+# InterLink Community Hub — Repository Audit & Phase 1 Handoff
 
 Audit date: 2026-11-10  
 Repository: `SANDEEP0181/SandyChainHub`  
 Base branch: `main`  
-Implementation branch: `feature/interlink-community-hub-phase1`
+Implementation branch: `feature/interlink-community-hub-phase1`  
+Pull request: [#50 — Build InterLink Community Hub Phase 1](https://github.com/SANDEEP0181/SandyChainHub/pull/50)
 
 ## 1. Existing repository findings
 
-- The repository default branch is `main`.
-- Root `package.json` is a Hardhat/Solidity workspace. Its scripts compile and test contracts and include SYSFI deployment scripts.
+- Default branch is `main`.
+- Root `package.json` is a Hardhat/Solidity workspace.
 - The legacy browser app is under `frontend/` and uses plain HTML, CSS and JavaScript with Ethers.js.
-- `frontend/config.js` contains a SYSFI testnet contract address, chain ID 76081 and explorer base URL.
-- `frontend/app.js` connects to an injected EVM wallet, checks the SYSFI chain ID and calls the existing contract.
-- `contracts/SandyChainHub.sol` is a SYSFI-testnet-only builder registry and proposal/voting contract. It includes a membership-fee path and transfers that fee to a configured founder address.
-- `goalkeeper/` is a separate TON/Telegram Mini-App area with its own assets and scripts.
-- The repository has a root Hardhat workflow. No Vercel project configuration or frontend package manifest was found at the repository root or in the legacy `frontend/` directory during this audit.
+- `frontend/config.js` points to the existing SYSFI testnet configuration.
+- `contracts/SandyChainHub.sol` is a separate SYSFI-testnet builder registry/proposal contract and contains its own membership-fee behavior.
+- `goalkeeper/` is a separate TON/Telegram Mini-App.
+- The legacy app, contracts, scripts and Goalkeeper folder have not been refactored by this Hub implementation.
 
-## 2. Safety and separation decisions
+## 2. Phase 1 implementation now present
 
-- Do not overwrite or refactor `frontend/`, `contracts/`, `scripts/`, or `goalkeeper/` as part of this Phase 1 preview.
-- Keep the new InterLink Community Hub isolated in `community-hub/`.
-- Do not connect the new app to the legacy SYSFI membership-fee contract.
-- Do not add wallet signing, token transfer, payment, exchange, withdrawal, or redeemable reward functionality.
-- Treat the InterLink sign-in integration as pending until an official App ID and a verified integration contract are available.
-- Do not store private keys, seed phrases, authentication tokens or other secrets in frontend code or Git.
+- React + TypeScript + Vite bilingual frontend in `community-hub/`.
+- Home, Community, Learning, Marketplace discovery and Profile views.
+- API-backed public feed, course catalogue, lesson viewer and curated listing directory, with sample fallback.
+- Express API endpoints for feed, post creation, comments, likes, reports, courses, lessons and lesson progress.
+- Prisma/PostgreSQL schema plus an initial SQL migration and seed script.
+- Admin moderation console at `/admin`, protected by a server-side admin token.
+- Moderators can review reports and hide or remove reported posts.
+- Zod validation, request size limits, rate limiting, Helmet and Vercel security headers.
+- GitHub Actions workflow for Prisma validation, frontend build, API type-check and validation tests.
+- Vercel config, environment example, API docs, security checklist and deployment guide.
 
-## 3. Phase 1 preview currently added
+## 3. Safety boundaries
 
-- React + TypeScript + Vite workspace under `community-hub/`.
-- English/Hindi language switch.
-- Mobile-first Home, Community, Learning, Marketplace and Profile views.
-- Sample posts with local in-memory like state.
-- Sample learning paths and marketplace listings.
-- Clear preview notice explaining that data is sample-only and backend features are not connected.
-- A dedicated GitHub Actions build workflow for the new workspace.
+- No wallet connection, token transfer, payment, exchange, staking, withdrawal or redeemable reward functionality.
+- No direct messages, public contact exchange or location collection.
+- Marketplace is discovery-only; direct enquiries are disabled.
+- Public post/comment validation rejects common links and contact-detail patterns.
+- InterLink identity is fail-closed until official App ID and server-verification details are confirmed.
+- Development identity headers are accepted only outside production.
 
-This is a frontend preview only. It does not yet provide persistent accounts, publishing, moderation, course progress, listing enquiries or a production backend.
+## 4. Automated validation
 
-## 4. Proposed production architecture after review
+The Community Hub GitHub Actions workflow completed successfully on the implementation commit:
+- Prisma schema validation — passed
+- Frontend production build — passed
+- API TypeScript check — passed
+- Validation tests — passed
 
-- Frontend: React + TypeScript + Vite; Vercel project root set to `community-hub/`.
-- Backend: separately deployed Node.js + TypeScript API with strict request validation and rate limits.
-- Database: PostgreSQL for user profiles, posts, comments, reports, listings, enquiries, courses and lesson progress.
-- Media: private-by-default object storage with upload size/type validation and safe image processing.
-- Identity: InterLink MDK adapter behind a server-validated authentication boundary; do not trust client-provided identity claims.
-- Moderation: report queues, admin roles, audit logs, spam controls and user-content removal workflow.
-- Languages: English and Hindi strings kept separate from content data.
+The first legacy Hardhat PR run also executed and found two existing contract-test expectation failures unrelated to the Community Hub: one expects the deployer to be the founder while the contract contains a fixed founder address, and one asserts an exact block timestamp. The legacy workflow has been scoped to contract-workspace paths so Hub-only changes do not repeatedly trigger unrelated legacy tests.
 
-## 5. Next implementation milestones
+## 5. External setup required before public launch
 
-1. Verify GitHub Actions build for this branch and resolve any compiler errors.
-2. Connect a separate Vercel project with Root Directory = `community-hub`, Build Command = `npm run build`, Output Directory = `dist`.
-3. Confirm official InterLink App ID and current MDK package/version requirements before enabling sign-in.
-4. Design and review the API and PostgreSQL schema.
-5. Implement authenticated community posts, comments and moderation.
-6. Implement learning content and progress tracking.
-7. Implement marketplace discovery and enquiry records (no payment processing).
-8. Complete accessibility, security, mobile and bilingual QA before production launch.
+1. Vercel currently reports `build-rate-limit` for the two linked projects, so a preview deployment has not yet been confirmed.
+2. Set Vercel Root Directory to `community-hub`, Build Command to `npm run build`, and Output Directory to `dist`.
+3. Configure a managed PostgreSQL database and set `DATABASE_URL` in Vercel. Apply the committed migration and run the seed script from a trusted environment.
+4. Configure `ADMIN_API_TOKEN` only as a server-side environment variable.
+5. Obtain the official InterLink App ID and ask InterLink to confirm the JWT issuer, audience and JWKS verification endpoint. Do not guess these values.
+6. After identity verification is approved, complete the SDK-to-server token handoff and test sign-in in the InterLink App.
 
-## 6. Current release status
+## 6. Current release state
 
-**Phase 1 frontend preview scaffolded; backend, official InterLink authentication, persistence and production verification remain pending.**
+**Phase 1 code scaffold and automated Community Hub checks are complete on the feature branch.** Production launch remains blocked by external Vercel build quota, database configuration and official InterLink identity details. The draft PR is not merged into `main`.
