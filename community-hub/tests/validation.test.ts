@@ -15,6 +15,12 @@ test("post schema rejects empty or oversized content", () => {
   assert.equal(createPostSchema.safeParse({ body: "x".repeat(5001) }).success, false);
 });
 
+test("public post and comment content rejects contact links and details", () => {
+  assert.equal(createPostSchema.safeParse({ body: "Visit https://example.com for details." }).success, false);
+  assert.equal(createPostSchema.safeParse({ body: "Please call 1234567890 for details." }).success, false);
+  assert.equal(createCommentSchema.safeParse({ body: "Reach me at person@example.com" }).success, false);
+});
+
 test("comment and inquiry schemas enforce minimum content", () => {
   assert.equal(createCommentSchema.safeParse({ body: "OK" }).success, true);
   assert.equal(createInquirySchema.safeParse({ listingId: "listing_1", message: "Please share more details." }).success, true);
