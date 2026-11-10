@@ -15,6 +15,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/community_hub_ci
     defaults:
       run:
         working-directory: community-hub
@@ -27,5 +29,11 @@ jobs:
           node-version: 20
       - name: Install dependencies
         run: npm install --no-audit --no-fund
-      - name: Build
+      - name: Validate database schema
+        run: npx prisma validate
+      - name: Build frontend
         run: npm run build
+      - name: Type-check API
+        run: npm run typecheck:server
+      - name: Run validation tests
+        run: npm test
