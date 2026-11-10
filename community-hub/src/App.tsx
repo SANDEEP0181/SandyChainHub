@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import AdminPage from "./Admin";
 
 type Language = "en" | "hi";
 type PostItem = { id: number | string; author: string; time: string; category: string; en: string; hi: string };
@@ -113,6 +114,8 @@ function App() {
   const toggleLike = (id: number | string) => {
     setLiked((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
   };
+
+  if (window.location.pathname === "/admin") return <AdminPage />;
 
   return (
     <div className="app-shell">
