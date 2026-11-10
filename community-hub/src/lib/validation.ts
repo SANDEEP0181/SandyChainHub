@@ -29,3 +29,7 @@ export const progressSchema = z.object({
 export const reportStatusSchema = z.object({
   status: z.enum(["REVIEWING", "RESOLVED", "DISMISSED"])
 });
+
+export const moderatePostSchema = z.object({
+  status: z.enum(["PUBLISHED", "HIDDEN", "REMOVED"])
+});
