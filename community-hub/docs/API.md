@@ -16,7 +16,7 @@ These return 503 until the InterLink verification configuration is complete. In 
 - `POST /posts/:postId/comments`
 - `POST /posts/:postId/likes`
 - `POST /reports`
-- `POST /inquiries`
+- `POST /inquiries` — disabled with HTTP 403; direct contact is not part of this release.
 - `POST /learning/progress`
 
 For production, configure the issuer, audience and JWKS URL confirmed by InterLink for the registered App ID. The API verifies the JWT signature and claims before mapping the external subject to a local profile. Do not trust client-supplied user IDs.
