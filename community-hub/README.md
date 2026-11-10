@@ -5,7 +5,7 @@ Bilingual English/Hindi community-first mini-app workspace inside the existing S
 ## Phase 1 modules
 - Home and community feed
 - Posts, comments, likes and user reports (REST API)
-- Marketplace directory and enquiry records (no payments)
+- Curated marketplace directory (discovery only; direct contact is disabled)
 - Learning courses, lessons and progress tracking
 - Moderation report queue API
 - InterLink identity verification adapter (fail-closed until official App ID verification settings are confirmed)
