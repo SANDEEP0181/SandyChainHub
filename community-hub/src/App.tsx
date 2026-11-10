@@ -72,6 +72,9 @@ function App() {
   const [apiStatus, setApiStatus] = useState<"checking" | "online" | "offline">("checking");
   const [courseItems, setCourseItems] = useState<CourseItem[]>(courses);
   const [listingItems, setListingItems] = useState<ListingItem[]>(listings);
+  const [selectedCourse, setSelectedCourse] = useState<CourseItem | null>(null);
+  const [lessonItems, setLessonItems] = useState<Array<{ id: string; titleEn: string; titleHi: string; bodyEn: string; bodyHi: string; durationMin: number }>>([]);
+  const [lessonLoading, setLessonLoading] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -110,6 +113,20 @@ function App() {
     { id: "market", label: t.market },
     { id: "profile", label: t.profile }
   ];
+
+  const openCourse = async (course: CourseItem) => {
+    setSelectedCourse(course);
+    setLessonItems([]);
+    setLessonLoading(true);
+    try {
+      const response = await fetch(`/api/courses/${encodeURIComponent(String(course.id))}/lessons`);
+      if (!response.ok) throw new Error("Lesson content is not connected yet.");
+      const data = await response.json();
+      setLessonItems(Array.isArray(data.items) ? data.items : []);
+    } catch {
+      setLessonItems([]);
+    } finally { setLessonLoading(false); }
+  };
 
   const toggleLike = (id: number | string) => {
     setLiked((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
@@ -175,7 +192,7 @@ function App() {
 
         {section === "learn" && <section className="content-section">
           <div className="section-heading"><div><span className="section-kicker">{t.learningTag}</span><h2>{t.learnTitle}</h2><p>{t.learnText}</p></div></div>
-          <div className="course-grid">{courseItems.map((course) => <article className="content-card course-card" key={course.id}><div className="card-meta"><span className="tag">{course.level}</span><span>{course.duration}</span></div><h3>{language === "en" ? course.en : course.hi}</h3><p>{language === "en" ? course.descEn : course.descHi}</p><span className="coming-label">{t.preview}</span></article>)}</div>
+          <div className="course-grid">{courseItems.map((course) => <article className="content-card course-card" key={course.id}><div className="card-meta"><span className="tag">{course.level}</span><span>{course.duration}</span></div><h3>{language === "en" ? course.en : course.hi}</h3><p>{language === "en" ? course.descEn : course.descHi}</p><button className="text-button" onClick={() => void openCourse(course)}>{t.read} →</button></article>)}</div>
         </section>}
 
         {section === "market" && <section className="content-section">
@@ -187,6 +204,8 @@ function App() {
           <div className="profile-panel"><div className="profile-avatar">IL</div><span className="section-kicker">{t.profileStatus}</span><h2>{t.profileTitle}</h2><p>{t.profileText}</p><div className="profile-note">{t.noWallet}</div></div>
         </section>}
       </main>
+
+      {selectedCourse && <div className="modal-backdrop" role="presentation" onClick={() => setSelectedCourse(null)}><section className="lesson-modal" role="dialog" aria-modal="true" aria-label={language === "en" ? selectedCourse.en : selectedCourse.hi} onClick={(event) => event.stopPropagation()}><button className="modal-close" onClick={() => setSelectedCourse(null)} aria-label="Close">×</button><span className="section-kicker">{t.learningTag}</span><h2>{language === "en" ? selectedCourse.en : selectedCourse.hi}</h2>{lessonLoading && <p>Loading lessons…</p>}{!lessonLoading && lessonItems.length === 0 && <p>{language === "en" ? "Lesson content will appear after the database is configured and seeded." : "Database configure और seed होने के बाद lesson content यहाँ दिखेगा।"}</p>}{lessonItems.map((lesson) => <article className="lesson-item" key={lesson.id}><div className="card-meta"><strong>{language === "en" ? lesson.titleEn : lesson.titleHi}</strong><span>{lesson.durationMin} min</span></div><p>{language === "en" ? lesson.bodyEn : lesson.bodyHi}</p></article>)}</section></div>}
 
       <nav className="bottom-nav" aria-label="Main navigation">
         {nav.map((item) => <button key={item.id} className={section === item.id ? "nav-item active" : "nav-item"} onClick={() => setSection(item.id)}><span>{item.id === "home" ? "⌂" : item.id === "community" ? "◎" : item.id === "learn" ? "▤" : item.id === "market" ? "◇" : "◉"}</span>{item.label}</button>)}
