@@ -1,13 +1,15 @@
 import { z } from "zod";
 
+const safePublicText = (value: string) => !/(https?:\\/\\/|www\\.|[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}|0x[a-fA-F0-9]{40})/i.test(value) && !/(?:\\+?\\d[\\d\\s().-]{8,}\\d)/.test(value);
+
 export const createPostSchema = z.object({
-  title: z.string().trim().max(120).optional(),
-  body: z.string().trim().min(5).max(5000),
+  title: z.string().trim().max(120).refine(safePublicText, "Do not post links or private contact details.").optional(),
+  body: z.string().trim().min(5).max(5000).refine(safePublicText, "Do not post links or private contact details."),
   category: z.enum(["Community", "Learning", "Builders", "Questions"]).default("Community")
 });
 
 export const createCommentSchema = z.object({
-  body: z.string().trim().min(2).max(1500)
+  body: z.string().trim().min(2).max(1500).refine(safePublicText, "Do not post links or private contact details.")
 });
 
 export const createReportSchema = z.object({
