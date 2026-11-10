@@ -1,0 +1,202 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  MEMBER
+  MODERATOR
+  ADMIN
+}
+
+enum ContentStatus {
+  PUBLISHED
+  HIDDEN
+  REMOVED
+}
+
+enum ReportStatus {
+  OPEN
+  REVIEWING
+  RESOLVED
+  DISMISSED
+}
+
+enum ListingStatus {
+  DRAFT
+  PUBLISHED
+  PAUSED
+  REMOVED
+}
+
+model User {
+  id              String           @id @default(cuid())
+  externalId      String           @unique
+  displayName     String
+  avatarUrl       String?
+  role            UserRole         @default(MEMBER)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  posts           Post[]
+  comments        Comment[]
+  likes           PostLike[]
+  reports         Report[]         @relation("Reporter")
+  inquiries       Inquiry[]
+  lessonProgress  LessonProgress[]
+  notifications   Notification[]
+  adminLogs       AdminLog[]       @relation("AdminActor")
+
+  @@index([createdAt])
+}
+
+model Post {
+  id          String        @id @default(cuid())
+  authorId    String
+  title       String?
+  body        String
+  category    String        @default("Community")
+  status      ContentStatus @default(PUBLISHED)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  author      User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments    Comment[]
+  likes       PostLike[]
+  reports     Report[]
+
+  @@index([status, createdAt])
+  @@index([authorId, createdAt])
+}
+
+model Comment {
+  id        String        @id @default(cuid())
+  postId    String
+  authorId  String
+  body      String
+  status    ContentStatus @default(PUBLISHED)
+  createdAt DateTime      @default(now())
+  post      Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author    User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([postId, createdAt])
+}
+
+model PostLike {
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String
+  createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+}
+
+model Report {
+  id          String       @id @default(cuid())
+  reporterId  String
+  postId      String?
+  reason      String
+  details     String?
+  status      ReportStatus @default(OPEN)
+  createdAt   DateTime     @default(now())
+  reviewedAt  DateTime?
+  reporter    User         @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  post        Post?        @relation(fields: [postId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+}
+
+model Listing {
+  id          String        @id @default(cuid())
+  title       String
+  description String
+  category    String
+  language    String        @default("en")
+  status      ListingStatus @default(PUBLISHED)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  inquiries   Inquiry[]
+
+  @@index([status, category])
+}
+
+model Inquiry {
+  id        String   @id @default(cuid())
+  listingId String
+  userId    String
+  message   String
+  createdAt DateTime @default(now())
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([listingId, createdAt])
+  @@index([userId, createdAt])
+}
+
+model Course {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  titleEn     String
+  titleHi     String
+  descriptionEn String
+  descriptionHi String
+  level       String   @default("Beginner")
+  durationMin Int      @default(5)
+  published   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  lessons     Lesson[]
+}
+
+model Lesson {
+  id          String           @id @default(cuid())
+  courseId    String
+  order       Int
+  titleEn     String
+  titleHi     String
+  bodyEn      String
+  bodyHi      String
+  durationMin Int              @default(5)
+  course      Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  progress    LessonProgress[]
+
+  @@unique([courseId, order])
+}
+
+model LessonProgress {
+  id          String   @id @default(cuid())
+  userId      String
+  lessonId    String
+  completedAt DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  body      String
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model AdminLog {
+  id        String   @id @default(cuid())
+  actorId   String
+  action    String
+  targetId  String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+  actor     User     @relation("AdminActor", fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@index([createdAt])
+}
