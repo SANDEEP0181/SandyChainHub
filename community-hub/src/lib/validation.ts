@@ -1,6 +1,8 @@
 import { z } from "zod";
 
-const safePublicText = (value: string) => !/(https?:\\/\\/|www\\.|[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}|0x[a-fA-F0-9]{40})/i.test(value) && !/(?:\\+?\\d[\\d\\s().-]{8,}\\d)/.test(value);
+const contactPattern = new RegExp("https?:[/][/]|www[.]|[A-Z0-9._%+-]+@[A-Z0-9.-]+[.][A-Z]{2,}|0x[a-fA-F0-9]{40}", "i");
+const phonePattern = new RegExp("(?:[+]?[0-9][0-9 ()-]{8,}[0-9])");
+const safePublicText = (value: string) => !contactPattern.test(value) && !phonePattern.test(value);
 
 export const createPostSchema = z.object({
   title: z.string().trim().max(120).refine(safePublicText, "Do not post links or private contact details.").optional(),
