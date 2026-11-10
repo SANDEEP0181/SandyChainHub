@@ -7,7 +7,7 @@ import { prisma } from "./prisma";
 import { requireAdminToken, requireIdentity } from "./auth";
 import {
   createCommentSchema, createInquirySchema, createPostSchema,
-  createReportSchema, progressSchema, reportStatusSchema
+  createReportSchema, progressSchema, reportStatusSchema, moderatePostSchema
 } from "../lib/validation";
 
 export const app = express();
@@ -165,6 +165,12 @@ app.get("/api/admin/reports", requireAdminToken, asyncRoute(async (_req, res) =>
     include: { reporter: { select: { displayName: true } }, post: { select: { id: true, body: true, status: true } } }
   });
   res.json({ items });
+}));
+
+app.patch("/api/admin/posts/:postId", requireAdminToken, asyncRoute(async (req, res) => {
+  const input = moderatePostSchema.parse(req.body);
+  const item = await prisma.post.update({ where: { id: req.params.postId }, data: { status: input.status } });
+  res.json({ item: { id: item.id, status: item.status } });
 }));
 
 app.patch("/api/admin/reports/:reportId", requireAdminToken, asyncRoute(async (req, res) => {
