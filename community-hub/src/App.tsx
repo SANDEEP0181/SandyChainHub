@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type Language = "en" | "hi";
+type PostItem = { id: number | string; author: string; time: string; category: string; en: string; hi: string };
 type Section = "home" | "community" | "learn" | "market" | "profile";
 
 const copy = {
@@ -42,7 +43,7 @@ const copy = {
   }
 } as const;
 
-const posts = [
+const posts: PostItem[] = [
   { id: 1, author: "Linker Learning", time: "2h", category: "Learning", en: "What helped you understand blockchain for the first time? Share one beginner-friendly resource.", hi: "आपको पहली बार Blockchain समझने में किस चीज़ ने मदद की? शुरुआती लोगों के लिए एक उपयोगी resource साझा करें।" },
   { id: 2, author: "Community Desk", time: "5h", category: "Community", en: "This week’s discussion: how can we make useful digital tools easier for local communities to access?", hi: "इस सप्ताह की चर्चा: स्थानीय कम्युनिटी के लिए उपयोगी digital tools को और आसान कैसे बनाया जा सकता है?" },
   { id: 3, author: "Builder Notes", time: "1d", category: "Builders", en: "A good project starts with a real problem. What community problem would you like builders to solve?", hi: "एक अच्छा project वास्तविक समस्या से शुरू होता है। आप चाहते हैं कि builders कम्युनिटी की कौन-सी समस्या हल करें?" }
@@ -63,7 +64,30 @@ const listings = [
 function App() {
   const [language, setLanguage] = useState<Language>("en");
   const [section, setSection] = useState<Section>("home");
-  const [liked, setLiked] = useState<number[]>([]);
+  const [liked, setLiked] = useState<Array<number | string>>([]);
+  const [feedPosts, setFeedPosts] = useState<PostItem[]>(posts);
+  const [apiStatus, setApiStatus] = useState<"checking" | "online" | "offline">("checking");
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/health").then((response) => {
+      if (!response.ok) throw new Error("API unavailable");
+      return response.json();
+    }).then(() => { if (active) setApiStatus("online"); }).catch(() => { if (active) setApiStatus("offline"); });
+    fetch("/api/posts?limit=10").then((response) => response.ok ? response.json() : null).then((data) => {
+      if (!active || !Array.isArray(data?.items) || data.items.length === 0) return;
+      const mapped: PostItem[] = data.items.map((post: { id: string; body: string; category: string; createdAt: string; author?: { displayName?: string } }) => ({
+        id: post.id,
+        author: post.author?.displayName || "Community Member",
+        time: new Date(post.createdAt).toLocaleDateString(),
+        category: post.category,
+        en: post.body,
+        hi: post.body
+      }));
+      setFeedPosts(mapped);
+    }).catch(() => undefined);
+    return () => { active = false; };
+  }, []);
   const t = copy[language];
 
   const nav: { id: Section; label: string }[] = [
@@ -74,7 +98,7 @@ function App() {
     { id: "profile", label: t.profile }
   ];
 
-  const toggleLike = (id: number) => {
+  const toggleLike = (id: number | string) => {
     setLiked((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
   };
 
@@ -125,12 +149,12 @@ function App() {
             <FeatureCard icon="◇" title={t.marketTitle} text={t.marketText} action={t.explore} onClick={() => setSection("market")} />
           </div>
           <div className="section-heading compact-heading"><div><span className="section-kicker">{t.communityTag}</span><h2>{t.latest}</h2></div><button className="text-button" onClick={() => setSection("community")}>{t.explore} →</button></div>
-          <PostGrid language={language} liked={liked} onLike={toggleLike} limit={2} />
+          <PostGrid language={language} liked={liked} onLike={toggleLike} items={feedPosts} limit={2} />
         </section>}
 
         {section === "community" && <section className="content-section">
           <div className="section-heading"><div><span className="section-kicker">{t.communityTag}</span><h2>{t.communityTitle}</h2><p>{t.communityText}</p></div></div>
-          <PostGrid language={language} liked={liked} onLike={toggleLike} />
+          <PostGrid language={language} liked={liked} onLike={toggleLike} items={feedPosts} />
         </section>}
 
         {section === "learn" && <section className="content-section">
@@ -160,9 +184,9 @@ function FeatureCard({ icon, title, text, action, onClick }: { icon: string; tit
   return <article className="feature-card"><span className="feature-icon">{icon}</span><h3>{title}</h3><p>{text}</p><button className="text-button" onClick={onClick}>{action} →</button></article>;
 }
 
-function PostGrid({ language, liked, onLike, limit }: { language: Language; liked: number[]; onLike: (id: number) => void; limit?: number }) {
+function PostGrid({ language, liked, onLike, items, limit }: { language: Language; liked: Array<number | string>; onLike: (id: number | string) => void; items: PostItem[]; limit?: number }) {
   const t = copy[language];
-  return <div className="post-grid">{posts.slice(0, limit ?? posts.length).map((post) => {
+  return <div className="post-grid">{items.slice(0, limit ?? items.length).map((post) => {
     const isLiked = liked.includes(post.id);
     return <article className="content-card post-card" key={post.id}><div className="post-author"><span className="author-avatar">{post.author.slice(0, 1)}</span><div><strong>{post.author}</strong><small>{post.time} · {post.category}</small></div></div><p>{language === "en" ? post.en : post.hi}</p><div className="post-actions"><button className={isLiked ? "like-button liked" : "like-button"} onClick={() => onLike(post.id)}>{isLiked ? "♥" : "♡"} {isLiked ? t.liked : t.like}</button><span className="sample-label">{t.preview}</span></div></article>;
   })}</div>;
