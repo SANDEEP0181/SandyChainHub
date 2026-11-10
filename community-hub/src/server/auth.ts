@@ -1,4 +1,4 @@
-import type { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response, RequestHandler } from "express";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import { prisma } from "./prisma";
 
@@ -19,7 +19,8 @@ function getJwks() {
   return jwks;
 }
 
-export async function requireIdentity(req: Request, res: Response, next: NextFunction) {
+export const requireIdentity: RequestHandler = (req, res, next) => {
+  void (async () => {
   try {
     // Local-only test identity. This is deliberately impossible in production.
     if (process.env.NODE_ENV !== "production" && process.env.DEV_AUTH_ENABLED === "true") {
@@ -60,7 +61,8 @@ export async function requireIdentity(req: Request, res: Response, next: NextFun
   } catch {
     return res.status(401).json({ error: "Identity verification failed." });
   }
-}
+  })().catch(() => res.status(401).json({ error: "Identity verification failed." }));
+};
 
 export function requireAdminToken(req: Request, res: Response, next: NextFunction) {
   const expected = process.env.ADMIN_API_TOKEN;
