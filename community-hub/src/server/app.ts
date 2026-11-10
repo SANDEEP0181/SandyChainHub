@@ -19,10 +19,11 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization", "X-Admin-Token"]
 }));
 app.use(express.json({ limit: "32kb" }));
-app.use(rateLimit({ windowMs: 60_000, limit: 90, standardHeaders: "draft-7", legacyHeaders: false }));
+app.use(rateLimit({ windowMs: 60_000, limit: 90, standardHeaders: true, legacyHeaders: false }));
 
-const asyncRoute = (fn: express.RequestHandler): express.RequestHandler =>
-  (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
+type AsyncHandler = (req: express.Request, res: express.Response, next: express.NextFunction) => Promise<unknown>;
+const asyncRoute = (fn: AsyncHandler): express.RequestHandler =>
+  (req, res, next) => { void fn(req, res, next).catch(next); };
 
 app.get("/api/health", (_req, res) => res.json({
   status: "ok",
