@@ -21,7 +21,7 @@ cp .env.example .env
 Set `DATABASE_URL` in `.env`, then:
 ```bash
 npx prisma generate
-npx prisma db push
+npm run db:migrate
 npm run db:seed
 npm run dev
 ```
