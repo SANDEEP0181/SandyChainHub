@@ -31,6 +31,23 @@ export default function AdminPage() {
     } finally { setBusy(false); }
   }
 
+  async function moderatePost(id: string, status: "HIDDEN" | "REMOVED" | "PUBLISHED") {
+    setBusy(true);
+    try {
+      const response = await fetch(`/api/admin/posts/${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", "x-admin-token": token },
+        body: JSON.stringify({ status })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Unable to moderate post.");
+      setItems((current) => current.map((item) => item.post?.id === id ? { ...item, post: { ...item.post, status } } : item));
+      setMessage(`Post status updated: ${status.toLowerCase()}.`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Request failed.");
+    } finally { setBusy(false); }
+  }
+
   async function updateReport(id: string, status: "REVIEWING" | "RESOLVED" | "DISMISSED") {
     setBusy(true);
     try {
@@ -67,6 +84,7 @@ export default function AdminPage() {
           <h3>{item.reporter?.displayName || "Community member"}</h3>
           <p>{item.details || "No additional details."}</p>
           {item.post && <blockquote className="reported-content">{item.post.body}</blockquote>}
+          {item.post && <div className="admin-actions"><button className="button-secondary" disabled={busy} onClick={() => moderatePost(item.post!.id, "HIDDEN")}>Hide post</button><button className="button-secondary" disabled={busy} onClick={() => moderatePost(item.post!.id, "REMOVED")}>Remove post</button></div>}
           <div className="admin-actions">
             <button className="button-secondary" disabled={busy} onClick={() => updateReport(item.id, "REVIEWING")}>Review</button>
             <button className="button-primary" disabled={busy} onClick={() => updateReport(item.id, "RESOLVED")}>Resolve</button>
