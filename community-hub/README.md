@@ -1,34 +1,46 @@
-# InterLink Community Hub — Phase 1 Preview
+# InterLink Community Hub
 
-A separate, bilingual (English/Hindi) React + TypeScript frontend workspace inside the existing SandyChainHub repository.
+Bilingual English/Hindi community-first mini-app workspace inside the existing SandyChainHub repository.
 
-## Included in this preview
-- Mobile-first Home, Community, Learning, Marketplace and Profile views
-- English/Hindi language switch
-- Sample community posts with in-memory like interaction
-- Sample learning paths and community listings
-- Green/white visual system
+## Phase 1 modules
+- Home and community feed
+- Posts, comments, likes and user reports (REST API)
+- Marketplace directory and enquiry records (no payments)
+- Learning courses, lessons and progress tracking
+- Moderation report queue API
+- InterLink identity verification adapter (fail-closed until official App ID verification settings are confirmed)
 
-## Important boundaries
-- This is a frontend preview, not a production community platform.
-- Content is sample data; posts, likes and listings are not persisted.
-- Sign-in is not connected. InterLink MDK integration is intentionally pending official App ID and integration verification.
-- No wallet connection, token actions, payment, transfer, or redeemable rewards are implemented.
-- Do not enter personal, account, wallet, or payment information into this preview.
+## Stack
+React 18, TypeScript, Vite, Express, Prisma, PostgreSQL, Zod, Helmet, JWT/JWKS verification and Vercel Node Functions.
 
-## Run locally
+## Local setup
 ```bash
 npm install
+cp .env.example .env
+```
+Set `DATABASE_URL` in `.env`, then:
+```bash
+npx prisma generate
+npx prisma db push
+npm run db:seed
 npm run dev
 ```
 
-## Build
+The Vite frontend runs at `http://localhost:5173`. Vercel serves the API under `/api/*` in the same project.
+
+## Validation
 ```bash
 npm run build
+npm run typecheck:server
+npm test
 ```
 
-## Vercel
-Create a Vercel project linked to this repository and set **Root Directory** to `community-hub`. Build command: `npm run build`; output directory: `dist`. The existing `frontend/` and `goalkeeper/` folders are separate and should remain untouched.
+## Deploy
+See [Deployment Guide](docs/DEPLOYMENT.md). Vercel Root Directory must be `community-hub`. Set a managed PostgreSQL database and server-only environment variables before activating data features.
 
-## Next engineering phase
-Add a reviewed backend and database for accounts, moderation, community posts, learning progress and listing enquiries. Complete security review and test flows before production use.
+## Security boundaries
+- No wallet connection, token payments, transfers, staking, withdrawals or redeemable rewards.
+- No client-supplied user IDs are trusted.
+- InterLink identity writes remain disabled until the provider's issuer, audience and JWKS settings are confirmed for this registered app.
+- Local development identity mode is not available in production.
+- Never commit secrets, private keys or recovery phrases.
