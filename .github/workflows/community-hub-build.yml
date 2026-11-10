@@ -1,0 +1,39 @@
+name: InterLink Community Hub Build
+
+on:
+  push:
+    branches:
+      - main
+      - feature/interlink-community-hub-phase1
+    paths:
+      - "community-hub/**"
+      - ".github/workflows/community-hub-build.yml"
+  pull_request:
+    paths:
+      - "community-hub/**"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/community_hub_ci
+    defaults:
+      run:
+        working-directory: community-hub
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Validate database schema
+        run: npx prisma validate
+      - name: Build frontend
+        run: npm run build
+      - name: Type-check API
+        run: npm run typecheck:server
+      - name: Run validation tests
+        run: npm test

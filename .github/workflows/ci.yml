@@ -5,6 +5,13 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+    paths:
+      - "contracts/**"
+      - "scripts/**"
+      - "test/**"
+      - "hardhat.config.*"
+      - "package.json"
+      - "package-lock.json"
 
 jobs:
   test:
