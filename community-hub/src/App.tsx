@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 
 type Language = "en" | "hi";
 type PostItem = { id: number | string; author: string; time: string; category: string; en: string; hi: string };
+type CourseItem = { id: number | string; level: string; duration: string; en: string; hi: string; descEn: string; descHi: string };
+type ListingItem = { id: number | string; type: string; en: string; hi: string; descEn: string; descHi: string };
 type Section = "home" | "community" | "learn" | "market" | "profile";
 
 const copy = {
@@ -67,6 +69,8 @@ function App() {
   const [liked, setLiked] = useState<Array<number | string>>([]);
   const [feedPosts, setFeedPosts] = useState<PostItem[]>(posts);
   const [apiStatus, setApiStatus] = useState<"checking" | "online" | "offline">("checking");
+  const [courseItems, setCourseItems] = useState<CourseItem[]>(courses);
+  const [listingItems, setListingItems] = useState<ListingItem[]>(listings);
 
   useEffect(() => {
     let active = true;
@@ -74,6 +78,14 @@ function App() {
       if (!response.ok) throw new Error("API unavailable");
       return response.json();
     }).then(() => { if (active) setApiStatus("online"); }).catch(() => { if (active) setApiStatus("offline"); });
+    fetch("/api/courses").then((response) => response.ok ? response.json() : null).then((data) => {
+      if (!active || !Array.isArray(data?.items) || data.items.length === 0) return;
+      setCourseItems(data.items.map((item: { id: string; level: string; durationMin: number; titleEn: string; titleHi: string; descriptionEn: string; descriptionHi: string }) => ({ id: item.id, level: item.level, duration: `${item.durationMin} min`, en: item.titleEn, hi: item.titleHi, descEn: item.descriptionEn, descHi: item.descriptionHi })));
+    }).catch(() => undefined);
+    fetch("/api/listings").then((response) => response.ok ? response.json() : null).then((data) => {
+      if (!active || !Array.isArray(data?.items) || data.items.length === 0) return;
+      setListingItems(data.items.map((item: { id: string; category: string; title: string; description: string }) => ({ id: item.id, type: item.category, en: item.title, hi: item.title, descEn: item.description, descHi: item.description })));
+    }).catch(() => undefined);
     fetch("/api/posts?limit=10").then((response) => response.ok ? response.json() : null).then((data) => {
       if (!active || !Array.isArray(data?.items) || data.items.length === 0) return;
       const mapped: PostItem[] = data.items.map((post: { id: string; body: string; category: string; createdAt: string; author?: { displayName?: string } }) => ({
@@ -139,6 +151,7 @@ function App() {
         <section className="preview-notice" role="note">
           <strong>{t.preview}</strong>
           <p>{t.previewText}</p>
+          <small className="api-state">{apiStatus === "online" ? "API connected" : apiStatus === "offline" ? "API unavailable · showing sample content" : "Checking API…"}</small>
         </section>
 
         {section === "home" && <section className="content-section">
@@ -159,12 +172,12 @@ function App() {
 
         {section === "learn" && <section className="content-section">
           <div className="section-heading"><div><span className="section-kicker">{t.learningTag}</span><h2>{t.learnTitle}</h2><p>{t.learnText}</p></div></div>
-          <div className="course-grid">{courses.map((course) => <article className="content-card course-card" key={course.id}><div className="card-meta"><span className="tag">{course.level}</span><span>{course.duration}</span></div><h3>{language === "en" ? course.en : course.hi}</h3><p>{language === "en" ? course.descEn : course.descHi}</p><span className="coming-label">{t.preview}</span></article>)}</div>
+          <div className="course-grid">{courseItems.map((course) => <article className="content-card course-card" key={course.id}><div className="card-meta"><span className="tag">{course.level}</span><span>{course.duration}</span></div><h3>{language === "en" ? course.en : course.hi}</h3><p>{language === "en" ? course.descEn : course.descHi}</p><span className="coming-label">{t.preview}</span></article>)}</div>
         </section>}
 
         {section === "market" && <section className="content-section">
           <div className="section-heading"><div><span className="section-kicker">{t.marketplaceTag}</span><h2>{t.marketTitle}</h2><p>{t.marketText}</p></div></div>
-          <div className="listing-grid">{listings.map((listing) => <article className="content-card listing-card" key={listing.id}><span className="tag">{listing.type}</span><h3>{language === "en" ? listing.en : listing.hi}</h3><p>{language === "en" ? listing.descEn : listing.descHi}</p><span className="coming-label">{t.preview}</span></article>)}</div>
+          <div className="listing-grid">{listingItems.map((listing) => <article className="content-card listing-card" key={listing.id}><span className="tag">{listing.type}</span><h3>{language === "en" ? listing.en : listing.hi}</h3><p>{language === "en" ? listing.descEn : listing.descHi}</p><span className="coming-label">{t.preview}</span></article>)}</div>
         </section>}
 
         {section === "profile" && <section className="content-section">
