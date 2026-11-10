@@ -11,3 +11,6 @@
 - Privacy: collect only the external identity subject and display name needed for the MVP. Do not request wallet keys, recovery phrases, government IDs or payment information.
 - No financial features: this product phase has no token transfers, payments, exchange, withdrawals, staking or redeemable rewards.
 - Before launch: perform dependency review, access-control tests, abuse tests, backup restore test and a human moderation review.
+
+- Youth safety: no direct messaging, no public contact-detail exchange and no location collection in this release. Public posts/comments reject common link and contact-detail patterns; reports and moderator hide/remove controls are available.
+- Marketplace: discovery-only listings. Direct enquiries and off-platform contact exchange are disabled in this release.
